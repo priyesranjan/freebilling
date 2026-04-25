@@ -1,0 +1,214 @@
+const express = require('express');
+const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const db = require('./db');
+const http = require('http');
+const { Server } = require('socket.io');
+
+require('dotenv').config();
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: { origin: '*' }
+});
+
+app.use(cors());
+app.use(express.json());
+
+const JWT_SECRET = process.env.JWT_SECRET || 'erp_bill_super_secret_key';
+
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  
+  if (!token) return res.sendStatus(401);
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+};
+
+// WebSocket Authentication & Room Joining
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (!token) return next(new Error('Authentication error'));
+  
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) return next(new Error('Authentication error'));
+    socket.user = user;
+    next();
+  });
+});
+
+io.on('connection', (socket) => {
+  console.log(`Socket connected: ${socket.id} for business: ${socket.user.businessId}`);
+  // Join a room specifically for this business
+  socket.join(socket.user.businessId);
+
+  socket.on('disconnect', () => {
+    console.log(`Socket disconnected: ${socket.id}`);
+  });
+});
+
+// --- AUTH ENDPOINTS ---
+
+app.post('/api/auth/send-otp', async (req, res) => {
+  const { phone } = req.body;
+  if (!phone) return res.status(400).json({ error: 'Phone is required' });
+  console.log(`Sending OTP 1234 to ${phone}`);
+  res.json({ success: true, message: 'OTP sent' });
+});
+
+app.post('/api/auth/verify-otp', async (req, res) => {
+  const { phone, otp, name } = req.body;
+  if (!phone || !otp) return res.status(400).json({ error: 'Phone and OTP are required' });
+  
+  if (otp !== '1234') return res.status(401).json({ error: 'Invalid OTP' });
+  
+  try {
+    let result = await db.query('SELECT * FROM businesses WHERE phone = $1', [phone]);
+    let user;
+    if (result.rows.length === 0) {
+      const businessId = 'BUS-' + Date.now();
+      const bName = name || 'My Business';
+      await db.query(
+        'INSERT INTO businesses (id, name, phone, password) VALUES ($1, $2, $3, $4)',
+        [businessId, bName, phone, 'otp-auth']
+      );
+      user = { id: businessId, name: bName, phone };
+    } else {
+      user = result.rows[0];
+    }
+    
+    const token = jwt.sign({ businessId: user.id, name: user.name, phone: user.phone }, JWT_SECRET);
+    res.json({ token, business: { id: user.id, name: user.name, phone: user.phone } });
+  } catch (err) {
+    console.error("Verify OTP Error:", err);
+    res.status(500).json({ error: 'Database error', details: err.message });
+  }
+});
+
+app.post('/api/auth/google', async (req, res) => {
+  const { email, name } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email is required' });
+
+  try {
+    let result = await db.query('SELECT * FROM businesses WHERE phone = $1', [email]);
+    let user;
+    if (result.rows.length === 0) {
+      const businessId = 'BUS-' + Date.now();
+      const bName = name || 'My Business';
+      await db.query(
+        'INSERT INTO businesses (id, name, phone, password) VALUES ($1, $2, $3, $4)',
+        [businessId, bName, email, 'google-auth']
+      );
+      user = { id: businessId, name: bName, phone: email };
+    } else {
+      user = result.rows[0];
+    }
+    
+    const token = jwt.sign({ businessId: user.id, name: user.name, phone: user.phone }, JWT_SECRET);
+    res.json({ token, business: { id: user.id, name: user.name, phone: user.phone } });
+  } catch (err) {
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+// --- PRODUCTS ENDPOINTS ---
+
+app.get('/api/products', authenticateToken, async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM products WHERE business_id = $1 ORDER BY created_at DESC', [req.user.businessId]);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+app.post('/api/products', authenticateToken, async (req, res) => {
+  const { id, name, price, codes, tax_rate, current_stock, low_stock_level } = req.body;
+  try {
+    const result = await db.query(
+      `INSERT INTO products (id, business_id, name, price, codes, tax_rate, current_stock, low_stock_level) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [id, req.user.businessId, name, price, JSON.stringify(codes || []), tax_rate || 'exempt', current_stock || 0, low_stock_level || 0]
+    );
+    
+    // Broadcast change to all devices in the business room
+    io.to(req.user.businessId).emit('sync_event', { type: 'Product', action: 'insert', data: result.rows[0] });
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Database error', details: err.message });
+  }
+});
+
+// --- KHATA (PARTIES) ENDPOINTS ---
+
+app.get('/api/khata', authenticateToken, async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM parties WHERE business_id = $1 ORDER BY name ASC', [req.user.businessId]);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+app.post('/api/khata', authenticateToken, async (req, res) => {
+  const { id, name, phone, type, balance } = req.body;
+  try {
+    const result = await db.query(
+      `INSERT INTO parties (id, business_id, name, phone, type, balance) 
+       VALUES ($1, $2, $3, $4, $5, $6) 
+       ON CONFLICT (id) DO UPDATE SET 
+         name = EXCLUDED.name, 
+         phone = EXCLUDED.phone, 
+         type = EXCLUDED.type, 
+         balance = EXCLUDED.balance
+       RETURNING *`,
+      [id, req.user.businessId, name, phone, type || 'customer', balance || 0]
+    );
+    
+    io.to(req.user.businessId).emit('sync_event', { type: 'PartyRecord', action: 'upsert', data: result.rows[0] });
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+// --- INVOICES ENDPOINTS ---
+
+app.get('/api/invoices', authenticateToken, async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM invoices WHERE business_id = $1 ORDER BY created_at DESC', [req.user.businessId]);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+app.post('/api/invoices', authenticateToken, async (req, res) => {
+  const { id, customer_name, customer_phone, total, payment_mode } = req.body;
+  try {
+    const result = await db.query(
+      `INSERT INTO invoices (id, business_id, customer_name, customer_phone, total, payment_mode) 
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [id, req.user.businessId, customer_name, customer_phone, total, payment_mode]
+    );
+    
+    io.to(req.user.businessId).emit('sync_event', { type: 'InvoiceRecord', action: 'insert', data: result.rows[0] });
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`ERP Backend API & WebSockets running on port ${PORT}`);
+});
