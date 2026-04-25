@@ -16,6 +16,7 @@ class WebSocketService {
     if (token == null) return; // Cannot connect without auth
 
     _socket = IO.io(ApiService.baseUrl.replaceAll('/api', ''), IO.OptionBuilder()
+      .setTransports(['websocket'])
       .setAuth({'token': token})
       .disableAutoConnect()
       .build());

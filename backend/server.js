@@ -3,6 +3,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const db = require('./db');
 const http = require('http');
+const axios = require('axios');
 const { Server } = require('socket.io');
 
 require('dotenv').config();
@@ -17,6 +18,7 @@ app.use(cors());
 app.use(express.json());
 
 const JWT_SECRET = process.env.JWT_SECRET || 'erp_bill_super_secret_key';
+const TWO_FACTOR_API_KEY = 'a4f42790-1574-11f1-bcb0-0200cd936042';
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -58,17 +60,37 @@ io.on('connection', (socket) => {
 app.post('/api/auth/send-otp', async (req, res) => {
   const { phone } = req.body;
   if (!phone) return res.status(400).json({ error: 'Phone is required' });
-  console.log(`Sending OTP 1234 to ${phone}`);
-  res.json({ success: true, message: 'OTP sent' });
+  
+  try {
+    // 2Factor.in Send OTP
+    const url = `https://2factor.in/API/V1/${TWO_FACTOR_API_KEY}/SMS/${phone}/AUTOGEN3/OTP_LOGIN`;
+    const response = await axios.get(url);
+    
+    if (response.data.Status === 'Success') {
+      res.json({ success: true, sessionId: response.data.Details });
+    } else {
+      throw new Error(response.data.Details);
+    }
+  } catch (err) {
+    console.error("2Factor Error:", err.message);
+    // Fallback for development if needed, but here we want real SMS
+    res.status(500).json({ error: 'Failed to send SMS', details: err.message });
+  }
 });
 
 app.post('/api/auth/verify-otp', async (req, res) => {
-  const { phone, otp, name } = req.body;
-  if (!phone || !otp) return res.status(400).json({ error: 'Phone and OTP are required' });
-  
-  if (otp !== '1234') return res.status(401).json({ error: 'Invalid OTP' });
+  const { phone, otp, sessionId, name } = req.body;
+  if (!phone || !otp || !sessionId) return res.status(400).json({ error: 'Phone, OTP and SessionId are required' });
   
   try {
+    // 2Factor.in Verify OTP
+    const url = `https://2factor.in/API/V1/${TWO_FACTOR_API_KEY}/SMS/VERIFY/${sessionId}/${otp}`;
+    const response = await axios.get(url);
+    
+    if (response.data.Status !== 'Success') {
+      return res.status(401).json({ error: 'Invalid OTP' });
+    }
+    
     let result = await db.query('SELECT * FROM businesses WHERE phone = $1', [phone]);
     let user;
     if (result.rows.length === 0) {
@@ -87,7 +109,7 @@ app.post('/api/auth/verify-otp', async (req, res) => {
     res.json({ token, business: { id: user.id, name: user.name, phone: user.phone } });
   } catch (err) {
     console.error("Verify OTP Error:", err);
-    res.status(500).json({ error: 'Database error', details: err.message });
+    res.status(500).json({ error: 'Invalid OTP or Service Error', details: err.message });
   }
 });
 
@@ -129,19 +151,19 @@ app.get('/api/products', authenticateToken, async (req, res) => {
 });
 
 app.post('/api/products', authenticateToken, async (req, res) => {
-  const { id, name, price, codes, tax_rate, current_stock, low_stock_level } = req.body;
+  const { id, name, mrp, selling_price, codes, tax_rate, current_stock, low_stock_level } = req.body;
   try {
     const result = await db.query(
-      `INSERT INTO products (id, business_id, name, price, codes, tax_rate, current_stock, low_stock_level) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-      [id, req.user.businessId, name, price, JSON.stringify(codes || []), tax_rate || 'exempt', current_stock || 0, low_stock_level || 0]
+      `INSERT INTO products (id, business_id, name, mrp, selling_price, price, codes, tax_rate, current_stock, low_stock_level) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+      [id, req.user.businessId, name, mrp || 0, selling_price || 0, selling_price || 0, JSON.stringify(codes || []), tax_rate || 'exempt', current_stock || 0, low_stock_level || 0]
     );
     
-    // Broadcast change to all devices in the business room
     io.to(req.user.businessId).emit('sync_event', { type: 'Product', action: 'insert', data: result.rows[0] });
     
     res.json(result.rows[0]);
   } catch (err) {
+    console.error("Save Product Error:", err.message);
     res.status(500).json({ error: 'Database error', details: err.message });
   }
 });

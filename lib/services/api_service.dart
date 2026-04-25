@@ -6,7 +6,7 @@ import '../enums/enums.dart';
 import 'sync_service.dart';
 
 class ApiService {
-  static const String baseUrl = 'https://backend-noobcoders.vercel.app/api'; 
+  static const String baseUrl = 'http://yqom1p17blookczemd4umqcn.91.108.111.194.sslip.io/api'; 
 
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
