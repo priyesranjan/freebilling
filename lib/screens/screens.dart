@@ -52,7 +52,8 @@ final List<Product> mockProducts = <Product>[
   Product(
     id: 'P2001',
     name: 'Milk 1L',
-    price: 58,
+    sellingPrice: 58,
+    mrp: 60,
     codes: const <String>['89010001', 'MILK-1L'],
     taxRate: TaxRate.five,
     lowStockAlertLevel: 10.0,
@@ -68,7 +69,8 @@ final List<Product> mockProducts = <Product>[
   Product(
     id: 'P2002',
     name: 'Rice 5kg',
-    price: 390,
+    sellingPrice: 390,
+    mrp: 450,
     codes: const <String>['89010002', 'RICE-5KG'],
     taxRate: TaxRate.exempt,
     lowStockAlertLevel: 5.0,
@@ -84,7 +86,8 @@ final List<Product> mockProducts = <Product>[
   Product(
     id: 'P2003',
     name: 'Soap Pack',
-    price: 120,
+    sellingPrice: 120,
+    mrp: 150,
     codes: const <String>['89010003', 'SOAP-PACK'],
     taxRate: TaxRate.eighteen,
     lowStockAlertLevel: 20.0,
@@ -274,7 +277,8 @@ class _PlatformShellState extends State<PlatformShell> {
     final product = Product(
       id: _nextId('P'), 
       name: name, 
-      price: price, 
+      sellingPrice: price, 
+      mrp: price,
       codes: codes,
       syncState: EntityState.pendingInsert,
     );

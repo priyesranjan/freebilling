@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const db = require('./db');
 const http = require('http');
 const axios = require('axios');
+const path = require('path');
 const { Server } = require('socket.io');
 
 require('dotenv').config();
@@ -16,6 +17,12 @@ const io = new Server(server, {
 
 app.use(cors());
 app.use(express.json());
+app.use('/web', express.static(path.join(__dirname, 'public')));
+
+// SPA routing for /web
+app.get('/web/*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 const JWT_SECRET = process.env.JWT_SECRET || 'erp_bill_super_secret_key';
 const TWO_FACTOR_API_KEY = 'a4f42790-1574-11f1-bcb0-0200cd936042';
@@ -106,7 +113,7 @@ app.post('/api/auth/verify-otp', async (req, res) => {
     }
     
     const token = jwt.sign({ businessId: user.id, name: user.name, phone: user.phone }, JWT_SECRET);
-    res.json({ token, business: { id: user.id, name: user.name, phone: user.phone } });
+    res.json({ token, business: user });
   } catch (err) {
     console.error("Verify OTP Error:", err);
     res.status(500).json({ error: 'Invalid OTP or Service Error', details: err.message });
@@ -133,13 +140,24 @@ app.post('/api/auth/google', async (req, res) => {
     }
     
     const token = jwt.sign({ businessId: user.id, name: user.name, phone: user.phone }, JWT_SECRET);
-    res.json({ token, business: { id: user.id, name: user.name, phone: user.phone } });
+    res.json({ token, business: user });
   } catch (err) {
     res.status(500).json({ error: 'Database error' });
   }
 });
 
-// --- PRODUCTS ENDPOINTS ---
+app.put('/api/businesses/onboard', authenticateToken, async (req, res) => {
+  const { name, businessType, websiteSlug } = req.body;
+  try {
+    const result = await db.query(
+      `UPDATE businesses SET name = $1, business_type = $2, website_slug = $3 WHERE id = $4 RETURNING *`,
+      [name, businessType, websiteSlug, req.user.businessId]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update onboarding info', details: err.message });
+  }
+});
 
 app.get('/api/products', authenticateToken, async (req, res) => {
   try {

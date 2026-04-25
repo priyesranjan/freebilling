@@ -17,7 +17,7 @@ class _AuthScreenState extends State<AuthScreen> {
   
   bool _isLoading = false;
   bool _otpSent = false;
-  bool _isNewUser = false; // Mocking flow where we ask for name if first time
+  String? _sessionId; // Stores the 2Factor session ID
   final TextEditingController _nameController = TextEditingController();
 
   @override
@@ -38,19 +38,20 @@ class _AuthScreenState extends State<AuthScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await ApiService.sendOtp(phone);
+      final sessionId = await ApiService.sendOtp(phone);
       if (!mounted) return;
       setState(() {
         _otpSent = true;
         _isLoading = false;
+        _sessionId = sessionId;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('OTP sent successfully (Use 1234 for demo)')),
+        const SnackBar(content: Text('OTP sent to your phone!')),
       );
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     }
   }
 
@@ -59,21 +60,30 @@ class _AuthScreenState extends State<AuthScreen> {
     final String otp = _otpController.text.trim();
     final String name = _nameController.text.trim();
 
-    if (otp.isEmpty) return;
+    if (otp.isEmpty || _sessionId == null) return;
 
     setState(() => _isLoading = true);
 
     try {
-      await ApiService.verifyOtp(phone, otp, name.isEmpty ? null : name);
+      final data = await ApiService.verifyOtp(phone, otp, _sessionId!, name.isEmpty ? null : name);
+      final business = data['business'];
       
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const PlatformShell()),
-      );
+      
+      // If it's a new business or missing crucial info, go to onboarding
+      if (business['businessType'] == null || business['websiteSlug'] == null) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+        );
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const PlatformShell()),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Invalid OTP or Verification Failed')));
     }
   }
 
@@ -83,12 +93,20 @@ class _AuthScreenState extends State<AuthScreen> {
       // Mock Google Login Flow - in a real app you'd use google_sign_in package here
       await Future.delayed(const Duration(seconds: 1));
       final String mockEmail = 'demo${DateTime.now().millisecondsSinceEpoch}@google.com';
-      await ApiService.googleLogin(mockEmail, 'Google Demo User');
+      final data = await ApiService.googleLogin(mockEmail, 'Google Demo User');
+      final business = data['business'];
 
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const PlatformShell()),
-      );
+      
+      if (business['businessType'] == null || business['websiteSlug'] == null) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+        );
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const PlatformShell()),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
@@ -174,7 +192,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     style: const TextStyle(fontSize: 24, letterSpacing: 16, fontWeight: FontWeight.bold),
                     decoration: const InputDecoration(
                       counterText: '',
-                      hintText: '1234',
+                      hintText: '----',
                     ),
                   ),
                   const SizedBox(height: 16),

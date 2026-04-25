@@ -169,15 +169,21 @@ class _ItemsSectionState extends State<ItemsSection> {
                                 const SizedBox(height: 2),
                                 Row(
                                   children: [
-                                    Text('₹${product.price.toStringAsFixed(2)}', style: TextStyle(color: Colors.grey.shade700, fontSize: 12)),
-                                    const SizedBox(width: 8),
+                                    Text('₹${product.sellingPrice.toStringAsFixed(2)}', style: const TextStyle(color: BrandPalette.navy, fontSize: 12, fontWeight: FontWeight.bold)),
+                                    const SizedBox(width: 4),
+                                    if (product.mrp > product.sellingPrice) ...[
+                                      Text('₹${product.mrp.toStringAsFixed(0)}', style: TextStyle(color: Colors.grey.shade500, fontSize: 10, decoration: TextDecoration.lineThrough)),
+                                      const SizedBox(width: 4),
+                                      Text('${product.offPercentage.toInt()}% OFF', style: const TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold)),
+                                    ],
+                                    const Spacer(),
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                                       decoration: BoxDecoration(
                                         color: BrandPalette.mint.withValues(alpha: 0.5),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
-                                      child: Text(product.taxRate.percentage == 0 ? 'No Tax' : 'GST ${product.taxRate.percentage.toInt()}%',
+                                      child: Text(product.taxRate.percentage == 0 ? 'Exempt' : 'GST ${product.taxRate.percentage.toInt()}%',
                                         style: const TextStyle(fontSize: 9, color: BrandPalette.teal, fontWeight: FontWeight.bold)),
                                     ),
                                   ],
@@ -229,7 +235,9 @@ class _ItemsSectionState extends State<ItemsSection> {
 
   void _showAddItemSheet(BuildContext context) {
     final nameCtrl = TextEditingController();
-    final priceCtrl = TextEditingController();
+    final mrpCtrl = TextEditingController();
+    final sellingPriceCtrl = TextEditingController();
+    final initialStockCtrl = TextEditingController();
     final codeCtrl = TextEditingController();
     final alertCtrl = TextEditingController();
     TaxRate selectedTax = TaxRate.exempt;
@@ -259,8 +267,43 @@ class _ItemsSectionState extends State<ItemsSection> {
                 Row(
                   children: [
                     Expanded(
-                      child: TextField(controller: priceCtrl, keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Sale Price *', border: OutlineInputBorder(), prefixText: '₹ ')),
+                      child: TextField(
+                        controller: mrpCtrl, 
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: 'MRP', border: OutlineInputBorder(), prefixText: '₹ '),
+                        onChanged: (val) => setModalState(() {}),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextField(
+                        controller: sellingPriceCtrl, 
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: 'Selling Price *', border: OutlineInputBorder(), prefixText: '₹ '),
+                        onChanged: (val) => setModalState(() {}),
+                      ),
+                    ),
+                  ],
+                ),
+                if (double.tryParse(mrpCtrl.text) != null && double.tryParse(sellingPriceCtrl.text) != null) ...[
+                  const SizedBox(height: 8),
+                  Builder(builder: (context) {
+                    final mrp = double.tryParse(mrpCtrl.text) ?? 0;
+                    final sp = double.tryParse(sellingPriceCtrl.text) ?? 0;
+                    if (mrp > sp && sp > 0) {
+                      final off = ((mrp - sp) / mrp) * 100;
+                      return Text('Savings: ₹${(mrp - sp).toStringAsFixed(0)} (${off.toInt()}% OFF)', 
+                        style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12));
+                    }
+                    return const SizedBox();
+                  }),
+                ],
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(controller: initialStockCtrl, keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: 'Opening Stock', border: OutlineInputBorder(), suffixText: 'units')),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -307,20 +350,30 @@ class _ItemsSectionState extends State<ItemsSection> {
                     label: const Text('Add Item'),
                     style: FilledButton.styleFrom(backgroundColor: BrandPalette.navy, padding: const EdgeInsets.symmetric(vertical: 14)),
                     onPressed: () {
-                      if (nameCtrl.text.trim().isEmpty || priceCtrl.text.trim().isEmpty) return;
+                      if (nameCtrl.text.trim().isEmpty || sellingPriceCtrl.text.trim().isEmpty) return;
+                      
                       final codes = codeCtrl.text.trim().isEmpty ? <String>[] : [codeCtrl.text.trim()];
-                      final err = widget.onAddProduct?.call(
+                      final mrp = double.tryParse(mrpCtrl.text) ?? 0.0;
+                      final sp = double.tryParse(sellingPriceCtrl.text) ?? 0.0;
+                      final stock = double.tryParse(initialStockCtrl.text) ?? 0.0;
+                      final alert = double.tryParse(alertCtrl.text) ?? 0.0;
+
+                      final product = Product(
+                        id: 'PROD-${DateTime.now().millisecondsSinceEpoch}',
                         name: nameCtrl.text.trim(),
-                        price: double.tryParse(priceCtrl.text) ?? 0,
+                        sellingPrice: sp,
+                        mrp: mrp,
                         codes: codes,
+                        initialStock: stock,
+                        lowStockAlertLevel: alert,
+                        taxRate: selectedTax,
+                        syncState: EntityState.pendingInsert,
                       );
-                      if (err != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err), backgroundColor: BrandPalette.coral));
-                        return;
-                      }
+
+                      widget.onUpdateProduct?.call(product);
                       Navigator.pop(ctx);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('${nameCtrl.text.trim()} added!'), backgroundColor: BrandPalette.teal),
+                        SnackBar(content: Text('${product.name} added!'), backgroundColor: BrandPalette.teal),
                       );
                     },
                   ),
@@ -385,7 +438,8 @@ class _ItemsSectionState extends State<ItemsSection> {
 
   void _showEditItemSheet(BuildContext context, Product product) {
     final nameCtrl = TextEditingController(text: product.name);
-    final priceCtrl = TextEditingController(text: product.price.toString());
+    final mrpCtrl = TextEditingController(text: product.mrp.toString());
+    final sellingPriceCtrl = TextEditingController(text: product.sellingPrice.toString());
     final codeCtrl = TextEditingController(text: product.codes.isNotEmpty ? product.codes.first : '');
 
     showModalBottomSheet(
@@ -406,7 +460,17 @@ class _ItemsSectionState extends State<ItemsSection> {
             const SizedBox(height: 16),
             TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Item Name *', border: OutlineInputBorder())),
             const SizedBox(height: 12),
-            TextField(controller: priceCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Selling Price *', border: OutlineInputBorder(), prefixText: '₹ ')),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(controller: mrpCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'MRP', border: OutlineInputBorder(), prefixText: '₹ ')),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(controller: sellingPriceCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Selling Price *', border: OutlineInputBorder(), prefixText: '₹ ')),
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
             TextField(controller: codeCtrl, decoration: const InputDecoration(labelText: 'Item Code / Barcode (Optional)', border: OutlineInputBorder(), suffixIcon: Icon(Icons.qr_code_scanner, color: BrandPalette.teal))),
             const SizedBox(height: 20),
@@ -415,19 +479,16 @@ class _ItemsSectionState extends State<ItemsSection> {
               child: FilledButton(
                 onPressed: () {
                   final name = nameCtrl.text.trim();
-                  final price = double.tryParse(priceCtrl.text) ?? 0;
+                  final mrp = double.tryParse(mrpCtrl.text) ?? 0;
+                  final sp = double.tryParse(sellingPriceCtrl.text) ?? 0;
                   final code = codeCtrl.text.trim();
-                  if (name.isEmpty || price <= 0) return;
+                  if (name.isEmpty || sp <= 0) return;
                   
-                  final updated = Product(
-                    id: product.id,
+                  final updated = product.copyWith(
                     name: name,
-                    price: price,
+                    mrp: mrp,
+                    sellingPrice: sp,
                     codes: code.isNotEmpty ? [code] : [],
-                    batches: product.batches,
-                    lowStockAlertLevel: product.lowStockAlertLevel,
-                    taxRate: product.taxRate,
-                    variants: product.variants,
                     syncState: EntityState.pendingUpdate,
                   );
                   widget.onUpdateProduct?.call(updated);
@@ -491,15 +552,8 @@ class _ItemsSectionState extends State<ItemsSection> {
                       stockCount: isAdding ? qty : -qty,
                     );
                     
-                    final updated = Product(
-                      id: product.id,
-                      name: product.name,
-                      price: product.price,
-                      codes: product.codes,
+                    final updated = product.copyWith(
                       batches: [...product.batches, newBatch],
-                      lowStockAlertLevel: product.lowStockAlertLevel,
-                      taxRate: product.taxRate,
-                      variants: product.variants,
                       syncState: EntityState.pendingUpdate,
                     );
                     widget.onUpdateProduct?.call(updated);

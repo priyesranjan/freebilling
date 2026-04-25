@@ -32,22 +32,29 @@ class ApiService {
 
   // --- Auth ---
 
-  static Future<void> sendOtp(String phone) async {
+  static Future<String> sendOtp(String phone) async {
     final response = await http.post(
       Uri.parse('$baseUrl/auth/send-otp'),
       headers: _headers(null),
       body: jsonEncode({'phone': phone}),
     );
-    if (response.statusCode != 200) {
-      throw Exception('Failed to send OTP');
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['sessionId'];
     }
+    throw Exception('Failed to send OTP: ${response.body}');
   }
 
-  static Future<Map<String, dynamic>> verifyOtp(String phone, String otp, [String? name]) async {
+  static Future<Map<String, dynamic>> verifyOtp(String phone, String otp, String sessionId, [String? name]) async {
     final response = await http.post(
       Uri.parse('$baseUrl/auth/verify-otp'),
       headers: _headers(null),
-      body: jsonEncode({'phone': phone, 'otp': otp, if (name != null) 'name': name}),
+      body: jsonEncode({
+        'phone': phone, 
+        'otp': otp, 
+        'sessionId': sessionId,
+        if (name != null) 'name': name
+      }),
     );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -82,18 +89,12 @@ class ApiService {
         return Product(
           id: json['id'],
           name: json['name'],
-          price: double.tryParse(json['price'].toString()) ?? 0.0,
+          mrp: double.tryParse(json['mrp']?.toString() ?? '0') ?? 0.0,
+          sellingPrice: double.tryParse(json['selling_price']?.toString() ?? json['price']?.toString() ?? '0') ?? 0.0,
           codes: json['codes'] != null ? List<String>.from(json['codes']) : [],
           taxRate: TaxRate.values.firstWhere((e) => e.name == json['tax_rate'], orElse: () => TaxRate.exempt),
           lowStockAlertLevel: double.tryParse(json['low_stock_level']?.toString() ?? '0') ?? 0.0,
-          batches: [
-            ProductBatch(
-              batchNumber: 'INITIAL',
-              mfgDate: DateTime.now(),
-              expiryDate: null,
-              stockCount: double.tryParse(json['current_stock']?.toString() ?? '0') ?? 0.0,
-            )
-          ],
+          initialStock: double.tryParse(json['current_stock']?.toString() ?? '0') ?? 0.0,
         );
       }).toList();
     }
@@ -108,7 +109,9 @@ class ApiService {
       body: jsonEncode({
         'id': p.id,
         'name': p.name,
-        'price': p.price,
+        'mrp': p.mrp,
+        'selling_price': p.sellingPrice,
+        'price': p.sellingPrice,
         'codes': p.codes,
         'tax_rate': p.taxRate.name,
         'current_stock': p.currentStock,
@@ -118,7 +121,7 @@ class ApiService {
     if (response.statusCode == 200) {
       return p.copyWith(syncState: EntityState.synced);
     }
-    throw Exception('Failed to save product');
+    throw Exception('Failed to save product: ${response.body}');
   }
 
   // --- Khata (Parties) ---
@@ -202,5 +205,25 @@ class ApiService {
       return i;
     }
     throw Exception('Failed to save invoice');
+  }
+
+  static Future<void> updateOnboarding({
+    required String name,
+    required String businessType,
+    required String websiteSlug,
+  }) async {
+    final token = await getToken();
+    final response = await http.put(
+      Uri.parse('$baseUrl/businesses/onboard'),
+      headers: _headers(token),
+      body: jsonEncode({
+        'name': name,
+        'businessType': businessType,
+        'websiteSlug': websiteSlug,
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update onboarding info');
+    }
   }
 }

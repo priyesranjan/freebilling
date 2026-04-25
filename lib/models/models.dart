@@ -81,6 +81,8 @@ class BusinessRecord implements SyncableEntity {
     this.whatsappCredits = 0,
     this.smsCredits = 0,
     this.syncState = EntityState.synced,
+    this.businessType,
+    this.websiteSlug,
   });
 
   @override
@@ -95,6 +97,9 @@ class BusinessRecord implements SyncableEntity {
   
   @override
   final EntityState syncState;
+
+  final String? businessType;
+  final String? websiteSlug;
 
   factory BusinessRecord.fromJson(Map<String, dynamic> json) {
     return BusinessRecord(
@@ -116,6 +121,8 @@ class BusinessRecord implements SyncableEntity {
         (e) => e.name == json['syncState'],
         orElse: () => EntityState.synced,
       ),
+      businessType: json['businessType'] as String?,
+      websiteSlug: json['websiteSlug'] as String?,
     );
   }
 
@@ -129,6 +136,8 @@ class BusinessRecord implements SyncableEntity {
     int? whatsappCredits,
     int? smsCredits,
     EntityState? syncState,
+    String? businessType,
+    String? websiteSlug,
   }) {
     return BusinessRecord(
       id: id ?? this.id,
@@ -140,6 +149,8 @@ class BusinessRecord implements SyncableEntity {
       whatsappCredits: whatsappCredits ?? this.whatsappCredits,
       smsCredits: smsCredits ?? this.smsCredits,
       syncState: syncState ?? this.syncState,
+      businessType: businessType ?? this.businessType,
+      websiteSlug: websiteSlug ?? this.websiteSlug,
     );
   }
 
@@ -154,6 +165,8 @@ class BusinessRecord implements SyncableEntity {
     'whatsappCredits': whatsappCredits,
     'smsCredits': smsCredits,
     'syncState': syncState.name,
+    'businessType': businessType,
+    'websiteSlug': websiteSlug,
   };
 }
 
@@ -217,13 +230,15 @@ class Product implements SyncableEntity {
   const Product({
     required this.id,
     required this.name,
-    required this.price,
+    required this.sellingPrice,
     required this.codes,
+    this.mrp = 0.0,
     this.syncState = EntityState.synced,
     // Advanced Inventory
     this.variants = const [],
     this.batches = const [],
     this.lowStockAlertLevel = 0.0,
+    this.initialStock = 0.0,
     // GST
     this.taxRate = TaxRate.exempt,
   });
@@ -231,7 +246,8 @@ class Product implements SyncableEntity {
   @override
   final String id;
   final String name;
-  final double price;
+  final double mrp;
+  final double sellingPrice;
   final List<String> codes;
   
   @override
@@ -240,33 +256,45 @@ class Product implements SyncableEntity {
   final List<ProductVariant> variants;
   final List<ProductBatch> batches;
   final double lowStockAlertLevel;
+  final double initialStock;
   final TaxRate taxRate;
 
+  double get price => sellingPrice;
+
+  double get offPercentage {
+    if (mrp <= 0 || sellingPrice >= mrp) return 0.0;
+    return ((mrp - sellingPrice) / mrp) * 100;
+  }
+
   double get currentStock {
-    if (batches.isEmpty) return 0.0;
-    return batches.fold(0.0, (sum, batch) => sum + batch.stockCount);
+    double batchStock = batches.fold(0.0, (sum, batch) => sum + batch.stockCount);
+    return initialStock + batchStock;
   }
 
   Product copyWith({
     String? id,
     String? name,
-    double? price,
+    double? mrp,
+    double? sellingPrice,
     List<String>? codes,
     EntityState? syncState,
     List<ProductVariant>? variants,
     List<ProductBatch>? batches,
     double? lowStockAlertLevel,
+    double? initialStock,
     TaxRate? taxRate,
   }) {
     return Product(
       id: id ?? this.id,
       name: name ?? this.name,
-      price: price ?? this.price,
+      mrp: mrp ?? this.mrp,
+      sellingPrice: sellingPrice ?? this.sellingPrice,
       codes: codes ?? this.codes,
       syncState: syncState ?? this.syncState,
       variants: variants ?? this.variants,
       batches: batches ?? this.batches,
       lowStockAlertLevel: lowStockAlertLevel ?? this.lowStockAlertLevel,
+      initialStock: initialStock ?? this.initialStock,
       taxRate: taxRate ?? this.taxRate,
     );
   }
@@ -275,7 +303,8 @@ class Product implements SyncableEntity {
     return Product(
       id: json['id'] as String,
       name: json['name'] as String,
-      price: (json['price'] as num).toDouble(),
+      mrp: (json['mrp'] as num?)?.toDouble() ?? 0.0,
+      sellingPrice: (json['sellingPrice'] as num? ?? json['price'] as num? ?? 0).toDouble(),
       codes: (json['codes'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
       syncState: EntityState.values.firstWhere(
         (e) => e.name == json['syncState'],
@@ -284,6 +313,7 @@ class Product implements SyncableEntity {
       variants: (json['variants'] as List<dynamic>?)?.map((e) => ProductVariant.fromJson(e as Map<String, dynamic>)).toList() ?? [],
       batches: (json['batches'] as List<dynamic>?)?.map((e) => ProductBatch.fromJson(e as Map<String, dynamic>)).toList() ?? [],
       lowStockAlertLevel: (json['lowStockAlertLevel'] as num?)?.toDouble() ?? 0.0,
+      initialStock: (json['initialStock'] as num? ?? json['currentStock'] as num? ?? 0).toDouble(),
       taxRate: TaxRate.values.firstWhere(
         (e) => e.name == json['taxRate'],
         orElse: () => TaxRate.exempt,
@@ -295,7 +325,9 @@ class Product implements SyncableEntity {
   Map<String, dynamic> toJson() => {
     'id': id,
     'name': name,
-    'price': price,
+    'mrp': mrp,
+    'sellingPrice': sellingPrice,
+    'price': sellingPrice,
     'codes': codes,
     'syncState': syncState.name,
     'variants': variants.map((v) => {
@@ -310,6 +342,8 @@ class Product implements SyncableEntity {
       'stockCount': b.stockCount,
     }).toList(),
     'lowStockAlertLevel': lowStockAlertLevel,
+    'initialStock': initialStock,
+    'currentStock': currentStock,
     'taxRate': taxRate.name,
   }; 
 }
