@@ -1,0 +1,630 @@
+import 'package:flutter/material.dart';
+import '../models/models.dart';
+import '../core/core.dart';
+import '../enums/enums.dart';
+import '../services/services.dart';
+import 'package:printing/printing.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+enum InvoiceFilter { all, paid, unpaid }
+
+class InvoicesSection extends StatefulWidget {
+  final List<InvoiceRecord> invoices;
+  final void Function(InvoiceRecord)? onCreateInvoice;
+  final List<Product>? products;
+  final List<PartyRecord>? parties;
+  final String Function()? generateInvoiceLink;
+
+  const InvoicesSection({
+    super.key,
+    required this.invoices,
+    this.onCreateInvoice,
+    this.products,
+    this.parties,
+    this.generateInvoiceLink,
+  });
+
+  @override
+  State<InvoicesSection> createState() => _InvoicesSectionState();
+}
+
+class _InvoicesSectionState extends State<InvoicesSection> {
+  InvoiceFilter _filter = InvoiceFilter.all;
+
+  List<InvoiceRecord> get filtered {
+    switch (_filter) {
+      case InvoiceFilter.all:
+        return widget.invoices;
+      case InvoiceFilter.paid:
+        return widget.invoices.where((i) => i.paymentMode != PaymentMode.credit).toList();
+      case InvoiceFilter.unpaid:
+        return widget.invoices.where((i) => i.paymentMode == PaymentMode.credit).toList();
+    }
+  }
+
+  double get totalAmount => widget.invoices.fold(0, (s, i) => s + i.total);
+  double get todayAmount => widget.invoices
+      .where((i) => isSameDate(i.createdAt, DateTime.now()))
+      .fold(0, (s, i) => s + i.total);
+
+  @override
+  Widget build(BuildContext context) {
+    final bills = filtered;
+
+    return Scaffold(
+      backgroundColor: BrandPalette.pageBase,
+      appBar: AppBar(
+        title: const Text('Bills & Invoices'),
+        elevation: 0,
+        backgroundColor: BrandPalette.pageBase,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(50),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: InvoiceFilter.values.map((f) {
+                final isSelected = _filter == f;
+                final label = f == InvoiceFilter.all ? 'All (${widget.invoices.length})'
+                    : f == InvoiceFilter.paid ? 'Paid' : 'Unpaid';
+                return GestureDetector(
+                  onTap: () => setState(() => _filter = f),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    margin: const EdgeInsets.only(right: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: isSelected ? BrandPalette.navy : Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: isSelected ? BrandPalette.navy : Colors.grey.shade300),
+                    ),
+                    child: Text(label, style: TextStyle(
+                      color: isSelected ? Colors.white : Colors.grey.shade700,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontSize: 12,
+                    )),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+      ),
+      body: Column(
+        children: [
+          // Summary banner
+          if (widget.invoices.isNotEmpty)
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [BrandPalette.teal, Color(0xFF15A89E)]),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      const Text('Total Sales', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                      Text('₹${totalAmount.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
+                    ]),
+                  ),
+                  Container(width: 1, height: 36, color: Colors.white30, margin: const EdgeInsets.symmetric(horizontal: 16)),
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      const Text("Today's Sales", style: TextStyle(color: Colors.white70, fontSize: 11)),
+                      Text('₹${todayAmount.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
+                    ]),
+                  ),
+                ],
+              ),
+            ),
+          Expanded(
+            child: bills.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.receipt_long, size: 64, color: Colors.grey.shade300),
+                        const SizedBox(height: 16),
+                        Text(
+                          _filter == InvoiceFilter.all ? 'No bills yet.\nTap "Create Bill" to get started!' : 'No ${_filter.name} bills found.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.grey.shade600),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
+                    itemCount: bills.length,
+                    itemBuilder: (context, index) {
+                      final inv = bills[index];
+                      final isCredit = inv.paymentMode == PaymentMode.credit;
+                      final statusColor = isCredit ? BrandPalette.coral : BrandPalette.teal;
+                      final statusLabel = isCredit ? 'UNPAID' : 'PAID';
+
+                      return Card(
+                        elevation: 0,
+                        margin: const EdgeInsets.only(bottom: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(color: Colors.grey.shade200),
+                        ),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () => _showInvoiceDetail(context, inv),
+                          child: Padding(
+                            padding: const EdgeInsets.all(14),
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 22,
+                                  backgroundColor: BrandPalette.navy.withValues(alpha: 0.08),
+                                  child: Text(
+                                    inv.customerName.isNotEmpty ? inv.customerName[0].toUpperCase() : '?',
+                                    style: const TextStyle(color: BrandPalette.navy, fontWeight: FontWeight.bold, fontSize: 16),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(inv.customerName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                                      const SizedBox(height: 3),
+                                      Row(
+                                        children: [
+                                          Text(formatDateTime(inv.createdAt), style: TextStyle(color: Colors.grey.shade600, fontSize: 11)),
+                                          const SizedBox(width: 8),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                            decoration: BoxDecoration(
+                                              color: statusColor.withValues(alpha: 0.1),
+                                              borderRadius: BorderRadius.circular(4),
+                                            ),
+                                            child: Text(statusLabel, style: TextStyle(color: statusColor, fontSize: 9, fontWeight: FontWeight.bold)),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(inv.paymentMode.name.toUpperCase(), style: const TextStyle(fontSize: 9, color: Colors.grey)),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text('₹${inv.total.toStringAsFixed(0)}',
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: BrandPalette.navy)),
+                                    const SizedBox(height: 4),
+                                    // Share button
+                                    InkWell(
+                                      onTap: () {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Invoice link copied!'), duration: Duration(seconds: 1)),
+                                        );
+                                      },
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.share, size: 12, color: BrandPalette.teal),
+                                          SizedBox(width: 4),
+                                          Text('Share', style: TextStyle(color: BrandPalette.teal, fontSize: 11)),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showCreateBillSheet(context),
+        backgroundColor: BrandPalette.coral,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text('Create Bill', style: TextStyle(color: Colors.white)),
+      ),
+    );
+  }
+
+  void _showInvoiceDetail(BuildContext context, InvoiceRecord inv) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.4,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (ctx, scroll) => Column(
+          children: [
+            Container(margin: const EdgeInsets.only(top: 12), width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  const Icon(Icons.receipt_long, color: BrandPalette.navy),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text('Invoice #${inv.id}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
+                  Text('₹${inv.total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: BrandPalette.teal)),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () => _printOrSharePdf(context, inv),
+                    icon: const Icon(Icons.print, size: 18),
+                    label: const Text('Print / Save PDF'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: BrandPalette.navy,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () => _shareOnWhatsApp(context, inv),
+                    icon: const Icon(Icons.share, size: 18),
+                    label: const Text('WhatsApp'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF25D366),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _detailRow('Customer', inv.customerName),
+                  _detailRow('Phone', inv.customerPhone.isEmpty ? '-' : inv.customerPhone),
+                  _detailRow('Date', formatDateTime(inv.createdAt)),
+                  _detailRow('Payment', inv.paymentMode.name.toUpperCase()),
+                  _detailRow('Items', '${inv.lines.length} items'),
+                  _detailRow('Tax', '₹${inv.totalTaxAmount.toStringAsFixed(2)}'),
+                ],
+              ),
+            ),
+            const Divider(height: 24),
+            Expanded(
+              child: ListView(
+                controller: scroll,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                children: inv.lines.map((line) => ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(line.product.name),
+                  subtitle: Text('₹${line.unitPrice} × ${line.quantity}'),
+                  trailing: Text('₹${line.finalAmount.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                )).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _printOrSharePdf(BuildContext context, InvoiceRecord inv) async {
+    try {
+      final business = BusinessRecord(
+        id: 'B1', businessName: 'My Store', ownerName: 'Store Owner',
+        plan: BillingPlan.premium, status: BusinessStatus.onboarded, validTill: DateTime.now()
+      );
+      final pdfBytes = await PdfInvoiceService.generateInvoice(inv, business);
+      await Printing.sharePdf(bytes: pdfBytes, filename: 'invoice_${inv.id}.pdf');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error generating PDF: $e')));
+    }
+  }
+
+  void _shareOnWhatsApp(BuildContext context, InvoiceRecord inv) async {
+    if (inv.customerPhone.isEmpty) {
+       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Customer phone number is required to share via WhatsApp.')));
+       return;
+    }
+    
+    final String text = 'Hello ${inv.customerName},\n\nThank you for your purchase!\nYour Invoice #${inv.id} for Rs. ${inv.total.toStringAsFixed(2)} is confirmed.\n\nThank you!';
+    final Uri whatsappUri = Uri.parse('https://wa.me/91${inv.customerPhone}?text=${Uri.encodeComponent(text)}');
+    
+    if (await canLaunchUrl(whatsappUri)) {
+      await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not open WhatsApp. Make sure it is installed.')));
+    }
+  }
+
+  Widget _detailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+        ],
+      ),
+    );
+  }
+
+  void _showCreateBillSheet(BuildContext context) {
+    final customerNameCtrl = TextEditingController();
+    final customerPhoneCtrl = TextEditingController();
+    
+    // Auto-fetch customer by phone
+    customerPhoneCtrl.addListener(() {
+      final phone = customerPhoneCtrl.text.trim();
+      if (phone.length >= 10 && widget.parties != null) {
+        final existing = widget.parties!.where((p) => p.phone == phone).firstOrNull;
+        if (existing != null && customerNameCtrl.text.isEmpty) {
+          customerNameCtrl.text = existing.name;
+        }
+      }
+    });
+
+    final List<CartItem> cartItems = [];
+    PaymentMode paymentMode = PaymentMode.cash;
+
+    if (widget.products == null || widget.products!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Add items first before creating a bill!'), backgroundColor: BrandPalette.coral),
+      );
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx2, setS) {
+          final total = cartItems.fold(0.0, (s, i) => s + i.finalAmount);
+          return Padding(
+            padding: EdgeInsets.fromLTRB(0, 0, 0, MediaQuery.of(ctx).viewInsets.bottom),
+            child: DraggableScrollableSheet(
+              initialChildSize: 0.92,
+              minChildSize: 0.6,
+              maxChildSize: 1.0,
+              expand: false,
+              builder: (ctx3, scroll) => Column(
+                children: [
+                  Container(margin: const EdgeInsets.only(top: 12), width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                    child: Row(
+                      children: [
+                        const Text('Create New Bill', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                        const Spacer(),
+                        IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView(
+                      controller: scroll,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      children: [
+                        // Customer details
+                        const Text('Customer Details', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(child: TextField(controller: customerNameCtrl, decoration: const InputDecoration(labelText: 'Customer Name', border: OutlineInputBorder(), isDense: true))),
+                            const SizedBox(width: 12),
+                            Expanded(child: TextField(controller: customerPhoneCtrl, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Phone', border: OutlineInputBorder(), isDense: true))),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        // Payment mode
+                        const Text('Payment Mode', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                        const SizedBox(height: 8),
+                        SegmentedButton<PaymentMode>(
+                          segments: const [
+                            ButtonSegment(value: PaymentMode.cash, label: Text('Cash'), icon: Icon(Icons.money, size: 14)),
+                            ButtonSegment(value: PaymentMode.upi, label: Text('UPI'), icon: Icon(Icons.qr_code_scanner, size: 14)),
+                            ButtonSegment(value: PaymentMode.credit, label: Text('Credit'), icon: Icon(Icons.credit_card, size: 14)),
+                          ],
+                          selected: {paymentMode},
+                          onSelectionChanged: (s) => setS(() => paymentMode = s.first),
+                        ),
+                        const SizedBox(height: 16),
+                        // Add products
+                        Row(
+                          children: [
+                            const Text('Items', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                            const Spacer(),
+                            TextButton.icon(
+                              icon: const Icon(Icons.add, size: 16),
+                              label: const Text('Add Item'),
+                              onPressed: () => _showProductPicker(ctx2, widget.products!, cartItems, setS),
+                            ),
+                          ],
+                        ),
+                        if (cartItems.isEmpty)
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey.shade200),
+                            ),
+                            child: Text('No items added yet.\nTap "Add Item" to select products.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                          )
+                        else
+                          ...cartItems.map((item) => ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+                            title: Text(item.product.name),
+                            subtitle: Text('₹${item.unitPrice} × ${item.quantity}'),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text('₹${item.finalAmount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                IconButton(
+                                  icon: const Icon(Icons.remove_circle_outline, color: BrandPalette.coral, size: 20),
+                                  onPressed: () => setS(() => cartItems.removeWhere((c) => c.product.id == item.product.id)),
+                                ),
+                              ],
+                            ),
+                          )),
+                        const SizedBox(height: 16),
+                      ],
+                    ),
+                  ),
+                  // Total + Save button
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -4))],
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Total Amount', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                            Text('₹${total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: BrandPalette.teal)),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton.icon(
+                            icon: const Icon(Icons.receipt_long),
+                            label: const Text('Save Bill'),
+                            style: FilledButton.styleFrom(backgroundColor: BrandPalette.coral, padding: const EdgeInsets.symmetric(vertical: 14)),
+                            onPressed: cartItems.isEmpty ? null : () {
+                              final invoice = InvoiceRecord(
+                                id: 'INV-${DateTime.now().millisecondsSinceEpoch}',
+                                createdAt: DateTime.now(),
+                                customerName: customerNameCtrl.text.trim().isEmpty ? 'Walk-in Customer' : customerNameCtrl.text.trim(),
+                                customerPhone: customerPhoneCtrl.text.trim(),
+                                customerEmail: '',
+                                total: total,
+                                lines: List.from(cartItems),
+                                channels: const {},
+                                publicLink: widget.generateInvoiceLink?.call() ?? '',
+                                paymentMode: paymentMode,
+                              );
+                              widget.onCreateInvoice?.call(invoice);
+                              Navigator.pop(ctx);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Bill created! Total: ₹${total.toStringAsFixed(2)}'), backgroundColor: BrandPalette.teal),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showProductPicker(BuildContext context, List<Product> products, List<CartItem> cart, StateSetter setParentState) {
+    String searchQuery = '';
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx2, setModalState) {
+          final filtered = products.where((p) {
+            return p.name.toLowerCase().contains(searchQuery.toLowerCase()) || 
+                   p.codes.any((c) => c.toLowerCase().contains(searchQuery.toLowerCase()));
+          }).toList();
+
+          return Padding(
+            padding: EdgeInsets.fromLTRB(20, 24, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
+            child: FractionallySizedBox(
+              heightFactor: 0.8,
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      const Text('Add Item to Bill', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                      const Spacer(),
+                      IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    autofocus: true,
+                    onChanged: (val) => setModalState(() => searchQuery = val),
+                    decoration: InputDecoration(
+                      hintText: 'Search or Scan Barcode...',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: const Icon(Icons.qr_code_scanner, color: BrandPalette.teal),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      filled: true,
+                      fillColor: Colors.grey.shade50,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: filtered.isEmpty
+                        ? Center(child: Text('No items found', style: TextStyle(color: Colors.grey.shade500)))
+                        : ListView.separated(
+                            itemCount: filtered.length,
+                            separatorBuilder: (c, i) => const Divider(height: 1),
+                            itemBuilder: (context, i) {
+                              final p = filtered[i];
+                              final isOutOfStock = p.currentStock <= 0;
+                              return ListTile(
+                                leading: Container(
+                                  width: 40, height: 40,
+                                  decoration: BoxDecoration(color: BrandPalette.navy.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(8)),
+                                  child: const Icon(Icons.inventory_2, size: 20, color: BrandPalette.navy),
+                                ),
+                                title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                                subtitle: Text('₹${p.price.toStringAsFixed(2)}', style: TextStyle(color: Colors.grey.shade600)),
+                                trailing: Text(
+                                  isOutOfStock ? 'Out of Stock' : '${p.currentStock.toStringAsFixed(0)} in stock', 
+                                  style: TextStyle(fontSize: 12, color: isOutOfStock ? Colors.red : BrandPalette.teal, fontWeight: FontWeight.w500)
+                                ),
+                                onTap: () {
+                                  setParentState(() {
+                                    final existing = cart.indexWhere((c) => c.product.id == p.id);
+                                    if (existing >= 0) {
+                                      cart[existing] = cart[existing].copyWith(quantity: cart[existing].quantity + 1);
+                                    } else {
+                                      cart.add(CartItem(product: p, quantity: 1));
+                                    }
+                                  });
+                                  Navigator.pop(ctx);
+                                },
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
