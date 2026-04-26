@@ -37,7 +37,7 @@ app.get('/shop/:slug', async (req, res) => {
     const { slug } = req.params;
     // Fetch business by slug or name match
     const bizResult = await db.query(
-      `SELECT * FROM businesses WHERE slug = $1 OR LOWER(REPLACE(business_name, ' ', '-')) = $1 LIMIT 1`,
+      `SELECT * FROM businesses WHERE slug = $1 OR LOWER(REPLACE(name, ' ', '-')) = $1 LIMIT 1`,
       [slug.toLowerCase()]
     );
     if (bizResult.rows.length === 0) {
@@ -63,16 +63,16 @@ app.get('/shop/:slug', async (req, res) => {
     }));
 
     const phone = (biz.phone || biz.owner_phone || '').replace(/\D/g, '');
-    const initial = (biz.business_name || 'B')[0].toUpperCase();
+    const initial = (biz.name || 'B')[0].toUpperCase();
     const city = biz.city || biz.address || '';
 
     const html = shopTemplate
-      .replace(/{{businessName}}/g, biz.business_name || 'Business')
+      .replace(/{{businessName}}/g, biz.name || 'Business')
       .replace(/{{initial}}/g, initial)
       .replace(/{{city}}/g, city)
       .replace(/{{phone}}/g, biz.phone || biz.owner_phone || '')
       .replace(/{{rawPhone}}/g, phone)
-      .replace('{{businessJson}}', JSON.stringify({ businessName: biz.business_name, phone }))
+      .replace('{{businessJson}}', JSON.stringify({ businessName: biz.name, phone }))
       .replace('{{productsJson}}', JSON.stringify(products));
 
     res.send(html);
@@ -87,8 +87,8 @@ app.get('/api/shop/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
     const bizResult = await db.query(
-      `SELECT id, business_name, phone, owner_phone, city, address, gstin FROM businesses 
-       WHERE slug = $1 OR LOWER(REPLACE(business_name, ' ', '-')) = $1 LIMIT 1`,
+      `SELECT id, name, phone, owner_phone, city, address, gstin FROM businesses 
+       WHERE slug = $1 OR LOWER(REPLACE(name, ' ', '-')) = $1 LIMIT 1`,
       [slug.toLowerCase()]
     );
     if (bizResult.rows.length === 0) return res.status(404).json({ error: 'Business not found' });
