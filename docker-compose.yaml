@@ -19,15 +19,7 @@ services:
     expose:
       - "80"
     depends_on:
-      backend:
-        condition: service_healthy   # Wait for backend to be healthy first
-    healthcheck:
-      # Just check if Nginx process is running — don't proxy to backend
-      test: ["CMD-SHELL", "wget -qO /dev/null http://localhost/ 2>&1 || exit 0"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 20s
+      - backend            # Start after backend (no health condition — avoids cascade failure)
 
   # ── Node.js Backend API (Internal only) ──────────────────────────
   backend:
@@ -45,11 +37,12 @@ services:
       JWT_SECRET: ${JWT_SECRET:-erp_bill_super_secret_key}
       TWO_FACTOR_API_KEY: ${TWO_FACTOR_API_KEY:-a4f42790-1574-11f1-bcb0-0200cd936042}
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO /dev/null http://localhost:3000/health 2>&1 || exit 1"]
-      interval: 20s
-      timeout: 10s
+      # Use node (always available in node:18-slim) — wget is NOT in slim image
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health',r=>{process.exitCode=r.statusCode===200?0:1}).on('error',()=>process.exitCode=1)"]
+      interval: 30s
+      timeout: 15s
       retries: 5
-      start_period: 30s
+      start_period: 60s
 
 networks:
   default:
