@@ -48,6 +48,16 @@
     }
     .btn-call:hover { background: rgba(255,255,255,0.25); }
 
+    /* ── GMB Badge ── */
+    .gmb-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+      padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+      color: white; margin-top: 6px; text-decoration: none; transition: background 0.2s;
+    }
+    .gmb-badge:hover { background: rgba(255,255,255,0.3); }
+    .gmb-badge svg { width: 14px; height: 14px; fill: white; }
+
     /* ── Search & Filters ── */
     .controls { max-width: 1100px; margin: 0 auto; padding: 20px 20px 0; }
     .search-box {
@@ -150,6 +160,10 @@
     <div class="business-info">
       <h1 id="bizName">{{businessName}}</h1>
       <div class="meta" id="bizMeta">📍 {{city}} &nbsp;·&nbsp; 📞 {{phone}}</div>
+      <a id="gmbLink" href="#" class="gmb-badge" style="display:none;">
+        <svg viewBox="0 0 24 24"><path d="M12.545 11.071V8.7h6.862c.059.37.093.723.093 1.146 0 1.132-.305 2.081-.858 2.846-.553.765-1.341 1.344-2.227 1.637-.886.293-1.84.407-2.775.328-1.57-.132-3.037-.92-4.102-2.189A6.985 6.985 0 017.5 7.5c0-1.933.784-3.683 2.05-4.95A6.985 6.985 0 0114.5.5c1.135 0 2.215.267 3.176.741L15.935 2.98C15.485 2.748 15.006 2.625 14.5 2.625c-2.692 0-4.875 2.183-4.875 4.875s2.183 4.875 4.875 4.875c.506 0 .985-.123 1.435-.355l1.741 1.739c-.961.474-2.041.741-3.176.741-3.866 0-7-3.134-7-7s3.134-7 7-7c1.135 0 2.215.267 3.176.741l-1.741 1.739c-.45-.232-.929-.355-1.435-.355-2.692 0-4.875 2.183-4.875 4.875s2.183 4.875 4.875 4.875z"/></svg>
+        Verified on Google
+      </a>
     </div>
     <div class="header-actions">
       <a href="https://wa.me/91{{rawPhone}}?text=Hi%20I%20want%20to%20order%20from%20{{businessName}}" 
@@ -216,6 +230,14 @@
       btn.onclick = () => setCategory(cat, btn);
       bar.appendChild(btn);
     });
+
+    if (BUSINESS.gmb_location_id) {
+        const gmbLink = document.getElementById('gmbLink');
+        gmbLink.style.display = 'inline-flex';
+        // Construct a generic Google Maps search for the business name
+        gmbLink.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(BUSINESS.businessName)}`;
+    }
+
     renderProducts(PRODUCTS);
   }
 

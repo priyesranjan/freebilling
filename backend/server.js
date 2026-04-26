@@ -87,7 +87,7 @@ app.get('/api/shop/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
     const bizResult = await db.query(
-      `SELECT id, name, phone, owner_phone, city, address, gstin FROM businesses 
+      `SELECT id, name, phone, owner_phone, city, address, gstin, gmb_location_id FROM businesses 
        WHERE slug = $1 OR LOWER(REPLACE(name, ' ', '-')) = $1 LIMIT 1`,
       [slug.toLowerCase()]
     );
@@ -267,8 +267,8 @@ app.put('/api/businesses/onboard', authenticateToken, async (req, res) => {
   const { name, businessType, websiteSlug } = req.body;
   try {
     const result = await db.query(
-      `UPDATE businesses SET name = $1, business_type = $2, website_slug = $3 WHERE id = $4 RETURNING *`,
-      [name, businessType, websiteSlug, req.user.businessId]
+      `UPDATE businesses SET name = $1, business_type = $2, website_slug = $3, gmb_location_id = $4 WHERE id = $5 RETURNING *`,
+      [name, businessType, websiteSlug, req.body.gmbLocationId || null, req.user.businessId]
     );
     res.json(result.rows[0]);
   } catch (err) {
@@ -424,7 +424,8 @@ async function runPatch() {
       ADD COLUMN IF NOT EXISTS website_slug VARCHAR(255) UNIQUE,
       ADD COLUMN IF NOT EXISTS category VARCHAR(100),
       ADD COLUMN IF NOT EXISTS logo_url VARCHAR(500),
-      ADD COLUMN IF NOT EXISTS website_config JSONB DEFAULT '{}'
+      ADD COLUMN IF NOT EXISTS website_config JSONB DEFAULT '{}',
+      ADD COLUMN IF NOT EXISTS gmb_location_id VARCHAR(255)
     `);
     // Patch Products
     await db.query(`

@@ -246,6 +246,7 @@ class ApiService {
     required String name,
     required String businessType,
     required String websiteSlug,
+    String? gmbLocationId,
   }) async {
     final token = await getToken();
     final response = await http.put(
@@ -255,6 +256,7 @@ class ApiService {
         'name': name,
         'businessType': businessType,
         'websiteSlug': websiteSlug,
+        'gmbLocationId': gmbLocationId,
       }),
     );
     if (response.statusCode != 200) {

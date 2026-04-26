@@ -86,6 +86,7 @@ class BusinessRecord implements SyncableEntity {
     this.websiteSlug,
     this.category,
     this.logoUrl,
+    this.gmbLocationId,
   });
 
   @override
@@ -105,6 +106,7 @@ class BusinessRecord implements SyncableEntity {
   final String? websiteSlug;
   final String? category;
   final String? logoUrl;
+  final String? gmbLocationId;
 
   factory BusinessRecord.fromJson(Map<String, dynamic> json) {
     return BusinessRecord(
@@ -128,6 +130,7 @@ class BusinessRecord implements SyncableEntity {
       ),
       businessType: json['businessType'] as String?,
       websiteSlug: json['websiteSlug'] as String?,
+      gmbLocationId: json['gmb_location_id'] as String?,
     );
   }
 
@@ -143,6 +146,7 @@ class BusinessRecord implements SyncableEntity {
     EntityState? syncState,
     String? businessType,
     String? websiteSlug,
+    String? gmbLocationId,
   }) {
     return BusinessRecord(
       id: id ?? this.id,
@@ -158,6 +162,7 @@ class BusinessRecord implements SyncableEntity {
       websiteSlug: websiteSlug ?? this.websiteSlug,
       category: category ?? this.category,
       logoUrl: logoUrl ?? this.logoUrl,
+      gmbLocationId: gmbLocationId ?? this.gmbLocationId,
     );
   }
 
@@ -176,6 +181,7 @@ class BusinessRecord implements SyncableEntity {
     'websiteSlug': websiteSlug,
     'category': category,
     'logoUrl': logoUrl,
+    'gmb_location_id': gmbLocationId,
   };
 }
 

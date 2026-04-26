@@ -7,7 +7,7 @@ import 'settings/invoice_print_settings.dart';
 import 'settings/tax_settings.dart';
 import 'settings/item_settings.dart';
 import 'settings/reminder_settings.dart';
-import 'settings/google_test_screen.dart';
+import 'settings/google_business_settings_screen.dart';
 import 'settings/integration_settings.dart';
 import 'settings/business_features_screen.dart';
 
@@ -91,9 +91,10 @@ class SettingsScreen extends StatelessWidget {
             onTap: () => _push(context, IntegrationSettingsScreen(settings: settings)),
           ),
           _buildSettingsTile(context,
-            icon: Icons.developer_mode,
-            title: 'Google API Tester',
-            onTap: () => _push(context, const GoogleApiTestScreen()),
+            icon: Icons.store_mall_directory_outlined,
+            title: 'Google Business Profile',
+            isNew: true,
+            onTap: () => _push(context, const GoogleBusinessSettingsScreen()),
           ),
         ],
       ),
