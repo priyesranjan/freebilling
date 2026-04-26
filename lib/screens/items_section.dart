@@ -5,7 +5,15 @@ import '../services/sync_service.dart';
 
 class ItemsSection extends StatefulWidget {
   final List<Product> products;
-  final String? Function({required String name, required double price, required List<String> codes})? onAddProduct;
+  final String? Function({
+    required String name, 
+    required double sellingPrice, 
+    required double mrp, 
+    required List<String> codes,
+    required double initialStock,
+    required double lowStockAlertLevel,
+    required TaxRate taxRate,
+  })? onAddProduct;
   final void Function(Product)? onUpdateProduct;
   final void Function(String)? onDeleteProduct;
 
@@ -358,8 +366,7 @@ class _ItemsSectionState extends State<ItemsSection> {
                       final stock = double.tryParse(initialStockCtrl.text) ?? 0.0;
                       final alert = double.tryParse(alertCtrl.text) ?? 0.0;
 
-                      final product = Product(
-                        id: 'PROD-${DateTime.now().millisecondsSinceEpoch}',
+                      final error = widget.onAddProduct?.call(
                         name: nameCtrl.text.trim(),
                         sellingPrice: sp,
                         mrp: mrp,
@@ -367,13 +374,15 @@ class _ItemsSectionState extends State<ItemsSection> {
                         initialStock: stock,
                         lowStockAlertLevel: alert,
                         taxRate: selectedTax,
-                        syncState: EntityState.pendingInsert,
                       );
 
-                      widget.onUpdateProduct?.call(product);
+                      if (error != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: Colors.red));
+                        return;
+                      }
                       Navigator.pop(ctx);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('${product.name} added!'), backgroundColor: BrandPalette.teal),
+                        SnackBar(content: Text('${nameCtrl.text.trim()} added!'), backgroundColor: BrandPalette.teal),
                       );
                     },
                   ),

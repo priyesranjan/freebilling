@@ -258,8 +258,12 @@ class _PlatformShellState extends State<PlatformShell> {
 
   String? _addProduct({
     required String name,
-    required double price,
+    required double sellingPrice,
+    required double mrp,
     required List<String> codes,
+    required double initialStock,
+    required double lowStockAlertLevel,
+    required TaxRate taxRate,
   }) {
     for (final String code in codes) {
       final bool alreadyExists = _products.any(
@@ -275,11 +279,14 @@ class _PlatformShellState extends State<PlatformShell> {
     }
 
     final product = Product(
-      id: _nextId('P'), 
+      id: 'P-${DateTime.now().millisecondsSinceEpoch}', 
       name: name, 
-      sellingPrice: price, 
-      mrp: price,
+      sellingPrice: sellingPrice, 
+      mrp: mrp,
       codes: codes,
+      initialStock: initialStock,
+      lowStockAlertLevel: lowStockAlertLevel,
+      taxRate: taxRate,
       syncState: EntityState.pendingInsert,
     );
 

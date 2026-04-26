@@ -249,6 +249,30 @@ app.post('/api/invoices', authenticateToken, async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
+
+async function runPatch() {
+  try {
+    // Patch Businesses
+    await db.query(`
+      ALTER TABLE businesses 
+      ADD COLUMN IF NOT EXISTS business_type VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS website_slug VARCHAR(255) UNIQUE,
+      ADD COLUMN IF NOT EXISTS website_config JSONB DEFAULT '{}'
+    `);
+    // Patch Products
+    await db.query(`
+      ALTER TABLE products 
+      ADD COLUMN IF NOT EXISTS mrp DECIMAL(10, 2) DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS selling_price DECIMAL(10, 2) DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS discount_percent DECIMAL(5, 2) DEFAULT 0
+    `);
+    console.log("Database Auto-Patched!");
+  } catch (err) {
+    console.error("Auto-Patch Error:", err);
+  }
+}
+
+server.listen(PORT, async () => {
+  await runPatch();
   console.log(`ERP Backend API & WebSockets running on port ${PORT}`);
 });
