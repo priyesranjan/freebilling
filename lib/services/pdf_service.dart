@@ -28,6 +28,7 @@ class PdfInvoiceService {
               _buildTotal(invoice),
               pw.Divider(borderStyle: pw.BorderStyle.dashed),
               _buildTermsAndConditions(),
+              _buildQRCode(invoice),
               pw.SizedBox(height: 10),
               _buildFooter(),
             ],
@@ -40,16 +41,23 @@ class PdfInvoiceService {
   }
 
   static pw.Widget _buildHeader(InvoiceRecord invoice, BusinessRecord business) {
+    final settings = AppSettings.instance;
+    final bName = settings.businessName.isNotEmpty ? settings.businessName : business.businessName;
+    final bAddress = settings.businessAddress.isNotEmpty ? settings.businessAddress : 'ADDRESS PLACEHOLDER, CITY';
+    final bPhone = settings.businessPhone.isNotEmpty ? settings.businessPhone : '';
+    final bGstin = settings.gstin.isNotEmpty ? settings.gstin : invoice.businessGstin;
+
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.center,
       children: [
         pw.Text('!! SHREE GANESHYA NAMAH !!', style: const pw.TextStyle(fontSize: 8)),
         pw.SizedBox(height: 4),
-        pw.Text(business.businessName.toUpperCase(), style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+        pw.Text(bName.toUpperCase(), style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
         pw.Text(business.category?.toUpperCase() ?? 'FASHION & RETAIL', style: const pw.TextStyle(fontSize: 9)),
-        pw.Text('ADDRESS PLACEHOLDER, CITY', style: const pw.TextStyle(fontSize: 9)),
+        pw.Text(bAddress, style: const pw.TextStyle(fontSize: 9)),
+        if (bPhone.isNotEmpty) pw.Text('Ph: $bPhone', style: const pw.TextStyle(fontSize: 9)),
         pw.SizedBox(height: 4),
-        if (invoice.businessGstin != null) pw.Text('GSTIN : ${invoice.businessGstin}', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+        if (bGstin != null && bGstin.isNotEmpty) pw.Text('GSTIN : $bGstin', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
         pw.SizedBox(height: 4),
         pw.Container(
           decoration: pw.BoxDecoration(border: pw.Border.all(width: 1)),
@@ -231,6 +239,29 @@ class PdfInvoiceService {
         pw.Center(
           child: pw.Text('Powered by FreeBilling Platform', style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey700))
         ),
+      ],
+    );
+  }
+
+  static pw.Widget _buildQRCode(InvoiceRecord invoice) {
+    final link = invoice.publicLink.isNotEmpty ? invoice.publicLink : 'https://freebilling.app/invoice/${invoice.id}';
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.center,
+      children: [
+        pw.SizedBox(height: 10),
+        pw.Center(
+          child: pw.Text('Scan to view bill online', style: const pw.TextStyle(fontSize: 8)),
+        ),
+        pw.SizedBox(height: 4),
+        pw.Center(
+          child: pw.BarcodeWidget(
+            barcode: pw.Barcode.qrCode(),
+            data: link,
+            width: 60,
+            height: 60,
+          ),
+        ),
+        pw.SizedBox(height: 10),
       ],
     );
   }
