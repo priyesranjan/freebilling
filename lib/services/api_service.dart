@@ -7,7 +7,10 @@ import '../enums/enums.dart';
 import 'sync_service.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://yqom1p17blookczemd4umqcn.91.108.111.194.sslip.io/api'; 
+  // ── Backend API URL ──────────────────────────────────────────────
+  // Web: goes through Nginx proxy at /api/ → backend:3000
+  // Mobile: calls backend directly via Coolify URL
+  static const String baseUrl = 'http://nu1p4y93k9miuofk9jn5z4za.91.108.111.194.sslip.io'; 
 
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
