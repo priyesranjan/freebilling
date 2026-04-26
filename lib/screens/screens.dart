@@ -563,12 +563,15 @@ class _PlatformShellState extends State<PlatformShell> {
                         const SizedBox(height: 14),
                         Expanded(
                           child: NavigationRail(
+                            backgroundColor: Colors.transparent,
                             selectedIndex: _section.index,
                             labelType: NavigationRailLabelType.all,
                             groupAlignment: -0.8,
-                            indicatorColor: BrandPalette.teal.withValues(
-                              alpha: 0.42,
-                            ),
+                            unselectedLabelTextStyle: const TextStyle(color: Colors.white70),
+                            selectedLabelTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            unselectedIconTheme: const IconThemeData(color: Colors.white70),
+                            selectedIconTheme: const IconThemeData(color: Colors.white),
+                            indicatorColor: Colors.white.withValues(alpha: 0.2),
                             onDestinationSelected: (int index) {
                               setState(() {
                                 _section = AppSection.values[index];
@@ -635,40 +638,50 @@ class _PlatformShellState extends State<PlatformShell> {
           ),
         ),
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _section.index,
-        onDestinationSelected: (int index) {
-          setState(() {
-            _section = AppSection.values[index];
-          });
-        },
-        destinations: const <NavigationDestination>[
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.inventory_2_outlined),
-            selectedIcon: Icon(Icons.inventory_2),
-            label: 'Items',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.receipt_long_outlined),
-            selectedIcon: Icon(Icons.receipt_long),
-            label: 'Invoices',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.contacts_outlined),
-            selectedIcon: Icon(Icons.contacts),
-            label: 'Khata',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.menu),
-            selectedIcon: Icon(Icons.menu_open),
-            label: 'Menu',
-          ),
-        ],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.85),
+          border: Border(top: BorderSide(color: Colors.black.withValues(alpha: 0.05))),
+        ),
+        child: NavigationBar(
+          selectedIndex: _section.index,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          height: 72,
+          indicatorColor: BrandPalette.teal.withValues(alpha: 0.12),
+          onDestinationSelected: (int index) {
+            setState(() {
+              _section = AppSection.values[index];
+            });
+          },
+          destinations: const <NavigationDestination>[
+            NavigationDestination(
+              icon: Icon(Icons.dashboard_outlined, size: 24),
+              selectedIcon: Icon(Icons.dashboard, color: BrandPalette.teal),
+              label: 'Home',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.inventory_2_outlined, size: 24),
+              selectedIcon: Icon(Icons.inventory_2, color: BrandPalette.teal),
+              label: 'Items',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.receipt_long_outlined, size: 24),
+              selectedIcon: Icon(Icons.receipt_long, color: BrandPalette.teal),
+              label: 'Bills',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.contacts_outlined, size: 24),
+              selectedIcon: Icon(Icons.contacts, color: BrandPalette.teal),
+              label: 'Parties',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.menu_rounded, size: 24),
+              selectedIcon: Icon(Icons.menu_open_rounded, color: BrandPalette.teal),
+              label: 'Menu',
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -2586,48 +2599,46 @@ class BrandedBackdrop extends StatelessWidget {
     return Stack(
       children: <Widget>[
         Positioned.fill(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: <Color>[
-                  BrandPalette.pageBase,
-                  BrandPalette.mint.withValues(alpha: 0.35),
-                  const Color(0xFFFDEFD7),
-                ],
-                stops: const <double>[0, 0.56, 1],
-              ),
-            ),
-          ),
+          child: Container(color: BrandPalette.pageBase),
+        ),
+        // Glassmorphic Mesh Orbs
+        Positioned(
+          top: -150,
+          right: -100,
+          child: _MeshOrb(size: 500, color: BrandPalette.teal.withValues(alpha: 0.1)),
         ),
         Positioned(
-          top: -60,
-          left: -50,
-          child: Container(
-            width: 230,
-            height: 230,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: BrandPalette.sun.withValues(alpha: 0.18),
-            ),
-          ),
+          bottom: -200,
+          left: -150,
+          child: _MeshOrb(size: 600, color: BrandPalette.sun.withValues(alpha: 0.08)),
         ),
         Positioned(
-          right: -70,
-          top: 110,
-          child: Container(
-            width: 220,
-            height: 220,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: BrandPalette.teal.withValues(alpha: 0.12),
-            ),
-          ),
+          top: 100,
+          left: -100,
+          child: _MeshOrb(size: 400, color: BrandPalette.coral.withValues(alpha: 0.05)),
         ),
-        Positioned.fill(child: CustomPaint(painter: SoftGridPainter())),
-        child,
+        Positioned.fill(child: child),
       ],
+    );
+  }
+}
+
+class _MeshOrb extends StatelessWidget {
+  const _MeshOrb({required this.size, required this.color});
+  final double size;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [color, color.withValues(alpha: 0)],
+        ),
+      ),
     );
   }
 }

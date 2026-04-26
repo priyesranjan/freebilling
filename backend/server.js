@@ -83,7 +83,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
   
   try {
     // 2Factor.in Send OTP (6-digit AUTOGEN)
-    const url = `https://2factor.in/API/V1/${TWO_FACTOR_API_KEY}/SMS/${phone}/AUTOGEN`;
+    const url = `https://2factor.in/API/V1/${TWO_FACTOR_API_KEY}/SMS/${phone}/AUTOGEN/OTP1`;
     const response = await axios.get(url);
     
     if (response.data.Status === 'Success') {
