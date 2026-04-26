@@ -1,0 +1,34 @@
+{
+  "project_info": {
+    "project_number": "918529139657",
+    "project_id": "big-business-ai0",
+    "storage_bucket": "big-business-ai0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:918529139657:android:da7645831f247f12345678",
+        "android_client_info": {
+          "package_name": "com.appdost.freebilling"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "918529139657-fvrr7avasbe9ejf5n7htsm8es963j1q1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": ""
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

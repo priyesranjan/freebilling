@@ -179,6 +179,12 @@ class BusinessRecord implements SyncableEntity {
   };
 }
 
+// --- NEW DOCUMENT TYPE ENUM ---
+enum DocumentType {
+  invoice,
+  quotation,
+}
+
 // --- NEW GST ENUM ---
 enum TaxRate {
   exempt(0.0),
@@ -414,6 +420,7 @@ class InvoiceRecord implements SyncableEntity {
     required this.lines,
     required this.channels,
     required this.publicLink,
+    this.type = DocumentType.invoice,
     this.syncState = EntityState.synced,
     // Deep Accounting & GST
     this.customerGstin,
@@ -437,6 +444,7 @@ class InvoiceRecord implements SyncableEntity {
   final List<CartItem> lines;
   final Set<DeliveryChannel> channels;
   final String publicLink;
+  final DocumentType type;
   
   @override
   final EntityState syncState;
@@ -469,6 +477,10 @@ class InvoiceRecord implements SyncableEntity {
       lines: [], // Note: Lines are not reconstructed from Sync Queue
       channels: {}, // Channels not reconstructed
       publicLink: json['publicLink'] as String,
+      type: DocumentType.values.firstWhere(
+        (e) => e.name == json['type'],
+        orElse: () => DocumentType.invoice,
+      ),
       paymentMode: PaymentMode.values.firstWhere((e) => e.name == json['paymentMode'], orElse: () => PaymentMode.cash),
       loyaltyPointsUsed: json['loyaltyPointsUsed'] as int? ?? 0,
       discountAmount: (json['discountAmount'] as num? ?? 0).toDouble(),
@@ -484,6 +496,7 @@ class InvoiceRecord implements SyncableEntity {
     'customerPhone': customerPhone,
     'customerEmail': customerEmail,
     'total': total,
+    'type': type.name,
     'lines': lines.map((item) => {
       'product_id': item.product.id,
       'quantity': item.quantity,
@@ -492,6 +505,7 @@ class InvoiceRecord implements SyncableEntity {
     }).toList(),
     'channels': channels.map((c) => c.name).toList(),
     'publicLink': publicLink,
+    'type': type.name,
     'syncState': syncState.name,
     'customerGstin': customerGstin,
     'businessGstin': businessGstin,
@@ -706,6 +720,8 @@ class AppSettings {
     this.paymentReminderEnabled = false,
     this.reminderDaysBeforeDue = 3,
     this.autoWhatsAppReminder = false,
+    // Business Features
+    this.enableQuotations = false,
   });
 
   // Item Settings
@@ -753,9 +769,12 @@ class AppSettings {
   int reminderDaysBeforeDue;
   bool autoWhatsAppReminder;
 
+  // Business Features
+  bool enableQuotations;
+
   // Integrations
-  String razorpayKeyId = '';
-  String razorpayKeySecret = '';
+  String razorpayKeyId = 'rzp_test_SDriiZBIndIyMP';
+  String razorpayKeySecret = 'cx6sHhlpqbgPPBfYeBHoneR6';
   String twoFactorApiKey = '';
   String whatsappApiToken = '';
   String whatsappPhoneNumberId = '';
@@ -776,6 +795,7 @@ class AppSettings {
     await prefs.setString('twoFactorApiKey', twoFactorApiKey);
     await prefs.setString('whatsappApiToken', whatsappApiToken);
     await prefs.setString('whatsappPhoneNumberId', whatsappPhoneNumberId);
+    await prefs.setBool('enableQuotations', enableQuotations);
     if (businessLogo != null) await prefs.setString('businessLogo', businessLogo!);
   }
 
@@ -787,11 +807,12 @@ class AppSettings {
     businessPhone = prefs.getString('businessPhone') ?? '';
     businessCategory = prefs.getString('businessCategory') ?? '';
     invoiceFormat = prefs.getString('invoiceFormat') ?? 'POS';
-    razorpayKeyId = prefs.getString('razorpayKeyId') ?? '';
-    razorpayKeySecret = prefs.getString('razorpayKeySecret') ?? '';
+    razorpayKeyId = prefs.getString('razorpayKeyId') ?? 'rzp_test_SDriiZBIndIyMP';
+    razorpayKeySecret = prefs.getString('razorpayKeySecret') ?? 'cx6sHhlpqbgPPBfYeBHoneR6';
     twoFactorApiKey = prefs.getString('twoFactorApiKey') ?? '';
     whatsappApiToken = prefs.getString('whatsappApiToken') ?? '';
     whatsappPhoneNumberId = prefs.getString('whatsappPhoneNumberId') ?? '';
+    enableQuotations = prefs.getBool('enableQuotations') ?? false;
     businessLogo = prefs.getString('businessLogo');
   }
 }

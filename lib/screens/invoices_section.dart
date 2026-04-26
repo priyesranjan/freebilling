@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../models/models.dart';
 import '../core/core.dart';
 import '../enums/enums.dart';
@@ -6,7 +8,6 @@ import '../services/services.dart';
 import 'package:printing/printing.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:async';
 import 'dart:typed_data';
@@ -35,15 +36,17 @@ class InvoicesSection extends StatefulWidget {
 
 class _InvoicesSectionState extends State<InvoicesSection> {
   InvoiceFilter _filter = InvoiceFilter.all;
+  DocumentType _docType = DocumentType.invoice;
 
   List<InvoiceRecord> get filtered {
+    var list = widget.invoices.where((i) => i.type == _docType).toList();
     switch (_filter) {
       case InvoiceFilter.all:
-        return widget.invoices;
+        return list;
       case InvoiceFilter.paid:
-        return widget.invoices.where((i) => i.paymentMode != PaymentMode.credit).toList();
+        return list.where((i) => i.paymentMode != PaymentMode.credit).toList();
       case InvoiceFilter.unpaid:
-        return widget.invoices.where((i) => i.paymentMode == PaymentMode.credit).toList();
+        return list.where((i) => i.paymentMode == PaymentMode.credit).toList();
     }
   }
 
@@ -72,7 +75,10 @@ class _InvoicesSectionState extends State<InvoicesSection> {
                 final label = f == InvoiceFilter.all ? 'All (${widget.invoices.length})'
                     : f == InvoiceFilter.paid ? 'Paid' : 'Unpaid';
                 return GestureDetector(
-                  onTap: () => setState(() => _filter = f),
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    setState(() => _filter = f);
+                  },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     margin: const EdgeInsets.only(right: 10),
@@ -96,6 +102,28 @@ class _InvoicesSectionState extends State<InvoicesSection> {
       ),
       body: Column(
         children: [
+          if (AppSettings.instance.enableQuotations)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: SegmentedButton<DocumentType>(
+                segments: const [
+                  ButtonSegment(value: DocumentType.invoice, label: Text('Bills/Invoices'), icon: Icon(Icons.receipt_long)),
+                  ButtonSegment(value: DocumentType.quotation, label: Text('Quotations'), icon: Icon(Icons.description_outlined)),
+                ],
+                selected: {_docType},
+                onSelectionChanged: (Set<DocumentType> newSelection) {
+                  HapticFeedback.lightImpact();
+                  setState(() {
+                    _docType = newSelection.first;
+                  });
+                },
+                style: SegmentedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  selectedForegroundColor: Colors.white,
+                  selectedBackgroundColor: BrandPalette.navy,
+                ),
+              ),
+            ),
           // Summary banner
           if (widget.invoices.isNotEmpty)
             Container(
@@ -129,13 +157,15 @@ class _InvoicesSectionState extends State<InvoicesSection> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.receipt_long, size: 64, color: Colors.grey.shade300),
+                        Icon(Icons.receipt_long, size: 64, color: Colors.grey.shade300)
+                            .animate(onPlay: (controller) => controller.repeat(reverse: true))
+                            .moveY(begin: -5, end: 5, duration: 1000.ms, curve: Curves.easeInOut),
                         const SizedBox(height: 16),
                         Text(
                           _filter == InvoiceFilter.all ? 'No bills yet.\nTap "Create Bill" to get started!' : 'No ${_filter.name} bills found.',
                           textAlign: TextAlign.center,
                           style: TextStyle(color: Colors.grey.shade600),
-                        ),
+                        ).animate().fadeIn(duration: 500.ms),
                       ],
                     ),
                   )
@@ -231,10 +261,13 @@ class _InvoicesSectionState extends State<InvoicesSection> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showCreateBillSheet(context),
+        onPressed: () {
+          HapticFeedback.lightImpact();
+          _showCreateBillSheet(context);
+        },
         backgroundColor: BrandPalette.coral,
         icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text('Create Bill', style: TextStyle(color: Colors.white)),
+        label: Text(_docType == DocumentType.quotation ? 'Create Quotation' : 'Create Bill', style: const TextStyle(color: Colors.white)),
       ),
     );
   }
@@ -306,7 +339,28 @@ class _InvoicesSectionState extends State<InvoicesSection> {
                         ),
                       ),
                     ),
-                  ]
+                  ],
+                  if (inv.type == DocumentType.quotation) ...[
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context); // close sheet
+                          if (widget.onCreateInvoice != null) {
+                            // Call the creation flow with the quotation to be converted
+                            widget.onCreateInvoice!(inv);
+                          }
+                        },
+                        icon: const Icon(Icons.transform),
+                        label: const Text('Convert to Bill'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: BrandPalette.teal,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -431,21 +485,22 @@ class _InvoicesSectionState extends State<InvoicesSection> {
     );
   }
 
-  void _showCreateBillSheet(BuildContext context) {
+  void _showCreateBillSheet(BuildContext context, [InvoiceRecord? initialQuotation]) {
     int _currentStep = 0;
     String _searchQuery = '';
-    final customerNameCtrl = TextEditingController();
-    final customerPhoneCtrl = TextEditingController();
-    final customerEmailCtrl = TextEditingController();
-    final customerGstCtrl = TextEditingController();
+    final customerNameCtrl = TextEditingController(text: initialQuotation?.customerName ?? '');
+    final customerPhoneCtrl = TextEditingController(text: initialQuotation?.customerPhone ?? '');
+    final customerEmailCtrl = TextEditingController(text: initialQuotation?.customerEmail ?? '');
+    final customerGstCtrl = TextEditingController(text: initialQuotation?.customerGstin ?? '');
     final customerAddressCtrl = TextEditingController();
     
-    final discountCtrl = TextEditingController(text: '0');
-    final loyaltyPointsCtrl = TextEditingController(text: '0');
+    final discountCtrl = TextEditingController(text: initialQuotation?.discountAmount.toStringAsFixed(0) ?? '0');
+    final loyaltyPointsCtrl = TextEditingController(text: initialQuotation?.loyaltyPointsUsed.toString() ?? '0');
     PartyRecord? selectedParty;
     
-    final List<CartItem> cartItems = [];
-    PaymentMode paymentMode = PaymentMode.cash;
+    final List<CartItem> cartItems = initialQuotation?.lines.toList() ?? [];
+    PaymentMode paymentMode = initialQuotation?.paymentMode ?? PaymentMode.cash;
+    DocumentType creatingType = initialQuotation == null ? _docType : DocumentType.invoice; // Converting always makes an invoice
 
     if (widget.products == null || widget.products!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -800,6 +855,7 @@ class _InvoicesSectionState extends State<InvoicesSection> {
                                   lines: List.from(cartItems),
                                   channels: const {},
                                   publicLink: widget.generateInvoiceLink?.call() ?? '',
+                                  type: creatingType,
                                   paymentMode: paymentMode,
                                   loyaltyPointsUsed: points,
                                   discountAmount: disc,

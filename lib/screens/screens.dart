@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math';
+import 'dart:async';
 import '../models/models.dart';
 import '../enums/enums.dart';
 import '../services/services.dart';
@@ -11,6 +12,7 @@ import 'invoices_section.dart';
 import 'khata_section.dart';
 import 'menu_section.dart';
 
+import 'package:sms_autofill/sms_autofill.dart';
 import 'auth_screen.dart';
 
 export 'auth_screen.dart';
@@ -543,7 +545,7 @@ class _PlatformShellState extends State<PlatformShell> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'ERPBill',
+                          'Dukan',
                           style: GoogleFonts.spaceGrotesk(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
@@ -551,7 +553,7 @@ class _PlatformShellState extends State<PlatformShell> {
                           ),
                         ),
                         Text(
-                          'Command',
+                          'Bill',
                           style: GoogleFonts.dmSans(
                             color: Colors.white.withValues(alpha: 0.68),
                             fontSize: 12,
@@ -608,7 +610,7 @@ class _PlatformShellState extends State<PlatformShell> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'ERP Bill Platform',
+              'Dukan Bill',
               style: GoogleFonts.spaceGrotesk(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
@@ -1285,9 +1287,25 @@ class _OwnerAuthSectionState extends State<OwnerAuthSection> {
   bool _isVerifyingOtp = false;
 
   @override
+  void initState() {
+    super.initState();
+    _initSmsAutoFill();
+  }
+
+  Future<void> _initSmsAutoFill() async {
+    final signature = await SmsAutoFill().getAppSignature;
+    print('\n\n========================================');
+    print('IMPORTANT: GIVE THIS HASH TO BACKEND DEV');
+    print('APP SIGNATURE HASH: $signature');
+    print('SMS MUST END WITH: $signature');
+    print('========================================\n\n');
+  }
+
+  @override
   void dispose() {
     _phoneController.dispose();
     _otpController.dispose();
+    SmsAutoFill().unregisterListener();
     super.dispose();
   }
 
@@ -1299,6 +1317,9 @@ class _OwnerAuthSectionState extends State<OwnerAuthSection> {
       );
       return;
     }
+
+    // Start listening for the SMS right before we request it
+    await SmsAutoFill().listenForCode();
 
     setState(() {
       _isRequestingOtp = true;
@@ -1495,13 +1516,19 @@ class _OwnerAuthSectionState extends State<OwnerAuthSection> {
                     children: <Widget>[
                       SizedBox(
                         width: 220,
-                        child: TextField(
+                        child: PinFieldAutoFill(
                           controller: _otpController,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            labelText: 'OTP',
-                            hintText: '6-digit code',
+                          codeLength: 6,
+                          decoration: UnderlineDecoration(
+                            textStyle: const TextStyle(fontSize: 20, color: Colors.black),
+                            colorBuilder: FixedColorBuilder(Colors.black.withValues(alpha: 0.3)),
                           ),
+                          onCodeSubmitted: (code) {},
+                          onCodeChanged: (code) {
+                            if (code?.length == 6) {
+                              _verifyOtp();
+                            }
+                          },
                         ),
                       ),
                       FilledButton.icon(

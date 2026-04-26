@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{businessName}} — Shop on Dukan Bill</title>
+  <meta name="description" content="Buy from {{businessName}}. Browse products, check prices, and order via WhatsApp."/>
+  <meta property="og:title" content="{{businessName}}"/>
+  <meta property="og:description" content="Shop online at {{businessName}} — powered by Dukan Bill"/>
+  <meta property="og:type" content="website"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #1a2b5a; --teal: #17b89e; --coral: #e97a63;
+      --bg: #f4f6fa; --card: #ffffff; --text: #1a1a2e; --muted: #6b7280;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, var(--navy) 0%, #2d4a8a 100%);
+      color: white; padding: 0; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.15);
+    }
+    .header-inner { max-width: 1100px; margin: 0 auto; padding: 16px 20px; display: flex; align-items: center; gap: 16px; }
+    .business-avatar {
+      width: 56px; height: 56px; border-radius: 14px;
+      background: var(--teal); display: flex; align-items: center; justify-content: center;
+      font-size: 24px; font-weight: 800; color: white; flex-shrink: 0;
+    }
+    .business-info h1 { font-size: 20px; font-weight: 700; }
+    .business-info .meta { font-size: 13px; opacity: 0.8; margin-top: 2px; }
+    .header-actions { margin-left: auto; display: flex; gap: 10px; }
+    .btn-whatsapp {
+      background: #25D366; color: white; border: none; padding: 10px 18px;
+      border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px;
+      display: flex; align-items: center; gap: 6px; text-decoration: none;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-whatsapp:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(37,211,102,0.4); }
+    .btn-call {
+      background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3);
+      padding: 10px 16px; border-radius: 10px; font-weight: 600; cursor: pointer;
+      font-size: 14px; display: flex; align-items: center; gap: 6px; text-decoration: none;
+      backdrop-filter: blur(10px); transition: background 0.2s;
+    }
+    .btn-call:hover { background: rgba(255,255,255,0.25); }
+
+    /* ── Search & Filters ── */
+    .controls { max-width: 1100px; margin: 0 auto; padding: 20px 20px 0; }
+    .search-box {
+      width: 100%; padding: 14px 20px; border-radius: 14px; border: 2px solid #e5e7eb;
+      font-size: 15px; background: white; outline: none; transition: border-color 0.2s;
+      font-family: inherit;
+    }
+    .search-box:focus { border-color: var(--teal); }
+    .categories { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+    .cat-chip {
+      padding: 7px 16px; border-radius: 20px; border: 1.5px solid #e5e7eb;
+      background: white; cursor: pointer; font-size: 13px; font-weight: 500;
+      transition: all 0.2s; white-space: nowrap;
+    }
+    .cat-chip.active { background: var(--navy); color: white; border-color: var(--navy); }
+    .cat-chip:hover:not(.active) { border-color: var(--teal); color: var(--teal); }
+
+    /* ── Product Grid ── */
+    .products-section { max-width: 1100px; margin: 20px auto; padding: 0 20px 80px; }
+    .section-title { font-size: 16px; font-weight: 600; color: var(--muted); margin-bottom: 16px; }
+    .product-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;
+    }
+    .product-card {
+      background: white; border-radius: 16px; padding: 16px;
+      border: 1.5px solid #e5e7eb; transition: transform 0.2s, box-shadow 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .product-card:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+    .product-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: linear-gradient(135deg, #e8f4fd, #d1ecf1);
+      display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 12px;
+    }
+    .product-name { font-size: 15px; font-weight: 600; line-height: 1.3; margin-bottom: 4px; }
+    .product-code { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+    .product-price-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .price { font-size: 20px; font-weight: 700; color: var(--navy); }
+    .mrp { font-size: 13px; color: var(--muted); text-decoration: line-through; }
+    .discount-badge {
+      background: #dcfce7; color: #16a34a; font-size: 11px; font-weight: 700;
+      padding: 3px 8px; border-radius: 6px;
+    }
+    .stock-badge {
+      position: absolute; top: 12px; right: 12px;
+      font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 6px;
+    }
+    .in-stock { background: #dcfce7; color: #16a34a; }
+    .out-stock { background: #fee2e2; color: #dc2626; }
+    .btn-add {
+      width: 100%; padding: 10px; border-radius: 10px; border: none;
+      background: var(--navy); color: white; font-weight: 600; font-size: 14px;
+      cursor: pointer; transition: background 0.2s, transform 0.1s; font-family: inherit;
+    }
+    .btn-add:hover { background: var(--teal); }
+    .btn-add:active { transform: scale(0.97); }
+    .btn-add.added { background: var(--teal); }
+
+    /* ── Cart Bar ── */
+    .cart-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--navy); color: white; padding: 16px 20px;
+      display: none; align-items: center; gap: 12px;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.15); z-index: 200;
+    }
+    .cart-bar.visible { display: flex; }
+    .cart-info { flex: 1; }
+    .cart-info .items { font-size: 13px; opacity: 0.8; }
+    .cart-info .total { font-size: 20px; font-weight: 700; }
+    .btn-order {
+      background: var(--teal); color: white; border: none; padding: 12px 24px;
+      border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer;
+      white-space: nowrap; font-family: inherit;
+    }
+    .btn-order:hover { background: #15a89e; }
+
+    /* ── Empty State ── */
+    .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+    .empty .icon { font-size: 56px; margin-bottom: 16px; }
+    .empty h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+
+    /* ── Footer ── */
+    .footer { text-align: center; padding: 20px; font-size: 12px; color: var(--muted); margin-top: 40px; }
+    .footer a { color: var(--teal); text-decoration: none; font-weight: 600; }
+
+    @media (max-width: 600px) {
+      .header-inner { flex-wrap: wrap; }
+      .header-actions { width: 100%; justify-content: stretch; }
+      .btn-whatsapp, .btn-call { flex: 1; justify-content: center; }
+      .product-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────── -->
+<header class="header">
+  <div class="header-inner">
+    <div class="business-avatar" id="bizAvatar">{{initial}}</div>
+    <div class="business-info">
+      <h1 id="bizName">{{businessName}}</h1>
+      <div class="meta" id="bizMeta">📍 {{city}} &nbsp;·&nbsp; 📞 {{phone}}</div>
+    </div>
+    <div class="header-actions">
+      <a href="https://wa.me/91{{rawPhone}}?text=Hi%20I%20want%20to%20order%20from%20{{businessName}}" 
+         class="btn-whatsapp" id="whatsappBtn" target="_blank">
+        💬 WhatsApp
+      </a>
+      <a href="tel:+91{{rawPhone}}" class="btn-call">📞 Call</a>
+    </div>
+  </div>
+</header>
+
+<!-- ── Search & Filters ──────────────────────────────────────────── -->
+<div class="controls">
+  <input type="text" class="search-box" id="searchInput" placeholder="🔍 Search products..." oninput="filterProducts()"/>
+  <div class="categories" id="categoryBar">
+    <button class="cat-chip active" onclick="setCategory('all', this)">All</button>
+  </div>
+</div>
+
+<!-- ── Product Grid ──────────────────────────────────────────────── -->
+<div class="products-section">
+  <div class="section-title" id="productCount"></div>
+  <div class="product-grid" id="productGrid">
+    <!-- Injected by JS -->
+  </div>
+  <div class="empty" id="emptyState" style="display:none;">
+    <div class="icon">🛒</div>
+    <h3>No products found</h3>
+    <p>Try a different search or category.</p>
+  </div>
+</div>
+
+<!-- ── Cart Bar ──────────────────────────────────────────────────── -->
+<div class="cart-bar" id="cartBar">
+  <div class="cart-info">
+    <div class="items" id="cartItems">0 items</div>
+    <div class="total" id="cartTotal">₹0</div>
+  </div>
+  <button class="btn-order" onclick="sendWhatsAppOrder()">📲 Order via WhatsApp</button>
+</div>
+
+<!-- ── Footer ──────────────────────────────────────────────────── -->
+<footer class="footer">
+  Powered by <a href="/">Dukan Bill</a> — Free billing for every business
+</footer>
+
+<script>
+  // ── Data injected by server ────────────────────────────────────
+  const BUSINESS = {{businessJson}};
+  const PRODUCTS = {{productsJson}};
+
+  let cart = {};
+  let activeCategory = 'all';
+
+  // ── Init ──────────────────────────────────────────────────────
+  function init() {
+    // Build category list
+    const cats = [...new Set(PRODUCTS.map(p => p.category || 'General'))];
+    const bar = document.getElementById('categoryBar');
+    cats.forEach(cat => {
+      const btn = document.createElement('button');
+      btn.className = 'cat-chip';
+      btn.textContent = cat;
+      btn.onclick = () => setCategory(cat, btn);
+      bar.appendChild(btn);
+    });
+    renderProducts(PRODUCTS);
+  }
+
+  function setCategory(cat, el) {
+    activeCategory = cat;
+    document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    filterProducts();
+  }
+
+  function filterProducts() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    let filtered = PRODUCTS.filter(p => {
+      const matchSearch = p.name.toLowerCase().includes(q) || (p.codes || []).join(' ').toLowerCase().includes(q);
+      const matchCat = activeCategory === 'all' || (p.category || 'General') === activeCategory;
+      return matchSearch && matchCat;
+    });
+    renderProducts(filtered);
+  }
+
+  function renderProducts(list) {
+    const grid = document.getElementById('productGrid');
+    const empty = document.getElementById('emptyState');
+    const count = document.getElementById('productCount');
+    count.textContent = list.length + ' products';
+
+    if (list.length === 0) {
+      grid.innerHTML = ''; empty.style.display = 'block'; return;
+    }
+    empty.style.display = 'none';
+
+    grid.innerHTML = list.map(p => {
+      const inCart = cart[p.id] || 0;
+      const discount = p.mrp > p.sellingPrice && p.mrp > 0
+        ? Math.round((p.mrp - p.sellingPrice) / p.mrp * 100) : 0;
+      const inStock = !p.currentStock || p.currentStock > 0;
+      return `
+        <div class="product-card" id="card-${p.id}">
+          <span class="stock-badge ${inStock ? 'in-stock' : 'out-stock'}">${inStock ? 'In Stock' : 'Out of Stock'}</span>
+          <div class="product-icon">🛍️</div>
+          <div class="product-name">${p.name}</div>
+          ${p.codes && p.codes[0] ? `<div class="product-code">SKU: ${p.codes[0]}</div>` : ''}
+          <div class="product-price-row">
+            <span class="price">₹${p.sellingPrice.toFixed(0)}</span>
+            ${p.mrp > p.sellingPrice ? `<span class="mrp">₹${p.mrp.toFixed(0)}</span>` : ''}
+            ${discount > 0 ? `<span class="discount-badge">${discount}% OFF</span>` : ''}
+          </div>
+          <button class="btn-add ${inCart > 0 ? 'added' : ''}" id="btn-${p.id}" 
+            onclick="addToCart('${p.id}', '${p.name}', ${p.sellingPrice})" ${!inStock ? 'disabled' : ''}>
+            ${inCart > 0 ? `✅ Added (${inCart})` : '+ Add to Cart'}
+          </button>
+        </div>`;
+    }).join('');
+  }
+
+  function addToCart(id, name, price) {
+    cart[id] = (cart[id] || 0) + 1;
+    // Update button
+    const btn = document.getElementById('btn-' + id);
+    if (btn) { btn.textContent = `✅ Added (${cart[id]})`; btn.classList.add('added'); }
+    updateCartBar();
+  }
+
+  function updateCartBar() {
+    const ids = Object.keys(cart);
+    const totalItems = ids.reduce((s, id) => s + cart[id], 0);
+    const totalPrice = ids.reduce((s, id) => {
+      const p = PRODUCTS.find(x => x.id === id);
+      return s + (p ? p.sellingPrice * cart[id] : 0);
+    }, 0);
+    document.getElementById('cartItems').textContent = totalItems + ' item' + (totalItems !== 1 ? 's' : '');
+    document.getElementById('cartTotal').textContent = '₹' + totalPrice.toFixed(0);
+    document.getElementById('cartBar').classList.toggle('visible', totalItems > 0);
+  }
+
+  function sendWhatsAppOrder() {
+    let msg = `Hi! I want to order from *${BUSINESS.businessName}*:\n\n`;
+    Object.keys(cart).forEach(id => {
+      const p = PRODUCTS.find(x => x.id === id);
+      if (p) msg += `• ${p.name} × ${cart[id]} = ₹${(p.sellingPrice * cart[id]).toFixed(0)}\n`;
+    });
+    const total = Object.keys(cart).reduce((s, id) => {
+      const p = PRODUCTS.find(x => x.id === id); return s + (p ? p.sellingPrice * cart[id] : 0);
+    }, 0);
+    msg += `\n*Total: ₹${total.toFixed(0)}*\nPlease confirm my order. Thank you!`;
+    const phone = BUSINESS.phone ? BUSINESS.phone.replace(/\D/g, '') : '';
+    window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+  }
+
+  init();
+</script>
+</body>
+</html>

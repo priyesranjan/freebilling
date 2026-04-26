@@ -9,6 +9,7 @@ import 'settings/item_settings.dart';
 import 'settings/reminder_settings.dart';
 import 'settings/google_test_screen.dart';
 import 'settings/integration_settings.dart';
+import 'settings/business_features_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   final AppSettings settings;
@@ -33,6 +34,12 @@ class SettingsScreen extends StatelessWidget {
             title: 'General',
             isNew: true,
             onTap: () => _push(context, GeneralSettingsScreen(settings: settings)),
+          ),
+          _buildSettingsTile(context,
+            icon: Icons.business_center_outlined,
+            title: 'Business Features',
+            isNew: true,
+            onTap: () => _push(context, BusinessFeaturesScreen(settings: settings)),
           ),
           _buildSettingsTile(context,
             icon: Icons.swap_vert_circle_outlined,

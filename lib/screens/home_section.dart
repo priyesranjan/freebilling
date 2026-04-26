@@ -302,12 +302,11 @@ class HomeSection extends StatelessWidget {
 
   Widget _buildQuickActions(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        _buildActionButton(context, Icons.add_shopping_cart, 'Add Sale', BrandPalette.navy, onAddSale),
-        _buildActionButton(context, Icons.inventory_2, 'Add Purchase', BrandPalette.teal, null),
-        _buildActionButton(context, Icons.account_balance_wallet, 'Add Expense', BrandPalette.coral, null),
-        _buildActionButton(context, Icons.people, 'Add Party', BrandPalette.sun, null),
+        Expanded(child: _buildActionButton(context, Icons.add_shopping_cart, 'Add Sale', BrandPalette.navy, onAddSale)),
+        Expanded(child: _buildActionButton(context, Icons.inventory_2, 'Add Purchase', BrandPalette.teal, null)),
+        Expanded(child: _buildActionButton(context, Icons.account_balance_wallet, 'Add Expense', BrandPalette.coral, null)),
+        Expanded(child: _buildActionButton(context, Icons.people, 'Add Party', BrandPalette.sun, null)),
       ],
     );
   }

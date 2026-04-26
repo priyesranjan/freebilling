@@ -1,4 +1,4 @@
-package com.example.erp_bill
+package com.appdost.freebilling
 
 import io.flutter.embedding.android.FlutterActivity
 

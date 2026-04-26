@@ -226,7 +226,7 @@ class _AuthScreenState extends State<AuthScreen> with CodeAutoFill {
                 ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack).fadeIn(),
                 const SizedBox(height: 24),
                 Text(
-                  'Welcome to ERP Bill',
+                  'Welcome to Dukan Bill',
                   style: GoogleFonts.spaceGrotesk(
                     fontSize: 28,
                     fontWeight: FontWeight.w700,

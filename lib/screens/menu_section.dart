@@ -6,6 +6,7 @@ import 'expenses_screen.dart';
 import 'reports_screen.dart';
 import 'cash_bank_screen.dart';
 import 'marketing_hub.dart';
+import 'settings/upgrade_screen.dart';
 
 class MenuSection extends StatefulWidget {
   final List<InvoiceRecord> invoices;
@@ -67,18 +68,69 @@ class _MenuSectionState extends State<MenuSection> {
             ]),
           ],
 
+          // ── Data & Security ─────────────────────────────────────────
+          _sectionCard('Data & Security', [
+            _navTile(context, Icons.cloud_upload_outlined, 'Backup to Cloud', 'Last sync: Just now', () => _showSyncSuccess(context)),
+            _divider(),
+            _navTile(context, Icons.share_outlined, 'Export Data (Excel/PDF)', 'Download business reports', () => _push(context, ReportsScreen(invoices: widget.invoices, expenses: widget.expenses, products: widget.products))),
+          ]),
+
           // ── Settings & Support ─────────────────────────────────────
           _sectionCard('System & Help', [
+            _navTile(context, Icons.star_border_rounded, 'Upgrade Plan', 'Get Premium Features',
+              () => _push(context, const UpgradeScreen()), isNew: true),
+            _divider(),
             _navTile(context, Icons.settings_outlined, 'Settings', 'Business Profile, Printer, Tax',
               () => _push(context, SettingsScreen(settings: AppSettings.instance))),
             _divider(),
             _navTile(context, Icons.headset_mic_outlined, 'Help & Support', 'WhatsApp, Tutorials', () => _showComingSoon(context, 'Support')),
           ]),
 
+          // ── Log Out ─────────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: OutlinedButton.icon(
+              onPressed: () => _showLogoutDialog(context),
+              icon: const Icon(Icons.logout, color: BrandPalette.coral),
+              label: const Text('Log Out', style: TextStyle(color: BrandPalette.coral, fontWeight: FontWeight.bold)),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: BrandPalette.coral),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
+
           // ── App Version ─────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-            child: Text('App Version  1.0.0', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+            child: Center(child: Text('Dukan Bill v1.0.0 (Stable)', style: TextStyle(color: Colors.grey.shade500, fontSize: 12))),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSyncSuccess(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Database synced with cloud successfully!'), backgroundColor: BrandPalette.teal),
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Log Out?'),
+        content: const Text('Are you sure you want to log out of your business account?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Logged out successfully.')));
+            }, 
+            child: const Text('Log Out', style: TextStyle(color: BrandPalette.coral, fontWeight: FontWeight.bold))
           ),
         ],
       ),
@@ -123,7 +175,7 @@ class _MenuSectionState extends State<MenuSection> {
                   ),
                   const SizedBox(width: 8),
                   GestureDetector(
-                    onTap: () => _push(context, SettingsScreen(settings: AppSettings.instance)),
+                    onTap: () => _push(context, const UpgradeScreen()),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../models/models.dart';
 import '../core/core.dart';
 import '../services/sync_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'bulk_import_wizard.dart';
 
 class ItemsSection extends StatefulWidget {
   final List<Product> products;
@@ -57,27 +60,42 @@ class _ItemsSectionState extends State<ItemsSection> {
         title: Text('Items (${widget.products.length})'),
         elevation: 0,
         backgroundColor: BrandPalette.pageBase,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.file_upload_outlined),
+            tooltip: 'Bulk Import Items',
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              _showBulkImportOptions(context);
+            },
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(110),
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: TextField(
                   onChanged: (val) => setState(() => _searchQuery = val),
                   decoration: InputDecoration(
-                    hintText: 'Search items or scan barcode...',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: const Icon(Icons.qr_code_scanner, color: BrandPalette.teal),
+                    hintText: 'Search items or barcode...',
+                    prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                    suffixIcon: const Icon(Icons.qr_code_scanner, color: BrandPalette.navy),
                     filled: true,
                     fillColor: Colors.white,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                 ),
               ),
+              const SizedBox(height: 12),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.only(left: 16, bottom: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: ['All', 'Low Stock', 'In Stock'].map((f) {
                     final isSelected = _filter == f;
@@ -251,7 +269,10 @@ class _ItemsSectionState extends State<ItemsSection> {
               },
             ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddItemSheet(context),
+        onPressed: () {
+          HapticFeedback.lightImpact();
+          _showAddItemSheet(context);
+        },
         backgroundColor: BrandPalette.navy,
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text('Add Item', style: TextStyle(color: Colors.white)),
@@ -609,5 +630,76 @@ class _ItemsSectionState extends State<ItemsSection> {
 
     final Uri whatsappUri = Uri.parse('https://wa.me/?text=${Uri.encodeComponent(message)}');
     launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+  }
+
+  void _showBulkImportOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Bulk Import Items', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Icon(Icons.table_chart, color: BrandPalette.teal),
+              title: const Text('Import from Excel / CSV'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _openImportWizard('excel');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.document_scanner, color: BrandPalette.navy),
+              title: const Text('Scan PDF or Catalog (AI)'),
+              subtitle: const Text('Extract items automatically from your PDF catalogs.'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _openImportWizard('pdf');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt, color: BrandPalette.coral),
+              title: const Text('Take Photo of Menu/List (AI)'),
+              subtitle: const Text('Point camera at any printed list to extract items.'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _openImportWizard('photo');
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openImportWizard(String method) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BulkImportWizard(
+          method: method,
+          onProductsExtracted: (products) {
+            for (final p in products) {
+              widget.onAddProduct?.call(
+                name: p.name,
+                sellingPrice: p.sellingPrice,
+                mrp: p.mrp,
+                codes: p.codes,
+                initialStock: 0,
+                lowStockAlertLevel: 0,
+                taxRate: TaxRate.exempt,
+              );
+            }
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Successfully imported ${products.length} items!'), backgroundColor: BrandPalette.teal),
+            );
+          },
+        ),
+      ),
+    );
   }
 }

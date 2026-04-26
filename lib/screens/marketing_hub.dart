@@ -27,6 +27,7 @@ class _MarketingHubScreenState extends State<MarketingHubScreen> {
             tabs: [
               Tab(icon: Icon(Icons.star), text: 'Google Reviews AI'),
               Tab(icon: Icon(Icons.image), text: 'Promo Image AI'),
+              Tab(icon: Icon(Icons.insights), text: 'GMB Performance'),
             ],
           ),
         ),
@@ -34,6 +35,7 @@ class _MarketingHubScreenState extends State<MarketingHubScreen> {
           children: [
             ReviewAIView(),
             PromoImageAIView(),
+            GMBPerformanceView(),
           ],
         ),
       ),
@@ -278,3 +280,110 @@ class _PromoImageAIViewState extends State<PromoImageAIView> {
     );
   }
 }
+
+class GMBPerformanceView extends StatelessWidget {
+  const GMBPerformanceView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: BrandPalette.navy,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.insights, color: BrandPalette.teal),
+                  SizedBox(width: 8),
+                  Text('Business Performance Profile', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                ],
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Once your Google API Request (Case ID: 1-8164000040932) is approved, your real-time Google Search and Maps data will appear here automatically.',
+                style: TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+              const SizedBox(height: 16),
+              LinearProgressIndicator(
+                value: 0.1,
+                backgroundColor: Colors.white10,
+                color: BrandPalette.teal,
+              ),
+              const SizedBox(height: 8),
+              const Text('Status: Waiting for Google Approval (7-10 Days)', style: TextStyle(color: BrandPalette.teal, fontSize: 10, fontWeight: FontWeight.bold)),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+        const Text('Predicted Insights (Mock)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            _buildStatCard('Profile Views', '1.2k', Icons.visibility, Colors.blue),
+            const SizedBox(width: 12),
+            _buildStatCard('Search Hits', '840', Icons.search, Colors.purple),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            _buildStatCard('Calls Made', '42', Icons.phone, Colors.green),
+            const SizedBox(width: 12),
+            _buildStatCard('Web Clicks', '156', Icons.mouse, Colors.orange),
+          ],
+        ),
+        const SizedBox(height: 24),
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: Column(
+            children: [
+              Icon(Icons.lock_clock, size: 48, color: Colors.grey.shade300),
+              const SizedBox(height: 12),
+              const Text('Full Dashboard Locked', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                'We have prepared all the charts and data connectors. As soon as your Google Cloud quota is increased, this screen will unlock with your live business metrics.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(height: 12),
+            Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+            Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+

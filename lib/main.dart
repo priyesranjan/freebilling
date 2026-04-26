@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
     );
 
     return MaterialApp(
-      title: 'ERP Bill Platform',
+      title: 'Dukan Bill',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,

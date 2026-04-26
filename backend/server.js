@@ -29,6 +29,83 @@ app.get('/web/*', (req, res) => {
 // ── Health Check (for Docker / Coolify) ─────────────────────────
 app.get('/health', (req, res) => res.json({ status: 'ok', service: 'Dukan Bill API', version: '1.0.0' }));
 
+// ── Business Storefront (Public, No Auth) ────────────────────────
+const shopTemplate = require('fs').readFileSync(path.join(__dirname, 'views', 'shop.html'), 'utf8');
+
+app.get('/shop/:slug', async (req, res) => {
+  try {
+    const { slug } = req.params;
+    // Fetch business by slug or name match
+    const bizResult = await db.query(
+      `SELECT * FROM businesses WHERE slug = $1 OR LOWER(REPLACE(business_name, ' ', '-')) = $1 LIMIT 1`,
+      [slug.toLowerCase()]
+    );
+    if (bizResult.rows.length === 0) {
+      return res.status(404).send(`
+        <html><body style="font-family:sans-serif;text-align:center;padding:60px">
+          <h2>🏪 Business Not Found</h2>
+          <p>No business found at this link.</p>
+          <a href="/" style="color:#17b89e">← Back to Dukan Bill</a>
+        </body></html>`);
+    }
+    const biz = bizResult.rows[0];
+
+    // Fetch products for this business
+    const prodsResult = await db.query(
+      `SELECT id, name, selling_price as "sellingPrice", mrp, current_stock as "currentStock", 
+              low_stock_alert_level as "lowStockAlertLevel", codes, tax_rate as "taxRate", category
+       FROM products WHERE business_id = $1 ORDER BY name`,
+      [biz.id]
+    );
+    const products = prodsResult.rows.map(p => ({
+      ...p,
+      codes: Array.isArray(p.codes) ? p.codes : (p.codes ? JSON.parse(p.codes) : []),
+    }));
+
+    const phone = (biz.phone || biz.owner_phone || '').replace(/\D/g, '');
+    const initial = (biz.business_name || 'B')[0].toUpperCase();
+    const city = biz.city || biz.address || '';
+
+    const html = shopTemplate
+      .replace(/{{businessName}}/g, biz.business_name || 'Business')
+      .replace(/{{initial}}/g, initial)
+      .replace(/{{city}}/g, city)
+      .replace(/{{phone}}/g, biz.phone || biz.owner_phone || '')
+      .replace(/{{rawPhone}}/g, phone)
+      .replace('{{businessJson}}', JSON.stringify({ businessName: biz.business_name, phone }))
+      .replace('{{productsJson}}', JSON.stringify(products));
+
+    res.send(html);
+  } catch (err) {
+    console.error('Shop route error:', err);
+    res.status(500).send('Something went wrong. Please try again.');
+  }
+});
+
+// ── Public Shop API (JSON) ────────────────────────────────────────
+app.get('/api/shop/:slug', async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const bizResult = await db.query(
+      `SELECT id, business_name, phone, owner_phone, city, address, gstin FROM businesses 
+       WHERE slug = $1 OR LOWER(REPLACE(business_name, ' ', '-')) = $1 LIMIT 1`,
+      [slug.toLowerCase()]
+    );
+    if (bizResult.rows.length === 0) return res.status(404).json({ error: 'Business not found' });
+    const biz = bizResult.rows[0];
+
+    const prodsResult = await db.query(
+      `SELECT id, name, selling_price as "sellingPrice", mrp, current_stock as "currentStock", codes, category
+       FROM products WHERE business_id = $1 ORDER BY name`,
+      [biz.id]
+    );
+    res.json({ business: biz, products: prodsResult.rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 const JWT_SECRET = process.env.JWT_SECRET || 'erp_bill_super_secret_key';
 const TWO_FACTOR_API_KEY = 'a4f42790-1574-11f1-bcb0-0200cd936042';
 

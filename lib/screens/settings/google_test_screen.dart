@@ -38,6 +38,7 @@ class _GoogleApiTestScreenState extends State<GoogleApiTestScreen> {
     try {
       await _googleSignIn.signIn();
     } catch (error) {
+      print('DEBUG GOOGLE SIGN IN ERROR: $error');
       setState(() {
         _apiResponse = 'Sign in error: $error';
       });
@@ -55,6 +56,19 @@ class _GoogleApiTestScreenState extends State<GoogleApiTestScreen> {
     });
 
     try {
+      // On Web, we must explicitly request the API scopes before fetching auth headers
+      final bool isAuthorized = await _googleSignIn.requestScopes([
+        'https://www.googleapis.com/auth/business.manage'
+      ]);
+      
+      if (!isAuthorized) {
+        setState(() {
+          _isLoading = false;
+          _apiResponse = 'Permission Denied: You must allow the app to manage your business to continue.';
+        });
+        return;
+      }
+
       final authHeaders = await _currentUser!.authHeaders;
       
       // 1. Fetch Accounts

@@ -31,6 +31,8 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+# Exception: keep the web build so Coolify/Docker can copy it
+!/build/web/
 /coverage/
 
 # Symbolication related
