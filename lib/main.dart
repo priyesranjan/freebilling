@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'core/core.dart';
 import 'screens/screens.dart';
 import 'screens/auth_screen.dart';
+import 'models/models.dart';
 import 'services/services.dart';
 
 void main() async {
