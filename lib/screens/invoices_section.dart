@@ -367,8 +367,14 @@ class _InvoicesSectionState extends State<InvoicesSection> {
   }
 
   void _showCreateBillSheet(BuildContext context) {
+    int _currentStep = 0;
+    String _searchQuery = '';
     final customerNameCtrl = TextEditingController();
     final customerPhoneCtrl = TextEditingController();
+    final customerEmailCtrl = TextEditingController();
+    final customerGstCtrl = TextEditingController();
+    final customerAddressCtrl = TextEditingController();
+    
     final discountCtrl = TextEditingController(text: '0');
     final loyaltyPointsCtrl = TextEditingController(text: '0');
     PartyRecord? selectedParty;
@@ -410,10 +416,228 @@ class _InvoicesSectionState extends State<InvoicesSection> {
           customerPhoneCtrl.addListener(listener);
 
           final total = cartItems.fold(0.0, (s, i) => s + i.finalAmount);
+          
+          Widget buildItemsStep() {
+            final filtered = widget.products!.where((p) {
+              return p.name.toLowerCase().contains(_searchQuery.toLowerCase()) || 
+                     p.codes.any((c) => c.toLowerCase().contains(_searchQuery.toLowerCase()));
+            }).toList();
+
+            return Column(
+              children: [
+                TextField(
+                  autofocus: true,
+                  onChanged: (val) => setS(() => _searchQuery = val),
+                  decoration: InputDecoration(
+                    hintText: 'Search Product Name or Scan...',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.qr_code_scanner, color: BrandPalette.teal),
+                      onPressed: () => _showScannerOverlay(ctx2, widget.products!, cartItems, setS),
+                    ),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    filled: true,
+                    fillColor: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                if (_searchQuery.isNotEmpty)
+                  Container(
+                    height: 150,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(color: Colors.white, border: Border.all(color: Colors.grey.shade200), borderRadius: BorderRadius.circular(12)),
+                    child: filtered.isEmpty
+                        ? Center(child: Text('No items found', style: TextStyle(color: Colors.grey.shade500)))
+                        : ListView.separated(
+                            itemCount: filtered.length,
+                            separatorBuilder: (c, i) => const Divider(height: 1),
+                            itemBuilder: (context, i) {
+                              final p = filtered[i];
+                              return ListTile(
+                                title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                subtitle: Text('₹${p.price}', style: const TextStyle(fontSize: 12)),
+                                trailing: IconButton(
+                                  icon: const Icon(Icons.add_circle, color: BrandPalette.teal),
+                                  onPressed: () {
+                                    setS(() {
+                                      final existing = cartItems.indexWhere((c) => c.product.id == p.id);
+                                      if (existing >= 0) {
+                                        cartItems[existing] = cartItems[existing].copyWith(quantity: cartItems[existing].quantity + 1);
+                                      } else {
+                                        cartItems.add(CartItem(product: p, quantity: 1));
+                                      }
+                                      _searchQuery = '';
+                                    });
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                Row(
+                  children: [
+                    const Text('Cart Items', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                    const Spacer(),
+                    Text('${cartItems.length} items', style: const TextStyle(fontWeight: FontWeight.bold, color: BrandPalette.teal)),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                if (cartItems.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(30),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey.shade200)),
+                    child: Text('Search or scan items to add them to the bill.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                  )
+                else
+                  ...cartItems.map((item) => Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade200)),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 40, height: 40,
+                          decoration: BoxDecoration(color: BrandPalette.navy.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(8)),
+                          child: const Icon(Icons.inventory_2, size: 20, color: BrandPalette.navy),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(item.product.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                              Text('₹${item.unitPrice}', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                            ],
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.remove_circle_outline, size: 20, color: BrandPalette.coral),
+                              onPressed: () => setS(() {
+                                if (item.quantity > 1) {
+                                  final idx = cartItems.indexWhere((c) => c.product.id == item.product.id);
+                                  cartItems[idx] = item.copyWith(quantity: item.quantity - 1);
+                                } else {
+                                  cartItems.removeWhere((c) => c.product.id == item.product.id);
+                                }
+                              }),
+                            ),
+                            Text('${item.quantity.toInt()}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            IconButton(
+                              icon: const Icon(Icons.add_circle_outline, size: 20, color: BrandPalette.teal),
+                              onPressed: () => setS(() {
+                                final idx = cartItems.indexWhere((c) => c.product.id == item.product.id);
+                                cartItems[idx] = item.copyWith(quantity: item.quantity + 1);
+                              }),
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, size: 20, color: Colors.grey),
+                          onPressed: () => setS(() => cartItems.removeWhere((c) => c.product.id == item.product.id)),
+                        ),
+                      ],
+                    ),
+                  )),
+              ],
+            ).animate().fadeIn();
+          }
+
+          Widget buildCustomerStep() {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Customer Mobile Number', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: customerPhoneCtrl,
+                  keyboardType: TextInputType.phone,
+                  autofocus: true,
+                  maxLength: 10,
+                  decoration: const InputDecoration(prefixIcon: Icon(Icons.phone), hintText: 'Enter 10-digit number', border: OutlineInputBorder(), counterText: ''),
+                ),
+                const SizedBox(height: 16),
+                if (customerPhoneCtrl.text.length == 10) ...[
+                  if (selectedParty != null)
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(color: BrandPalette.mint.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(12), border: Border.all(color: BrandPalette.teal)),
+                      child: Row(
+                        children: [
+                          const CircleAvatar(backgroundColor: BrandPalette.teal, child: Icon(Icons.person, color: Colors.white)),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(selectedParty!.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Balance: ₹${selectedParty!.balance.toStringAsFixed(0)}',
+                                  style: TextStyle(fontWeight: FontWeight.bold, color: selectedParty!.balance >= 0 ? BrandPalette.teal : BrandPalette.coral),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.check_circle, color: BrandPalette.teal),
+                        ],
+                      ),
+                    ).animate().fadeIn().slideY(begin: 0.1, end: 0)
+                  else
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('New Customer Details', style: TextStyle(fontWeight: FontWeight.bold, color: BrandPalette.coral)),
+                        const SizedBox(height: 12),
+                        TextField(controller: customerNameCtrl, decoration: const InputDecoration(labelText: 'Customer Name *', border: OutlineInputBorder(), prefixIcon: Icon(Icons.person))),
+                        const SizedBox(height: 12),
+                        TextField(controller: customerEmailCtrl, decoration: const InputDecoration(labelText: 'Email Address (Optional)', border: OutlineInputBorder(), prefixIcon: Icon(Icons.email))),
+                        const SizedBox(height: 12),
+                        TextField(controller: customerGstCtrl, decoration: const InputDecoration(labelText: 'GSTIN (Optional)', border: OutlineInputBorder(), prefixIcon: Icon(Icons.business))),
+                        const SizedBox(height: 12),
+                        TextField(controller: customerAddressCtrl, decoration: const InputDecoration(labelText: 'Billing Address (Optional)', border: OutlineInputBorder(), prefixIcon: Icon(Icons.location_on)), maxLines: 2),
+                      ],
+                    ).animate().fadeIn().slideY(begin: 0.1, end: 0),
+                ],
+              ],
+            ).animate().fadeIn();
+          }
+
+          Widget buildPaymentStep() {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Loyalty & Discounts', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(child: TextField(controller: loyaltyPointsCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Redeem Points', border: OutlineInputBorder(), prefixIcon: Icon(Icons.star, size: 16)))),
+                    const SizedBox(width: 12),
+                    Expanded(child: TextField(controller: discountCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Discount (₹)', border: OutlineInputBorder(), prefixIcon: Icon(Icons.discount, size: 16)))),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                const Text('Select Payment Mode', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                const SizedBox(height: 8),
+                SegmentedButton<PaymentMode>(
+                  segments: const [
+                    ButtonSegment(value: PaymentMode.cash, label: Text('Cash'), icon: Icon(Icons.money, size: 14)),
+                    ButtonSegment(value: PaymentMode.upi, label: Text('Online'), icon: Icon(Icons.qr_code_scanner, size: 14)),
+                    ButtonSegment(value: PaymentMode.credit, label: Text('Dues'), icon: Icon(Icons.credit_card, size: 14)),
+                  ],
+                  selected: {paymentMode},
+                  onSelectionChanged: (s) => setS(() => paymentMode = s.first),
+                ),
+              ],
+            ).animate().fadeIn();
+          }
+
           return Padding(
             padding: EdgeInsets.fromLTRB(0, 0, 0, MediaQuery.of(ctx).viewInsets.bottom),
             child: DraggableScrollableSheet(
-              initialChildSize: 0.92,
+              initialChildSize: 0.95,
               minChildSize: 0.6,
               maxChildSize: 1.0,
               expand: false,
@@ -421,169 +645,45 @@ class _InvoicesSectionState extends State<InvoicesSection> {
                 children: [
                   Container(margin: const EdgeInsets.only(top: 12), width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
                     child: Row(
                       children: [
-                        const Text('Create New Bill', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                        const Spacer(),
+                        if (_currentStep > 0)
+                          IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => setS(() => _currentStep--))
+                        else
+                          const SizedBox(width: 48), // Spacer to balance
+                        Expanded(
+                          child: Text(
+                            _currentStep == 0 ? '1. Add Items' : _currentStep == 1 ? '2. Customer Info' : '3. Payment', 
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)
+                          ),
+                        ),
                         IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
                       ],
                     ),
                   ),
+                  // Progress Bar
+                  Row(
+                    children: [
+                      Expanded(child: Container(height: 3, color: BrandPalette.teal)),
+                      Expanded(child: Container(height: 3, color: _currentStep >= 1 ? BrandPalette.teal : Colors.grey.shade200)),
+                      Expanded(child: Container(height: 3, color: _currentStep >= 2 ? BrandPalette.teal : Colors.grey.shade200)),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
                   Expanded(
                     child: ListView(
                       controller: scroll,
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       children: [
-                        // Customer details
-                        const Text('Customer Details', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Expanded(child: TextField(controller: customerNameCtrl, decoration: const InputDecoration(labelText: 'Customer Name', border: OutlineInputBorder(), isDense: true))),
-                            const SizedBox(width: 12),
-                            Expanded(child: TextField(controller: customerPhoneCtrl, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Phone', border: OutlineInputBorder(), isDense: true))),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        if (selectedParty == null) ...[
-                          Row(
-                            children: [
-                              Expanded(child: TextField(decoration: const InputDecoration(labelText: 'Email (Optional)', border: OutlineInputBorder(), isDense: true))),
-                              const SizedBox(width: 12),
-                              Expanded(child: TextField(decoration: const InputDecoration(labelText: 'GSTIN (Optional)', border: OutlineInputBorder(), isDense: true))),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          TextField(decoration: const InputDecoration(labelText: 'Address', border: OutlineInputBorder(), isDense: true), maxLines: 2),
-                          const SizedBox(height: 16),
-                        ],
-                        if (selectedParty != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: Row(
-                              children: [
-                                Icon(Icons.account_balance_wallet, size: 14, color: selectedParty!.balance >= 0 ? BrandPalette.teal : BrandPalette.coral),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Current Balance: ₹${selectedParty!.balance.toStringAsFixed(0)}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: selectedParty!.balance >= 0 ? BrandPalette.teal : BrandPalette.coral,
-                                  ),
-                                ),
-                                if (selectedParty!.balance < 0)
-                                  const Text(' (Owes You)', style: TextStyle(fontSize: 10, color: BrandPalette.coral)),
-                              ],
-                            ).animate().fadeIn().slideX(begin: -0.1, end: 0),
-                          ),
-                        const SizedBox(height: 16),
-                        // Payment mode
-                        SegmentedButton<PaymentMode>(
-                          segments: const [
-                            ButtonSegment(value: PaymentMode.cash, label: Text('Cash'), icon: Icon(Icons.money, size: 14)),
-                            ButtonSegment(value: PaymentMode.upi, label: Text('UPI'), icon: Icon(Icons.qr_code_scanner, size: 14)),
-                            ButtonSegment(value: PaymentMode.credit, label: Text('Credit'), icon: Icon(Icons.credit_card, size: 14)),
-                          ],
-                          selected: {paymentMode},
-                          onSelectionChanged: (s) => setS(() => paymentMode = s.first),
-                        ).animate().fadeIn(),
-                        const SizedBox(height: 16),
-                        const Text('Loyalty & Discounts', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Expanded(child: TextField(controller: loyaltyPointsCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Redeem Points', border: OutlineInputBorder(), isDense: true, prefixIcon: Icon(Icons.star, size: 16)))),
-                            const SizedBox(width: 12),
-                            Expanded(child: TextField(controller: discountCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Discount (₹)', border: OutlineInputBorder(), isDense: true, prefixIcon: Icon(Icons.discount, size: 16)))),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        // Add products
-                        Row(
-                          children: [
-                            const Text('Items', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
-                            const Spacer(),
-                            TextButton.icon(
-                              icon: const Icon(Icons.add, size: 16),
-                              label: const Text('Add Item'),
-                              onPressed: () => _showProductPicker(ctx2, widget.products!, cartItems, setS),
-                            ),
-                          ],
-                        ),
-                        if (cartItems.isEmpty)
-                          Container(
-                            padding: const EdgeInsets.all(20),
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade50,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.grey.shade200),
-                            ),
-                            child: Text('No items added yet.\nTap "Add Item" to select products.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-                          )
-                        else
-                          ...cartItems.map((item) => Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.grey.shade200),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 40, height: 40,
-                                  decoration: BoxDecoration(color: BrandPalette.navy.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(8)),
-                                  child: const Icon(Icons.inventory_2, size: 20, color: BrandPalette.navy),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(item.product.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                                      Text('₹${item.unitPrice}', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                                    ],
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.remove_circle_outline, size: 20, color: BrandPalette.coral),
-                                      onPressed: () => setS(() {
-                                        if (item.quantity > 1) {
-                                          final idx = cartItems.indexWhere((c) => c.product.id == item.product.id);
-                                          cartItems[idx] = item.copyWith(quantity: item.quantity - 1);
-                                        } else {
-                                          cartItems.removeWhere((c) => c.product.id == item.product.id);
-                                        }
-                                      }),
-                                    ),
-                                    Text('${item.quantity.toInt()}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                                    IconButton(
-                                      icon: const Icon(Icons.add_circle_outline, size: 20, color: BrandPalette.teal),
-                                      onPressed: () => setS(() {
-                                        final idx = cartItems.indexWhere((c) => c.product.id == item.product.id);
-                                        cartItems[idx] = item.copyWith(quantity: item.quantity + 1);
-                                      }),
-                                    ),
-                                  ],
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete_outline, size: 20, color: Colors.grey),
-                                  onPressed: () => setS(() => cartItems.removeWhere((c) => c.product.id == item.product.id)),
-                                ),
-                              ],
-                            ),
-                          )),
-                        const SizedBox(height: 16),
+                        if (_currentStep == 0) buildItemsStep(),
+                        if (_currentStep == 1) buildCustomerStep(),
+                        if (_currentStep == 2) buildPaymentStep(),
                       ],
                     ),
                   ),
-                  // Total + Save button
+                  // Bottom Bar
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -602,40 +702,56 @@ class _InvoicesSectionState extends State<InvoicesSection> {
                         const SizedBox(height: 12),
                         SizedBox(
                           width: double.infinity,
-                          child: FilledButton.icon(
-                            icon: const Icon(Icons.receipt_long),
-                            label: const Text('Save Bill'),
-                            style: FilledButton.styleFrom(backgroundColor: BrandPalette.coral, padding: const EdgeInsets.symmetric(vertical: 14)),
-                            onPressed: cartItems.isEmpty ? null : () async {
-                              final disc = double.tryParse(discountCtrl.text) ?? 0.0;
-                              final points = int.tryParse(loyaltyPointsCtrl.text) ?? 0;
-                              final finalTotal = total - disc;
+                          child: FilledButton(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: _currentStep == 0 && cartItems.isEmpty ? Colors.grey : BrandPalette.teal,
+                              padding: const EdgeInsets.symmetric(vertical: 14)
+                            ),
+                            onPressed: (_currentStep == 0 && cartItems.isEmpty) ? null : () async {
+                              if (_currentStep < 2) {
+                                if (_currentStep == 1 && customerPhoneCtrl.text.length == 10 && selectedParty == null && customerNameCtrl.text.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter customer name'), backgroundColor: BrandPalette.coral));
+                                  return;
+                                }
+                                setS(() => _currentStep++);
+                              } else {
+                                final disc = double.tryParse(discountCtrl.text) ?? 0.0;
+                                final points = int.tryParse(loyaltyPointsCtrl.text) ?? 0;
+                                final finalTotal = total - disc;
 
-                              if (paymentMode == PaymentMode.upi) {
-                                final success = await _showDynamicQRDialog(context, finalTotal);
-                                if (!success) return;
+                                if (paymentMode == PaymentMode.upi) {
+                                  final success = await _showDynamicQRDialog(context, finalTotal);
+                                  if (!success) return; // Payment cancelled or failed
+                                }
+
+                                final invoice = InvoiceRecord(
+                                  id: 'INV-${DateTime.now().millisecondsSinceEpoch}',
+                                  createdAt: DateTime.now(),
+                                  customerName: customerNameCtrl.text.trim().isEmpty ? 'Walk-in Customer' : customerNameCtrl.text.trim(),
+                                  customerPhone: customerPhoneCtrl.text.trim(),
+                                  customerEmail: customerEmailCtrl.text.trim(),
+                                  customerGstin: customerGstCtrl.text.trim(),
+                                  total: finalTotal,
+                                  lines: List.from(cartItems),
+                                  channels: const {},
+                                  publicLink: widget.generateInvoiceLink?.call() ?? '',
+                                  paymentMode: paymentMode,
+                                  loyaltyPointsUsed: points,
+                                  discountAmount: disc,
+                                );
+                                widget.onCreateInvoice?.call(invoice);
+                                Navigator.pop(ctx);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Bill created successfully!'), backgroundColor: BrandPalette.teal),
+                                );
                               }
-
-                              final invoice = InvoiceRecord(
-                                id: 'INV-${DateTime.now().millisecondsSinceEpoch}',
-                                createdAt: DateTime.now(),
-                                customerName: customerNameCtrl.text.trim().isEmpty ? 'Walk-in Customer' : customerNameCtrl.text.trim(),
-                                customerPhone: customerPhoneCtrl.text.trim(),
-                                customerEmail: '',
-                                total: finalTotal,
-                                lines: List.from(cartItems),
-                                channels: const {},
-                                publicLink: widget.generateInvoiceLink?.call() ?? '',
-                                paymentMode: paymentMode,
-                                loyaltyPointsUsed: points,
-                                discountAmount: disc,
-                              );
-                              widget.onCreateInvoice?.call(invoice);
-                              Navigator.pop(ctx);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Bill created! Total: ₹${finalTotal.toStringAsFixed(2)}'), backgroundColor: BrandPalette.teal),
-                              );
                             },
+                            child: Text(
+                              _currentStep == 0 ? 'Next: Add Customer' : 
+                              _currentStep == 1 ? 'Next: Payment' : 
+                              paymentMode == PaymentMode.upi ? 'Generate Razorpay QR' : 'Confirm & Save Bill',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
+                            ),
                           ),
                         ),
                       ],
@@ -805,6 +921,8 @@ class _InvoicesSectionState extends State<InvoicesSection> {
 
   Future<bool> _showDynamicQRDialog(BuildContext context, double amount) async {
     int timeLeft = 60;
+    bool isSuccess = false;
+    Timer? timer;
     
     // UPI Deep Link (Replace with actual business VPA)
     final String upiUrl = 'upi://pay?pa=priyes@upi&pn=${AppSettings.instance.businessName}&am=${amount.toStringAsFixed(2)}&cu=INR';
@@ -814,7 +932,11 @@ class _InvoicesSectionState extends State<InvoicesSection> {
       barrierDismissible: false,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx2, setS) {
-          final timer = Timer.periodic(const Duration(seconds: 1), (t) {
+          timer ??= Timer.periodic(const Duration(seconds: 1), (t) {
+            if (isSuccess) {
+              t.cancel();
+              return;
+            }
             if (timeLeft > 0) {
               setS(() => timeLeft--);
             } else {
@@ -823,29 +945,101 @@ class _InvoicesSectionState extends State<InvoicesSection> {
             }
           });
 
-          return AlertDialog(
-            title: const Text('Scan to Pay', textAlign: TextAlign.center),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('₹${amount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: BrandPalette.teal)),
-                const SizedBox(height: 20),
-                QrImageView(
-                  data: upiUrl,
-                  version: QrVersions.auto,
-                  size: 200.0,
-                  backgroundColor: Colors.white,
-                ),
-                const SizedBox(height: 20),
-                Text('Expires in: $timeLeft seconds', style: const TextStyle(color: BrandPalette.coral, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 12),
-                const Text('Waiting for payment confirmation...', style: TextStyle(fontSize: 12, color: Colors.grey)),
-              ],
+          return Dialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Container(
+              width: 320,
+              padding: const EdgeInsets.all(0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: isSuccess 
+                ? Padding(
+                    padding: const EdgeInsets.all(40.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.check_circle, color: Colors.green, size: 80).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
+                        const SizedBox(height: 20),
+                        const Text('Payment Received', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87)),
+                        const SizedBox(height: 8),
+                        Text('₹${amount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.green)),
+                      ],
+                    ),
+                  )
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Razorpay Header Mock
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF02042B), // Razorpay Dark Blue
+                          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.security, color: Colors.blueAccent, size: 20),
+                            const SizedBox(width: 8),
+                            const Text('Secured by Razorpay', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          children: [
+                            Text(AppSettings.instance.businessName, style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                            const SizedBox(height: 8),
+                            Text('₹${amount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Color(0xFF02042B))),
+                            const SizedBox(height: 20),
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey.shade300, width: 2),
+                              ),
+                              child: QrImageView(
+                                data: upiUrl,
+                                version: QrVersions.auto,
+                                size: 180.0,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.timer, color: Colors.grey, size: 16),
+                                const SizedBox(width: 6),
+                                Text('QR Expires in $timeLeft s', style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w600)),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                            Row(
+                              children: [
+                                Expanded(child: OutlinedButton(onPressed: () { timer?.cancel(); Navigator.pop(ctx, false); }, child: const Text('Cancel'))),
+                                const SizedBox(width: 12),
+                                Expanded(child: FilledButton(
+                                  style: FilledButton.styleFrom(backgroundColor: const Color(0xFF3395FF)), // Razorpay Blue
+                                  onPressed: () { 
+                                    setS(() => isSuccess = true);
+                                    Future.delayed(const Duration(seconds: 2), () {
+                                      if (ctx.mounted) Navigator.pop(ctx, true);
+                                    });
+                                  }, 
+                                  child: const Text('Mock Pay')
+                                )),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
             ),
-            actions: [
-              TextButton(onPressed: () { timer.cancel(); Navigator.pop(ctx, false); }, child: const Text('Cancel')),
-              FilledButton(onPressed: () { timer.cancel(); Navigator.pop(ctx, true); }, child: const Text('Mark as Paid')),
-            ],
           );
         },
       ),
