@@ -5,6 +5,8 @@ import '../enums/enums.dart';
 import '../services/services.dart';
 import 'package:printing/printing.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 enum InvoiceFilter { all, paid, unpaid }
 
@@ -365,18 +367,8 @@ class _InvoicesSectionState extends State<InvoicesSection> {
   void _showCreateBillSheet(BuildContext context) {
     final customerNameCtrl = TextEditingController();
     final customerPhoneCtrl = TextEditingController();
+    PartyRecord? selectedParty;
     
-    // Auto-fetch customer by phone
-    customerPhoneCtrl.addListener(() {
-      final phone = customerPhoneCtrl.text.trim();
-      if (phone.length >= 10 && widget.parties != null) {
-        final existing = widget.parties!.where((p) => p.phone == phone).firstOrNull;
-        if (existing != null && customerNameCtrl.text.isEmpty) {
-          customerNameCtrl.text = existing.name;
-        }
-      }
-    });
-
     final List<CartItem> cartItems = [];
     PaymentMode paymentMode = PaymentMode.cash;
 
@@ -393,6 +385,26 @@ class _InvoicesSectionState extends State<InvoicesSection> {
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) => StatefulBuilder(
         builder: (ctx2, setS) {
+          void listener() {
+            final phone = customerPhoneCtrl.text.trim();
+            if (phone.length >= 10 && widget.parties != null) {
+              final existing = widget.parties!.where((p) => p.phone == phone).firstOrNull;
+              if (existing != null) {
+                if (customerNameCtrl.text.isEmpty) customerNameCtrl.text = existing.name;
+                if (selectedParty != existing) {
+                  setS(() => selectedParty = existing);
+                }
+              } else if (selectedParty != null) {
+                setS(() => selectedParty = null);
+              }
+            } else if (selectedParty != null) {
+              setS(() => selectedParty = null);
+            }
+          }
+          
+          customerPhoneCtrl.removeListener(listener);
+          customerPhoneCtrl.addListener(listener);
+
           final total = cartItems.fold(0.0, (s, i) => s + i.finalAmount);
           return Padding(
             padding: EdgeInsets.fromLTRB(0, 0, 0, MediaQuery.of(ctx).viewInsets.bottom),
@@ -429,6 +441,26 @@ class _InvoicesSectionState extends State<InvoicesSection> {
                             Expanded(child: TextField(controller: customerPhoneCtrl, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Phone', border: OutlineInputBorder(), isDense: true))),
                           ],
                         ),
+                        if (selectedParty != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Row(
+                              children: [
+                                Icon(Icons.account_balance_wallet, size: 14, color: selectedParty!.balance >= 0 ? BrandPalette.teal : BrandPalette.coral),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Current Balance: ₹${selectedParty!.balance.toStringAsFixed(0)}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: selectedParty!.balance >= 0 ? BrandPalette.teal : BrandPalette.coral,
+                                  ),
+                                ),
+                                if (selectedParty!.balance < 0)
+                                  const Text(' (Owes You)', style: TextStyle(fontSize: 10, color: BrandPalette.coral)),
+                              ],
+                            ).animate().fadeIn().slideX(begin: -0.1, end: 0),
+                          ),
                         const SizedBox(height: 16),
                         // Payment mode
                         const Text('Payment Mode', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
@@ -441,7 +473,7 @@ class _InvoicesSectionState extends State<InvoicesSection> {
                           ],
                           selected: {paymentMode},
                           onSelectionChanged: (s) => setS(() => paymentMode = s.first),
-                        ),
+                        ).animate().fadeIn(),
                         const SizedBox(height: 16),
                         // Add products
                         Row(
@@ -576,7 +608,10 @@ class _InvoicesSectionState extends State<InvoicesSection> {
                     decoration: InputDecoration(
                       hintText: 'Search or Scan Barcode...',
                       prefixIcon: const Icon(Icons.search),
-                      suffixIcon: const Icon(Icons.qr_code_scanner, color: BrandPalette.teal),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.qr_code_scanner, color: BrandPalette.teal),
+                        onPressed: () => _showScannerOverlay(ctx2, products, cart, setParentState),
+                      ),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       filled: true,
                       fillColor: Colors.grey.shade50,
@@ -624,6 +659,70 @@ class _InvoicesSectionState extends State<InvoicesSection> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _showScannerOverlay(BuildContext context, List<Product> products, List<CartItem> cart, StateSetter setParentState) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  const Text('Scan Barcode', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  const Spacer(),
+                  IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: MobileScanner(
+                  onDetect: (capture) {
+                    final List<Barcode> barcodes = capture.barcodes;
+                    for (final barcode in barcodes) {
+                      final code = barcode.rawValue;
+                      if (code != null) {
+                        final product = products.where((p) => p.codes.contains(code)).firstOrNull;
+                        if (product != null) {
+                          setParentState(() {
+                            final existing = cart.indexWhere((c) => c.product.id == product.id);
+                            if (existing >= 0) {
+                              cart[existing] = cart[existing].copyWith(quantity: cart[existing].quantity + 1);
+                            } else {
+                              cart.add(CartItem(product: product, quantity: 1));
+                            }
+                          });
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Added ${product.name}'), backgroundColor: BrandPalette.teal, duration: 1.seconds),
+                          );
+                          return;
+                        }
+                      }
+                    }
+                  },
+                ),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.all(24.0),
+              child: Text('Point camera at any product barcode', style: TextStyle(color: Colors.grey)),
+            ),
+          ],
+        ),
       ),
     );
   }

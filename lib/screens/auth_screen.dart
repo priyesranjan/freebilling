@@ -2,6 +2,9 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pinput/pinput.dart';
+import 'package:sms_autofill/sms_autofill.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../core/core.dart';
 import '../services/services.dart';
 import 'screens.dart';
@@ -13,7 +16,7 @@ class AuthScreen extends StatefulWidget {
   State<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen> {
+class _AuthScreenState extends State<AuthScreen> with CodeAutoFill {
   bool _isLogin = true;
   bool _isLoading = false;
   bool _otpSent = false;
@@ -28,6 +31,36 @@ class _AuthScreenState extends State<AuthScreen> {
   
   Uint8List? _logoBytes;
   String? _logoName;
+  bool _isAutoTriggering = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _phoneController.addListener(_onPhoneChanged);
+    listenForCode(); // Start listening for SMS
+  }
+
+  void _onPhoneChanged() {
+    final phone = _phoneController.text.trim();
+    if (phone.length == 10 && !_otpSent && !_isAutoTriggering && _isLogin) {
+      _isAutoTriggering = true;
+      _sendOtp();
+      // Reset trigger after a delay to allow manual re-send if needed
+      Future.delayed(const Duration(seconds: 2), () {
+        _isAutoTriggering = false;
+      });
+    }
+  }
+
+  @override
+  void codeUpdated() {
+    setState(() {
+      _otpController.text = code ?? '';
+    });
+    if (_otpController.text.length == 6) {
+      _verifyOtp();
+    }
+  }
 
   @override
   void dispose() {
@@ -190,7 +223,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.storefront_outlined, size: 40, color: BrandPalette.teal),
-                ),
+                ).animate().scale(duration: 400.ms, curve: Curves.backOut).fadeIn(),
                 const SizedBox(height: 24),
                 Text(
                   'Welcome to ERP Bill',
@@ -199,7 +232,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     fontWeight: FontWeight.w700,
                     color: BrandPalette.navy,
                   ),
-                ),
+                ).animate().slideY(begin: 0.2, end: 0, duration: 400.ms).fadeIn(),
                 const SizedBox(height: 32),
 
                 // Tab Switcher
@@ -234,8 +267,9 @@ class _AuthScreenState extends State<AuthScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Phone Number',
                       prefixIcon: Icon(Icons.phone),
+                      hintText: '10-digit mobile number',
                     ),
-                  ),
+                  ).animate().fadeIn(delay: 100.ms),
                   const SizedBox(height: 16),
                   
                   if (!_isLogin) ...[
@@ -305,17 +339,34 @@ class _AuthScreenState extends State<AuthScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
-                  TextField(
+                  Pinput(
+                    length: 6,
                     controller: _otpController,
-                    keyboardType: TextInputType.number,
-                    maxLength: 6,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 24, letterSpacing: 8, fontWeight: FontWeight.bold),
-                    decoration: const InputDecoration(
-                      counterText: '',
-                      hintText: '------',
+                    onCompleted: (val) => _verifyOtp(),
+                    defaultPinTheme: PinTheme(
+                      width: 50,
+                      height: 60,
+                      textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: BrandPalette.navy),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade300),
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
+                        ],
+                      ),
                     ),
-                  ),
+                    focusedPinTheme: PinTheme(
+                      width: 50,
+                      height: 60,
+                      textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: BrandPalette.teal),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: BrandPalette.teal, width: 2),
+                      ),
+                    ),
+                  ).animate().shake(duration: 500.ms),
                   const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,

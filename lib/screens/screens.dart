@@ -759,15 +759,17 @@ class OverviewSection extends StatelessWidget {
           spacing: 16,
           runSpacing: 16,
           children: <Widget>[
-            StaggeredReveal(
-              index: 0,
-              child: MetricCard(
-                title: 'Gross Profit',
-                value: '₹${pnl.grossProfit.toStringAsFixed(0)}',
-                icon: Icons.account_balance_wallet,
-                accentColor: BrandPalette.teal,
+            if (AppSettings.instance.isAdmin) ...[
+              StaggeredReveal(
+                index: 0,
+                child: MetricCard(
+                  title: 'Gross Profit',
+                  value: '₹${pnl.grossProfit.toStringAsFixed(0)}',
+                  icon: Icons.account_balance_wallet,
+                  accentColor: BrandPalette.teal,
+                ),
               ),
-            ),
+            ],
             StaggeredReveal(
               index: 1,
               child: MetricCard(
@@ -777,15 +779,17 @@ class OverviewSection extends StatelessWidget {
                 accentColor: BrandPalette.navy,
               ),
             ),
-            StaggeredReveal(
-              index: 2,
-              child: MetricCard(
-                title: 'Total Taxes',
-                value: '₹${pnl.totalTaxes.toStringAsFixed(0)}',
-                icon: Icons.request_quote,
-                accentColor: BrandPalette.coral,
+            if (AppSettings.instance.isAdmin) ...[
+              StaggeredReveal(
+                index: 2,
+                child: MetricCard(
+                  title: 'Total Taxes',
+                  value: '₹${pnl.totalTaxes.toStringAsFixed(0)}',
+                  icon: Icons.request_quote,
+                  accentColor: BrandPalette.coral,
+                ),
               ),
-            ),
+            ],
             StaggeredReveal(
               index: 3,
               child: MetricCard(

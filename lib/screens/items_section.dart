@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../core/core.dart';
 import '../services/sync_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ItemsSection extends StatefulWidget {
   final List<Product> products;
@@ -115,6 +116,23 @@ class _ItemsSectionState extends State<ItemsSection> {
                   }).toList(),
                 ),
               ),
+              if (_filter == 'Low Stock' && lowStockCount > 0)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.shopping_cart_checkout, size: 16),
+                      label: const Text('Reorder from Distributor (WhatsApp)'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: BrandPalette.coral,
+                        side: const BorderSide(color: BrandPalette.coral),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () => _sendReorderWhatsApp(),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -577,5 +595,19 @@ class _ItemsSectionState extends State<ItemsSection> {
         ),
       ),
     );
+  }
+
+  void _sendReorderWhatsApp() {
+    final lowStockItems = widget.products.where((p) => p.currentStock <= p.lowStockAlertLevel && p.lowStockAlertLevel > 0).toList();
+    if (lowStockItems.isEmpty) return;
+
+    String message = 'Namaste, this is an order for ${AppSettings.instance.businessName}:\n\n';
+    for (final item in lowStockItems) {
+      message += '• ${item.name} (Current: ${item.currentStock.toStringAsFixed(0)})\n';
+    }
+    message += '\nPlease send these items at the earliest. Thank you!';
+
+    final Uri whatsappUri = Uri.parse('https://wa.me/?text=${Uri.encodeComponent(message)}');
+    launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
   }
 }

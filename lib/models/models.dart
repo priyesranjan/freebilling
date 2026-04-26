@@ -214,11 +214,12 @@ class ProductVariant {
 
 class ProductBatch {
   const ProductBatch({
-    required this.batchNumber, 
-    required this.mfgDate, 
+    required this.batchNumber,
+    required this.mfgDate,
     required this.expiryDate,
     required this.stockCount,
   });
+
   final String batchNumber;
   final DateTime mfgDate;
   final DateTime? expiryDate;
@@ -232,6 +233,13 @@ class ProductBatch {
       stockCount: (json['stockCount'] as num).toDouble(),
     );
   }
+
+  Map<String, dynamic> toJson() => {
+    'batchNumber': batchNumber,
+    'mfgDate': mfgDate.toIso8601String(),
+    'expiryDate': expiryDate?.toIso8601String(),
+    'stockCount': stockCount,
+  };
 }
 
 class Product implements SyncableEntity {
@@ -655,6 +663,8 @@ class AppSettings {
     this.itemType = ItemType.both,
     this.barcodeScanning = false,
     this.stockMaintenance = true,
+    this.isStaffMode = false,
+    this.businessLogo,
     this.enableManufacturing = false,
     this.enableItemUnits = true,
     this.useDefaultUnit = false,
@@ -692,6 +702,9 @@ class AppSettings {
   ItemType itemType;
   bool barcodeScanning;
   bool stockMaintenance;
+  bool isStaffMode;
+  String? businessLogo;
+  bool get isAdmin => !isStaffMode;
   bool enableManufacturing;
   bool enableItemUnits;
   bool useDefaultUnit;

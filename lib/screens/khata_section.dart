@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../enums/enums.dart';
 import '../core/core.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class KhataSection extends StatefulWidget {
   final List<PartyRecord> parties;
@@ -147,10 +148,19 @@ class _KhataSectionState extends State<KhataSection> with SingleTickerProviderSt
                           // WhatsApp button
                           InkWell(
                             onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('WhatsApp reminder sent to ${party.name}!'),
-                                  backgroundColor: Colors.green),
-                              );
+                              if (party.phone.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Phone number missing!'), backgroundColor: BrandPalette.coral),
+                                );
+                                return;
+                              }
+                              
+                              final String text = isToGet 
+                                ? 'Namaste ${party.name}, a friendly reminder from ${AppSettings.instance.businessName} regarding your pending balance of ₹${party.balance.abs().toStringAsFixed(0)}. Please settle it at your earliest convenience. Thank you!'
+                                : 'Namaste ${party.name}, this is regarding the balance of ₹${party.balance.abs().toStringAsFixed(0)} we owe you. We are processing it. Thank you!';
+                              
+                              final Uri whatsappUri = Uri.parse('https://wa.me/91${party.phone}?text=${Uri.encodeComponent(text)}');
+                              launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
                             },
                             child: Container(
                               padding: const EdgeInsets.all(6),

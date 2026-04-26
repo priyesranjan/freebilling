@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
 import '../../core/core.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class GeneralSettingsScreen extends StatefulWidget {
   final AppSettings settings;
@@ -16,6 +18,7 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
   late TextEditingController _phoneCtrl;
   late TextEditingController _emailCtrl;
   late TextEditingController _gstinCtrl;
+  String? _localLogoPath;
 
   @override
   void initState() {
@@ -25,6 +28,17 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
     _phoneCtrl = TextEditingController(text: widget.settings.businessPhone);
     _emailCtrl = TextEditingController(text: widget.settings.businessEmail);
     _gstinCtrl = TextEditingController(text: widget.settings.gstin);
+    _localLogoPath = widget.settings.businessLogo;
+  }
+
+  Future<void> _pickLogo() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        _localLogoPath = image.path;
+      });
+    }
   }
 
   @override
@@ -56,20 +70,20 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
           Center(
             child: Column(
               children: [
-                Container(
-                  width: 80, height: 80,
-                  decoration: BoxDecoration(
-                    color: BrandPalette.navy.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: BrandPalette.navy.withValues(alpha: 0.2)),
                   ),
-                  child: const Icon(Icons.business, size: 36, color: BrandPalette.navy),
+                  child: _localLogoPath != null 
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.file(File(_localLogoPath!), fit: BoxFit.cover),
+                      )
+                    : const Icon(Icons.business, size: 36, color: BrandPalette.navy),
                 ),
                 const SizedBox(height: 8),
                 TextButton.icon(
-                  onPressed: () {},
+                  onPressed: _pickLogo,
                   icon: const Icon(Icons.camera_alt, size: 16),
-                  label: const Text('Upload Logo'),
+                  label: const Text('Change Logo'),
                 ),
               ],
             ),
@@ -101,6 +115,16 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
                 Expanded(child: Text('GSTIN will appear on all invoices. Format: 22AAAAA0000A1Z5', style: TextStyle(fontSize: 12, color: BrandPalette.teal))),
               ],
             ),
+          ),
+          const SizedBox(height: 20),
+          _sectionHeader('Role & Security'),
+          SwitchListTile(
+            title: const Text('Staff Mode', style: TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: const Text('Hide profits and sensitive reports from employees'),
+            secondary: const Icon(Icons.security, color: BrandPalette.navy),
+            value: widget.settings.isStaffMode,
+            activeColor: BrandPalette.teal,
+            onChanged: (val) => setState(() => widget.settings.isStaffMode = val),
           ),
           const SizedBox(height: 24),
           SizedBox(
@@ -145,6 +169,7 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
     widget.settings.businessPhone = _phoneCtrl.text.trim();
     widget.settings.businessEmail = _emailCtrl.text.trim();
     widget.settings.gstin = _gstinCtrl.text.trim();
+    widget.settings.businessLogo = _localLogoPath;
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Business details saved!'), backgroundColor: BrandPalette.teal),
