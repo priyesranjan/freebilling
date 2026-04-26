@@ -45,6 +45,19 @@ class ApiService {
     throw Exception('Failed to send OTP: ${response.body}');
   }
 
+  static Future<String> sendVoiceOtp(String phone) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/auth/send-otp-call'),
+      headers: _headers(null),
+      body: jsonEncode({'phone': phone}),
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['sessionId'];
+    }
+    throw Exception('Failed to send Voice OTP: ${response.body}');
+  }
+
   static Future<Map<String, dynamic>> verifyOtp(String phone, String otp, String sessionId, [String? name]) async {
     final response = await http.post(
       Uri.parse('$baseUrl/auth/verify-otp'),

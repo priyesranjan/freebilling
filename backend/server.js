@@ -85,6 +85,26 @@ app.post('/api/auth/send-otp', async (req, res) => {
   }
 });
 
+app.post('/api/auth/send-otp-call', async (req, res) => {
+  const { phone } = req.body;
+  if (!phone) return res.status(400).json({ error: 'Phone is required' });
+  
+  try {
+    // 2Factor.in Voice OTP
+    const url = `https://2factor.in/API/V1/${TWO_FACTOR_API_KEY}/VOICE/${phone}/AUTOGEN`;
+    const response = await axios.get(url);
+    
+    if (response.data.Status === 'Success') {
+      res.json({ success: true, sessionId: response.data.Details });
+    } else {
+      throw new Error(response.data.Details);
+    }
+  } catch (err) {
+    console.error("2Factor Voice Error:", err.message);
+    res.status(500).json({ error: 'Failed to send Voice OTP', details: err.message });
+  }
+});
+
 app.post('/api/auth/verify-otp', async (req, res) => {
   const { phone, otp, sessionId, name } = req.body;
   if (!phone || !otp || !sessionId) return res.status(400).json({ error: 'Phone, OTP and SessionId are required' });

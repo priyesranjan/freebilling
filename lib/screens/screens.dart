@@ -361,6 +361,27 @@ class _PlatformShellState extends State<PlatformShell> {
         }
         SyncService.instance.enqueueForSync(updatedParty);
       }
+
+      // Stock Deduction Logic
+      for (final line in invoice.lines) {
+        final productIndex = _products.indexWhere((p) => p.id == line.product.id);
+        if (productIndex >= 0) {
+          final product = _products[productIndex];
+          final adjustmentBatch = ProductBatch(
+            batchNumber: 'INV-${invoice.id}',
+            mfgDate: DateTime.now(),
+            stockCount: -line.quantity, // Negative stock to deduct
+          );
+          
+          final updatedProduct = product.copyWith(
+            batches: [...product.batches, adjustmentBatch],
+            syncState: EntityState.pendingUpdate,
+          );
+          
+          _products[productIndex] = updatedProduct;
+          SyncService.instance.enqueueForSync(updatedProduct);
+        }
+      }
     });
     SyncService.instance.enqueueForSync(invoice);
   }

@@ -55,6 +55,30 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  Future<void> _sendVoiceOtp() async {
+    final String phone = _phoneController.text.trim();
+    if (phone.isEmpty) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final sessionId = await ApiService.sendVoiceOtp(phone);
+      if (!mounted) return;
+      setState(() {
+        _otpSent = true;
+        _isLoading = false;
+        _sessionId = sessionId;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Calling you with OTP...')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+    }
+  }
+
   Future<void> _verifyOtp() async {
     final String phone = _phoneController.text.trim();
     final String otp = _otpController.text.trim();
@@ -71,7 +95,7 @@ class _AuthScreenState extends State<AuthScreen> {
       if (!mounted) return;
       
       // If it's a new business or missing crucial info, go to onboarding
-      if (business['businessType'] == null || business['websiteSlug'] == null) {
+      if (business['business_type'] == null || business['website_slug'] == null) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const OnboardingScreen()),
         );
@@ -218,6 +242,10 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: _isLoading ? null : _sendVoiceOtp,
+                    child: const Text("Didn't receive SMS? Get OTP via Call"),
+                  ),
                   TextButton(
                     onPressed: () => setState(() => _otpSent = false),
                     child: const Text('Change Phone Number'),

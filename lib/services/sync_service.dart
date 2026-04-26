@@ -110,9 +110,7 @@ class SyncService {
             } else if (type == 'PartyRecord') {
               await ApiService.saveParty(PartyRecord.fromJson(data));
             } else if (type == 'InvoiceRecord') {
-              // Wait, InvoiceRecord doesn't have fromJson yet, but we'll simulate success for now
-              // await ApiService.saveInvoice(InvoiceRecord.fromJson(data));
-              await Future.delayed(const Duration(milliseconds: 300));
+              await ApiService.saveInvoice(InvoiceRecord.fromJson(data));
             } else {
                await Future.delayed(const Duration(milliseconds: 300));
             }

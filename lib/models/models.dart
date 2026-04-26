@@ -432,6 +432,22 @@ class InvoiceRecord implements SyncableEntity {
   double get sgstAmount => isInterState ? 0.0 : totalTaxAmount / 2;
   double get igstAmount => isInterState ? totalTaxAmount : 0.0;
 
+  factory InvoiceRecord.fromJson(Map<String, dynamic> json) {
+    return InvoiceRecord(
+      id: json['id'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      customerName: json['customerName'] as String,
+      customerPhone: json['customerPhone'] as String,
+      customerEmail: json['customerEmail'] as String,
+      total: (json['total'] as num).toDouble(),
+      lines: [], // Note: Lines are not reconstructed from Sync Queue
+      channels: {}, // Channels not reconstructed
+      publicLink: json['publicLink'] as String,
+      paymentMode: PaymentMode.values.firstWhere((e) => e.name == json['paymentMode'], orElse: () => PaymentMode.cash),
+      syncState: EntityState.values.firstWhere((e) => e.name == json['syncState'], orElse: () => EntityState.synced),
+    );
+  }
+
   @override
   Map<String, dynamic> toJson() => {
     'id': id,
