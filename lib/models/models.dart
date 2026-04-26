@@ -421,6 +421,8 @@ class InvoiceRecord implements SyncableEntity {
     this.eWayBillNumber,
     this.isInterState = false,
     this.paymentMode = PaymentMode.cash,
+    this.loyaltyPointsUsed = 0,
+    this.discountAmount = 0.0,
     this.isEdited = false,
     this.linkedCustomerId,
   });
@@ -445,7 +447,9 @@ class InvoiceRecord implements SyncableEntity {
   final bool isInterState;
   
   // Vyapar-like features
-  final PaymentMode paymentMode;
+   final PaymentMode paymentMode;
+  final int loyaltyPointsUsed;
+  final double discountAmount;
   final bool isEdited;
   final String? linkedCustomerId;
 
@@ -466,6 +470,8 @@ class InvoiceRecord implements SyncableEntity {
       channels: {}, // Channels not reconstructed
       publicLink: json['publicLink'] as String,
       paymentMode: PaymentMode.values.firstWhere((e) => e.name == json['paymentMode'], orElse: () => PaymentMode.cash),
+      loyaltyPointsUsed: json['loyaltyPointsUsed'] as int? ?? 0,
+      discountAmount: (json['discountAmount'] as num? ?? 0).toDouble(),
       syncState: EntityState.values.firstWhere((e) => e.name == json['syncState'], orElse: () => EntityState.synced),
     );
   }
@@ -492,6 +498,8 @@ class InvoiceRecord implements SyncableEntity {
     'eWayBillNumber': eWayBillNumber,
     'isInterState': isInterState,
     'paymentMode': paymentMode.name,
+    'loyaltyPointsUsed': loyaltyPointsUsed,
+    'discountAmount': discountAmount,
     'isEdited': isEdited,
     'linkedCustomerId': linkedCustomerId,
   }; 

@@ -7,6 +7,8 @@ import 'package:printing/printing.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'dart:async';
 
 enum InvoiceFilter { all, paid, unpaid }
 
@@ -367,6 +369,8 @@ class _InvoicesSectionState extends State<InvoicesSection> {
   void _showCreateBillSheet(BuildContext context) {
     final customerNameCtrl = TextEditingController();
     final customerPhoneCtrl = TextEditingController();
+    final discountCtrl = TextEditingController(text: '0');
+    final loyaltyPointsCtrl = TextEditingController(text: '0');
     PartyRecord? selectedParty;
     
     final List<CartItem> cartItems = [];
@@ -441,6 +445,19 @@ class _InvoicesSectionState extends State<InvoicesSection> {
                             Expanded(child: TextField(controller: customerPhoneCtrl, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Phone', border: OutlineInputBorder(), isDense: true))),
                           ],
                         ),
+                        const SizedBox(height: 12),
+                        if (selectedParty == null) ...[
+                          Row(
+                            children: [
+                              Expanded(child: TextField(decoration: const InputDecoration(labelText: 'Email (Optional)', border: OutlineInputBorder(), isDense: true))),
+                              const SizedBox(width: 12),
+                              Expanded(child: TextField(decoration: const InputDecoration(labelText: 'GSTIN (Optional)', border: OutlineInputBorder(), isDense: true))),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(decoration: const InputDecoration(labelText: 'Address', border: OutlineInputBorder(), isDense: true), maxLines: 2),
+                          const SizedBox(height: 16),
+                        ],
                         if (selectedParty != null)
                           Padding(
                             padding: const EdgeInsets.only(top: 8.0),
@@ -465,15 +482,19 @@ class _InvoicesSectionState extends State<InvoicesSection> {
                         // Payment mode
                         const Text('Payment Mode', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
                         const SizedBox(height: 8),
-                        SegmentedButton<PaymentMode>(
-                          segments: const [
-                            ButtonSegment(value: PaymentMode.cash, label: Text('Cash'), icon: Icon(Icons.money, size: 14)),
-                            ButtonSegment(value: PaymentMode.upi, label: Text('UPI'), icon: Icon(Icons.qr_code_scanner, size: 14)),
-                            ButtonSegment(value: PaymentMode.credit, label: Text('Credit'), icon: Icon(Icons.credit_card, size: 14)),
-                          ],
                           selected: {paymentMode},
                           onSelectionChanged: (s) => setS(() => paymentMode = s.first),
                         ).animate().fadeIn(),
+                        const SizedBox(height: 16),
+                        const Text('Loyalty & Discounts', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(child: TextField(controller: loyaltyPointsCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Redeem Points', border: OutlineInputBorder(), isDense: true, prefixIcon: Icon(Icons.star, size: 16)))),
+                            const SizedBox(width: 12),
+                            Expanded(child: TextField(controller: discountCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Discount (₹)', border: OutlineInputBorder(), isDense: true, prefixIcon: Icon(Icons.discount, size: 16)))),
+                          ],
+                        ),
                         const SizedBox(height: 16),
                         // Add products
                         Row(
@@ -499,16 +520,56 @@ class _InvoicesSectionState extends State<InvoicesSection> {
                             child: Text('No items added yet.\nTap "Add Item" to select products.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
                           )
                         else
-                          ...cartItems.map((item) => ListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-                            title: Text(item.product.name),
-                            subtitle: Text('₹${item.unitPrice} × ${item.quantity}'),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
+                          ...cartItems.map((item) => Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey.shade200),
+                            ),
+                            child: Row(
                               children: [
-                                Text('₹${item.finalAmount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                Container(
+                                  width: 40, height: 40,
+                                  decoration: BoxDecoration(color: BrandPalette.navy.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(8)),
+                                  child: const Icon(Icons.inventory_2, size: 20, color: BrandPalette.navy),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(item.product.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                      Text('₹${item.unitPrice}', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                                    ],
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.remove_circle_outline, size: 20, color: BrandPalette.coral),
+                                      onPressed: () => setS(() {
+                                        if (item.quantity > 1) {
+                                          final idx = cartItems.indexWhere((c) => c.product.id == item.product.id);
+                                          cartItems[idx] = item.copyWith(quantity: item.quantity - 1);
+                                        } else {
+                                          cartItems.removeWhere((c) => c.product.id == item.product.id);
+                                        }
+                                      }),
+                                    ),
+                                    Text('${item.quantity.toInt()}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    IconButton(
+                                      icon: const Icon(Icons.add_circle_outline, size: 20, color: BrandPalette.teal),
+                                      onPressed: () => setS(() {
+                                        final idx = cartItems.indexWhere((c) => c.product.id == item.product.id);
+                                        cartItems[idx] = item.copyWith(quantity: item.quantity + 1);
+                                      }),
+                                    ),
+                                  ],
+                                ),
                                 IconButton(
-                                  icon: const Icon(Icons.remove_circle_outline, color: BrandPalette.coral, size: 20),
+                                  icon: const Icon(Icons.delete_outline, size: 20, color: Colors.grey),
                                   onPressed: () => setS(() => cartItems.removeWhere((c) => c.product.id == item.product.id)),
                                 ),
                               ],
@@ -541,23 +602,34 @@ class _InvoicesSectionState extends State<InvoicesSection> {
                             icon: const Icon(Icons.receipt_long),
                             label: const Text('Save Bill'),
                             style: FilledButton.styleFrom(backgroundColor: BrandPalette.coral, padding: const EdgeInsets.symmetric(vertical: 14)),
-                            onPressed: cartItems.isEmpty ? null : () {
+                            onPressed: cartItems.isEmpty ? null : () async {
+                              final disc = double.tryParse(discountCtrl.text) ?? 0.0;
+                              final points = int.tryParse(loyaltyPointsCtrl.text) ?? 0;
+                              final finalTotal = total - disc;
+
+                              if (paymentMode == PaymentMode.upi) {
+                                final success = await _showDynamicQRDialog(context, finalTotal);
+                                if (!success) return;
+                              }
+
                               final invoice = InvoiceRecord(
                                 id: 'INV-${DateTime.now().millisecondsSinceEpoch}',
                                 createdAt: DateTime.now(),
                                 customerName: customerNameCtrl.text.trim().isEmpty ? 'Walk-in Customer' : customerNameCtrl.text.trim(),
                                 customerPhone: customerPhoneCtrl.text.trim(),
                                 customerEmail: '',
-                                total: total,
+                                total: finalTotal,
                                 lines: List.from(cartItems),
                                 channels: const {},
                                 publicLink: widget.generateInvoiceLink?.call() ?? '',
                                 paymentMode: paymentMode,
+                                loyaltyPointsUsed: points,
+                                discountAmount: disc,
                               );
                               widget.onCreateInvoice?.call(invoice);
                               Navigator.pop(ctx);
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Bill created! Total: ₹${total.toStringAsFixed(2)}'), backgroundColor: BrandPalette.teal),
+                                SnackBar(content: Text('Bill created! Total: ₹${finalTotal.toStringAsFixed(2)}'), backgroundColor: BrandPalette.teal),
                               );
                             },
                           ),
@@ -725,5 +797,54 @@ class _InvoicesSectionState extends State<InvoicesSection> {
         ),
       ),
     );
+  }
+
+  Future<bool> _showDynamicQRDialog(BuildContext context, double amount) async {
+    int timeLeft = 60;
+    
+    // UPI Deep Link (Replace with actual business VPA)
+    final String upiUrl = 'upi://pay?pa=priyes@upi&pn=${AppSettings.instance.businessName}&am=${amount.toStringAsFixed(2)}&cu=INR';
+
+    return await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx2, setS) {
+          final timer = Timer.periodic(const Duration(seconds: 1), (t) {
+            if (timeLeft > 0) {
+              setS(() => timeLeft--);
+            } else {
+              t.cancel();
+              Navigator.pop(ctx, false);
+            }
+          });
+
+          return AlertDialog(
+            title: const Text('Scan to Pay', textAlign: TextAlign.center),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('₹${amount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: BrandPalette.teal)),
+                const SizedBox(height: 20),
+                QrImageView(
+                  data: upiUrl,
+                  version: QrVersions.auto,
+                  size: 200.0,
+                  backgroundColor: Colors.white,
+                ),
+                const SizedBox(height: 20),
+                Text('Expires in: $timeLeft seconds', style: const TextStyle(color: BrandPalette.coral, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 12),
+                const Text('Waiting for payment confirmation...', style: TextStyle(fontSize: 12, color: Colors.grey)),
+              ],
+            ),
+            actions: [
+              TextButton(onPressed: () { timer.cancel(); Navigator.pop(ctx, false); }, child: const Text('Cancel')),
+              FilledButton(onPressed: () { timer.cancel(); Navigator.pop(ctx, true); }, child: const Text('Mark as Paid')),
+            ],
+          );
+        },
+      ),
+    ) ?? false;
   }
 }
