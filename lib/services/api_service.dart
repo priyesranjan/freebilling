@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
@@ -58,7 +59,9 @@ class ApiService {
     throw Exception('Failed to send Voice OTP: ${response.body}');
   }
 
-  static Future<Map<String, dynamic>> verifyOtp(String phone, String otp, String sessionId, [String? name]) async {
+  static Future<Map<String, dynamic>> verifyOtp(
+      String phone, String otp, String sessionId, 
+      {String? name, String? businessType, String? category, String? logoUrl}) async {
     final response = await http.post(
       Uri.parse('$baseUrl/auth/verify-otp'),
       headers: _headers(null),
@@ -66,7 +69,10 @@ class ApiService {
         'phone': phone, 
         'otp': otp, 
         'sessionId': sessionId,
-        if (name != null) 'name': name
+        if (name != null) 'name': name,
+        if (businessType != null) 'businessType': businessType,
+        if (category != null) 'category': category,
+        if (logoUrl != null) 'logoUrl': logoUrl,
       }),
     );
     if (response.statusCode == 200) {
@@ -89,6 +95,20 @@ class ApiService {
       return data;
     }
     throw Exception('Failed to login with Google: ${response.body}');
+  }
+
+  static Future<String?> uploadLogo(Uint8List bytes, String filename) async {
+    final request = http.MultipartRequest('POST', Uri.parse('$baseUrl/upload-logo'));
+    request.files.add(http.MultipartFile.fromBytes('logo', bytes, filename: filename));
+    
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+    
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['url'];
+    }
+    throw Exception('Failed to upload logo: ${response.body}');
   }
 
   // --- Products ---

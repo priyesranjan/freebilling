@@ -370,7 +370,8 @@ class _PlatformShellState extends State<PlatformShell> {
           final adjustmentBatch = ProductBatch(
             batchNumber: 'INV-${invoice.id}',
             mfgDate: DateTime.now(),
-            stockCount: -line.quantity, // Negative stock to deduct
+            expiryDate: null,
+            stockCount: -line.quantity.toDouble(), // Negative stock to deduct
           );
           
           final updatedProduct = product.copyWith(

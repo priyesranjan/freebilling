@@ -83,6 +83,8 @@ class BusinessRecord implements SyncableEntity {
     this.syncState = EntityState.synced,
     this.businessType,
     this.websiteSlug,
+    this.category,
+    this.logoUrl,
   });
 
   @override
@@ -100,6 +102,8 @@ class BusinessRecord implements SyncableEntity {
 
   final String? businessType;
   final String? websiteSlug;
+  final String? category;
+  final String? logoUrl;
 
   factory BusinessRecord.fromJson(Map<String, dynamic> json) {
     return BusinessRecord(
@@ -151,6 +155,8 @@ class BusinessRecord implements SyncableEntity {
       syncState: syncState ?? this.syncState,
       businessType: businessType ?? this.businessType,
       websiteSlug: websiteSlug ?? this.websiteSlug,
+      category: category ?? this.category,
+      logoUrl: logoUrl ?? this.logoUrl,
     );
   }
 
@@ -167,6 +173,8 @@ class BusinessRecord implements SyncableEntity {
     'syncState': syncState.name,
     'businessType': businessType,
     'websiteSlug': websiteSlug,
+    'category': category,
+    'logoUrl': logoUrl,
   };
 }
 

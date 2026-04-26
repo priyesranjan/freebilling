@@ -6,6 +6,8 @@ const http = require('http');
 const axios = require('axios');
 const path = require('path');
 const { Server } = require('socket.io');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const multer = require('multer');
 
 require('dotenv').config();
 
@@ -26,6 +28,17 @@ app.get('/web/*', (req, res) => {
 
 const JWT_SECRET = process.env.JWT_SECRET || 'erp_bill_super_secret_key';
 const TWO_FACTOR_API_KEY = 'a4f42790-1574-11f1-bcb0-0200cd936042';
+
+// Cloudflare R2 Config
+const s3 = new S3Client({
+  region: 'auto',
+  endpoint: 'https://5c4ce3f441e1aba0ff794665e17df31b.r2.cloudflarestorage.com',
+  credentials: {
+    accessKeyId: 'b0e9f0b5102c1adaf5e64580f3e9b087',
+    secretAccessKey: '01cf49dc12389495d7183fe9b16c9d98020163db51286b4f960e35b81c17d6cd',
+  },
+});
+const upload = multer({ storage: multer.memoryStorage() });
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -69,8 +82,8 @@ app.post('/api/auth/send-otp', async (req, res) => {
   if (!phone) return res.status(400).json({ error: 'Phone is required' });
   
   try {
-    // 2Factor.in Send OTP
-    const url = `https://2factor.in/API/V1/${TWO_FACTOR_API_KEY}/SMS/${phone}/AUTOGEN3/OTP_LOGIN`;
+    // 2Factor.in Send OTP (6-digit AUTOGEN)
+    const url = `https://2factor.in/API/V1/${TWO_FACTOR_API_KEY}/SMS/${phone}/AUTOGEN`;
     const response = await axios.get(url);
     
     if (response.data.Status === 'Success') {
@@ -106,7 +119,7 @@ app.post('/api/auth/send-otp-call', async (req, res) => {
 });
 
 app.post('/api/auth/verify-otp', async (req, res) => {
-  const { phone, otp, sessionId, name } = req.body;
+  const { phone, otp, sessionId, name, businessType, category, logoUrl } = req.body;
   if (!phone || !otp || !sessionId) return res.status(400).json({ error: 'Phone, OTP and SessionId are required' });
   
   try {
@@ -123,11 +136,15 @@ app.post('/api/auth/verify-otp', async (req, res) => {
     if (result.rows.length === 0) {
       const businessId = 'BUS-' + Date.now();
       const bName = name || 'My Business';
+      const bType = businessType || 'retail';
+      
+      const config = logoUrl ? JSON.stringify({ logo_url: logoUrl }) : '{}';
+
       await db.query(
-        'INSERT INTO businesses (id, name, phone, password) VALUES ($1, $2, $3, $4)',
-        [businessId, bName, phone, 'otp-auth']
+        'INSERT INTO businesses (id, name, phone, password, business_type, website_config) VALUES ($1, $2, $3, $4, $5, $6)',
+        [businessId, bName, phone, 'otp-auth', bType, config]
       );
-      user = { id: businessId, name: bName, phone };
+      user = { id: businessId, name: bName, phone, business_type: bType };
     } else {
       user = result.rows[0];
     }
@@ -179,6 +196,36 @@ app.put('/api/businesses/onboard', authenticateToken, async (req, res) => {
   }
 });
 
+app.post('/api/upload-logo', upload.single('logo'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+
+  const fileName = `logos/${Date.now()}_${req.file.originalname}`;
+  
+  try {
+    const command = new PutObjectCommand({
+      Bucket: 'freebilling',
+      Key: fileName,
+      Body: req.file.buffer,
+      ContentType: req.file.mimetype,
+      ACL: 'public-read', // Ensure bucket allows public read if needed
+    });
+
+    await s3.send(command);
+
+    // Using public R2 domain or custom domain if mapped. 
+    // Assuming bucket allows public access via default dev URL or we can construct it.
+    // Replace with your actual public R2 domain if you mapped one.
+    const publicUrl = `https://pub-your-r2-public-url.r2.dev/${fileName}`; 
+
+    res.json({ success: true, url: publicUrl, key: fileName });
+  } catch (err) {
+    console.error("R2 Upload Error:", err);
+    res.status(500).json({ error: 'Failed to upload to R2', details: err.message });
+  }
+});
+
 app.get('/api/products', authenticateToken, async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM products WHERE business_id = $1 ORDER BY created_at DESC', [req.user.businessId]);
@@ -193,7 +240,17 @@ app.post('/api/products', authenticateToken, async (req, res) => {
   try {
     const result = await db.query(
       `INSERT INTO products (id, business_id, name, mrp, selling_price, price, codes, tax_rate, current_stock, low_stock_level) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
+       ON CONFLICT (id) DO UPDATE SET 
+         name = EXCLUDED.name, 
+         mrp = EXCLUDED.mrp, 
+         selling_price = EXCLUDED.selling_price, 
+         price = EXCLUDED.price, 
+         codes = EXCLUDED.codes, 
+         tax_rate = EXCLUDED.tax_rate, 
+         current_stock = EXCLUDED.current_stock, 
+         low_stock_level = EXCLUDED.low_stock_level
+       RETURNING *`,
       [id, req.user.businessId, name, mrp || 0, selling_price || 0, selling_price || 0, JSON.stringify(codes || []), tax_rate || 'exempt', current_stock || 0, low_stock_level || 0]
     );
     
@@ -277,6 +334,8 @@ async function runPatch() {
       ALTER TABLE businesses 
       ADD COLUMN IF NOT EXISTS business_type VARCHAR(100),
       ADD COLUMN IF NOT EXISTS website_slug VARCHAR(255) UNIQUE,
+      ADD COLUMN IF NOT EXISTS category VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS logo_url VARCHAR(500),
       ADD COLUMN IF NOT EXISTS website_config JSONB DEFAULT '{}'
     `);
     // Patch Products

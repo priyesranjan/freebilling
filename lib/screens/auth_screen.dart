@@ -1,5 +1,7 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import '../core/core.dart';
 import '../services/services.dart';
 import 'screens.dart';
@@ -12,20 +14,40 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _otpController = TextEditingController();
-  
+  bool _isLogin = true;
   bool _isLoading = false;
   bool _otpSent = false;
-  String? _sessionId; // Stores the 2Factor session ID
-  final TextEditingController _nameController = TextEditingController();
+  String? _sessionId; 
+
+  final _phoneController = TextEditingController();
+  final _otpController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _categoryController = TextEditingController();
+  
+  String _businessType = 'retail';
+  
+  Uint8List? _logoBytes;
+  String? _logoName;
 
   @override
   void dispose() {
     _phoneController.dispose();
     _otpController.dispose();
     _nameController.dispose();
+    _categoryController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickLogo() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      final bytes = await image.readAsBytes();
+      setState(() {
+        _logoBytes = bytes;
+        _logoName = image.name;
+      });
+    }
   }
 
   Future<void> _sendOtp() async {
@@ -82,19 +104,30 @@ class _AuthScreenState extends State<AuthScreen> {
   Future<void> _verifyOtp() async {
     final String phone = _phoneController.text.trim();
     final String otp = _otpController.text.trim();
-    final String name = _nameController.text.trim();
 
     if (otp.isEmpty || _sessionId == null) return;
 
     setState(() => _isLoading = true);
 
     try {
-      final data = await ApiService.verifyOtp(phone, otp, _sessionId!, name.isEmpty ? null : name);
+      String? uploadedLogoUrl;
+      if (!_isLogin && _logoBytes != null && _logoName != null) {
+        uploadedLogoUrl = await ApiService.uploadLogo(_logoBytes!, _logoName!);
+      }
+
+      final data = await ApiService.verifyOtp(
+        phone, otp, _sessionId!,
+        name: _isLogin ? null : _nameController.text.trim(),
+        businessType: _isLogin ? null : _businessType,
+        category: _isLogin ? null : _categoryController.text.trim(),
+        logoUrl: uploadedLogoUrl,
+      );
+      
       final business = data['business'];
       
       if (!mounted) return;
       
-      // If it's a new business or missing crucial info, go to onboarding
+      // If we somehow logged in but the backend lacks crucial info
       if (business['business_type'] == null || business['website_slug'] == null) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const OnboardingScreen()),
@@ -114,7 +147,6 @@ class _AuthScreenState extends State<AuthScreen> {
   Future<void> _googleLogin() async {
     setState(() => _isLoading = true);
     try {
-      // Mock Google Login Flow - in a real app you'd use google_sign_in package here
       await Future.delayed(const Duration(seconds: 1));
       final String mockEmail = 'demo${DateTime.now().millisecondsSinceEpoch}@google.com';
       final data = await ApiService.googleLogin(mockEmail, 'Google Demo User');
@@ -122,7 +154,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
       if (!mounted) return;
       
-      if (business['businessType'] == null || business['websiteSlug'] == null) {
+      if (business['business_type'] == null || business['website_slug'] == null) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const OnboardingScreen()),
         );
@@ -134,18 +166,19 @@ class _AuthScreenState extends State<AuthScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Google Login Failed')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: BrandPalette.pageBase,
       body: Center(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          padding: const EdgeInsets.all(24.0),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 400),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -167,18 +200,34 @@ class _AuthScreenState extends State<AuthScreen> {
                     color: BrandPalette.navy,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Sign in or create a business account',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: BrandPalette.ink.withValues(alpha: 0.6),
-                  ),
+                const SizedBox(height: 32),
+
+                // Tab Switcher
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ChoiceChip(
+                      label: const Text('Login'),
+                      selected: _isLogin,
+                      onSelected: (val) {
+                        if (val) setState(() { _isLogin = true; _otpSent = false; });
+                      },
+                      selectedColor: BrandPalette.teal.withValues(alpha: 0.2),
+                    ),
+                    const SizedBox(width: 12),
+                    ChoiceChip(
+                      label: const Text('Signup'),
+                      selected: !_isLogin,
+                      onSelected: (val) {
+                        if (val) setState(() { _isLogin = false; _otpSent = false; });
+                      },
+                      selectedColor: BrandPalette.teal.withValues(alpha: 0.2),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 48),
+                const SizedBox(height: 32),
 
                 if (!_otpSent) ...[
-                  // PHONE INPUT
                   TextField(
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
@@ -187,7 +236,56 @@ class _AuthScreenState extends State<AuthScreen> {
                       prefixIcon: Icon(Icons.phone),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
+                  
+                  if (!_isLogin) ...[
+                    TextField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Business Name',
+                        prefixIcon: Icon(Icons.business),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: _businessType,
+                      decoration: const InputDecoration(
+                        labelText: 'Business Type',
+                        prefixIcon: Icon(Icons.category),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 'retail', child: Text('Retail Store')),
+                        DropdownMenuItem(value: 'wholesale', child: Text('Wholesale')),
+                        DropdownMenuItem(value: 'service', child: Text('Service/Agency')),
+                        DropdownMenuItem(value: 'restaurant', child: Text('Restaurant/Cafe')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) setState(() => _businessType = val);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _categoryController,
+                      decoration: const InputDecoration(
+                        labelText: 'Category (e.g. Electronics, Clothing)',
+                        prefixIcon: Icon(Icons.local_offer),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: _logoBytes != null 
+                        ? CircleAvatar(backgroundImage: MemoryImage(_logoBytes!))
+                        : const CircleAvatar(child: Icon(Icons.image)),
+                      title: Text(_logoBytes != null ? 'Logo Selected' : 'Upload Business Logo'),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.upload_file),
+                        onPressed: _pickLogo,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
@@ -197,13 +295,12 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                       child: _isLoading 
                         ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                        : const Text('Continue'),
+                        : Text(_isLogin ? 'Login' : 'Signup'),
                     ),
                   ),
                 ] else ...[
-                  // OTP INPUT
                   Text(
-                    'Enter the 4-digit code sent to ${_phoneController.text}',
+                    'Enter the 6-digit code sent to ${_phoneController.text}',
                     style: TextStyle(color: BrandPalette.ink.withValues(alpha: 0.8)),
                     textAlign: TextAlign.center,
                   ),
@@ -211,21 +308,12 @@ class _AuthScreenState extends State<AuthScreen> {
                   TextField(
                     controller: _otpController,
                     keyboardType: TextInputType.number,
-                    maxLength: 4,
+                    maxLength: 6,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 24, letterSpacing: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 24, letterSpacing: 8, fontWeight: FontWeight.bold),
                     decoration: const InputDecoration(
                       counterText: '',
-                      hintText: '----',
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Optional Name Input for demo registration
-                  TextField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Business Name (Optional)',
-                      prefixIcon: Icon(Icons.business),
+                      hintText: '------',
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -238,7 +326,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                       child: _isLoading 
                         ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                        : const Text('Verify & Login'),
+                        : const Text('Verify & Continue'),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -265,7 +353,6 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                // GOOGLE BUTTON
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
@@ -277,7 +364,6 @@ class _AuthScreenState extends State<AuthScreen> {
                     label: const Text('Continue with Google'),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      foregroundColor: BrandPalette.navy,
                     ),
                   ),
                 ),
