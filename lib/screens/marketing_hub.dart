@@ -97,7 +97,7 @@ class _ReviewAIViewState extends State<ReviewAIView> {
             children: [
               const Row(
                 children: [
-                  Icon(Icons.google, color: Colors.blue),
+                  Icon(Icons.language, color: Colors.blue),
                   SizedBox(width: 8),
                   Text('Google My Business Auto-Reply', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 ],

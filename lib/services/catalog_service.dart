@@ -79,19 +79,15 @@ class CatalogService {
     ];
   }
 
-  static Product _createProduct(String name, double mrp, double purchasePrice, String codePrefix) {
+  static Product _createProduct(String name, double mrp, double sellingPrice, String codePrefix) {
     final randCode = uuid.v4().substring(0, 5).toUpperCase();
     return Product(
       id: uuid.v4(),
       name: name,
-      sellingPrice: mrp,
-      purchasePrice: purchasePrice,
+      sellingPrice: sellingPrice,
       mrp: mrp,
       codes: ['$codePrefix-$randCode'],
-      currentStock: 100, // Default mock stock
-      stockTracking: true,
-      categoryId: '', // Uncategorized by default
-      unit: 'Pcs',
+      initialStock: 100, // Default mock stock
     );
   }
 }

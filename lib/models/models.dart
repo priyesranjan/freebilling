@@ -753,6 +753,13 @@ class AppSettings {
   int reminderDaysBeforeDue;
   bool autoWhatsAppReminder;
 
+  // Integrations
+  String razorpayKeyId = '';
+  String razorpayKeySecret = '';
+  String twoFactorApiKey = '';
+  String whatsappApiToken = '';
+  String whatsappPhoneNumberId = '';
+
   // Singleton-style global instance
   static final AppSettings instance = AppSettings();
 
@@ -764,6 +771,11 @@ class AppSettings {
     await prefs.setString('businessPhone', businessPhone);
     await prefs.setString('businessCategory', businessCategory);
     await prefs.setString('invoiceFormat', invoiceFormat);
+    await prefs.setString('razorpayKeyId', razorpayKeyId);
+    await prefs.setString('razorpayKeySecret', razorpayKeySecret);
+    await prefs.setString('twoFactorApiKey', twoFactorApiKey);
+    await prefs.setString('whatsappApiToken', whatsappApiToken);
+    await prefs.setString('whatsappPhoneNumberId', whatsappPhoneNumberId);
     if (businessLogo != null) await prefs.setString('businessLogo', businessLogo!);
   }
 
@@ -775,6 +787,11 @@ class AppSettings {
     businessPhone = prefs.getString('businessPhone') ?? '';
     businessCategory = prefs.getString('businessCategory') ?? '';
     invoiceFormat = prefs.getString('invoiceFormat') ?? 'POS';
+    razorpayKeyId = prefs.getString('razorpayKeyId') ?? '';
+    razorpayKeySecret = prefs.getString('razorpayKeySecret') ?? '';
+    twoFactorApiKey = prefs.getString('twoFactorApiKey') ?? '';
+    whatsappApiToken = prefs.getString('whatsappApiToken') ?? '';
+    whatsappPhoneNumberId = prefs.getString('whatsappPhoneNumberId') ?? '';
     businessLogo = prefs.getString('businessLogo');
   }
 }

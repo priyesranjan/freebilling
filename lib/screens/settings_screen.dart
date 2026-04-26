@@ -7,6 +7,8 @@ import 'settings/invoice_print_settings.dart';
 import 'settings/tax_settings.dart';
 import 'settings/item_settings.dart';
 import 'settings/reminder_settings.dart';
+import 'settings/google_test_screen.dart';
+import 'settings/integration_settings.dart';
 
 class SettingsScreen extends StatelessWidget {
   final AppSettings settings;
@@ -73,6 +75,18 @@ class SettingsScreen extends StatelessWidget {
             icon: Icons.inventory_2_outlined,
             title: 'Item',
             onTap: () => _push(context, ItemSettingsScreen(settings: settings)),
+          ),
+          const Divider(height: 1),
+          _buildSettingsTile(context,
+            icon: Icons.hub_outlined,
+            title: 'API Integrations',
+            isNew: true,
+            onTap: () => _push(context, IntegrationSettingsScreen(settings: settings)),
+          ),
+          _buildSettingsTile(context,
+            icon: Icons.developer_mode,
+            title: 'Google API Tester',
+            onTap: () => _push(context, const GoogleApiTestScreen()),
           ),
         ],
       ),

@@ -265,29 +265,48 @@ class _InvoicesSectionState extends State<InvoicesSection> {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              child: Column(
                 children: [
-                  OutlinedButton.icon(
-                    onPressed: () => _printOrSharePdf(context, inv),
-                    icon: const Icon(Icons.print, size: 18),
-                    label: const Text('Print / Save PDF'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: BrandPalette.navy,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: () => _printOrSharePdf(context, inv),
+                        icon: const Icon(Icons.print, size: 18),
+                        label: const Text('Print / Save PDF'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: BrandPalette.navy,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                      ElevatedButton.icon(
+                        onPressed: () => _shareOnWhatsApp(context, inv),
+                        icon: const Icon(Icons.share, size: 18),
+                        label: const Text('WhatsApp'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF25D366),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                    ],
                   ),
-                  ElevatedButton.icon(
-                    onPressed: () => _shareOnWhatsApp(context, inv),
-                    icon: const Icon(Icons.share, size: 18),
-                    label: const Text('WhatsApp'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF25D366),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  if (inv.paymentMode == PaymentMode.credit) ...[
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: () => _generatePaymentLink(context, inv),
+                        icon: const Icon(Icons.payment),
+                        label: const Text('Generate Payment Link'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: BrandPalette.navy,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
                     ),
-                  ),
+                  ]
                 ],
               ),
             ),
@@ -360,6 +379,42 @@ class _InvoicesSectionState extends State<InvoicesSection> {
       await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not open WhatsApp. Make sure it is installed.')));
+    }
+  }
+
+  void _generatePaymentLink(BuildContext context, InvoiceRecord inv) async {
+    try {
+      showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator()));
+      final url = await RazorpayService.generatePaymentLink(inv);
+      Navigator.pop(context); // Close loading
+      
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Payment Link Generated'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(url, style: const TextStyle(color: Colors.blue, decoration: TextDecoration.underline)),
+              const SizedBox(height: 16),
+              const Text('This link has also been sent to the customer via SMS/Email by Razorpay automatically.', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+              },
+              child: const Text('Open Link'),
+            ),
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
+          ],
+        ),
+      );
+    } catch (e) {
+      Navigator.pop(context); // Close loading
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
