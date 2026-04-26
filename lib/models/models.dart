@@ -321,7 +321,7 @@ class Product implements SyncableEntity {
       variants: (json['variants'] as List<dynamic>?)?.map((e) => ProductVariant.fromJson(e as Map<String, dynamic>)).toList() ?? [],
       batches: (json['batches'] as List<dynamic>?)?.map((e) => ProductBatch.fromJson(e as Map<String, dynamic>)).toList() ?? [],
       lowStockAlertLevel: (json['low_stock_level'] as num? ?? json['lowStockAlertLevel'] as num?)?.toDouble() ?? 0.0,
-      initialStock: (json['current_stock'] as num? ?? json['initialStock'] as num? ?? json['currentStock'] as num? ?? 0).toDouble(),
+      initialStock: (json['initialStock'] as num? ?? json['initialStockCount'] as num? ?? json['current_stock'] as num? ?? json['currentStock'] as num? ?? 0).toDouble(),
       taxRate: TaxRate.values.firstWhere(
         (e) => e.name == json['taxRate'],
         orElse: () => TaxRate.exempt,
