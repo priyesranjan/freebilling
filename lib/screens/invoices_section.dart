@@ -9,6 +9,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:async';
+import 'dart:typed_data';
 
 enum InvoiceFilter { all, paid, unpaid }
 
@@ -330,7 +331,16 @@ class _InvoicesSectionState extends State<InvoicesSection> {
         id: 'B1', businessName: 'My Store', ownerName: 'Store Owner',
         plan: BillingPlan.premium, status: BusinessStatus.onboarded, validTill: DateTime.now()
       );
-      final pdfBytes = await PdfInvoiceService.generateInvoice(inv, business);
+      
+      final String format = AppSettings.instance.invoiceFormat;
+      final Uint8List pdfBytes;
+      
+      if (format == 'A4') {
+        pdfBytes = await A4PdfService.generateA4Invoice(inv);
+      } else {
+        pdfBytes = await PdfInvoiceService.generateInvoice(inv, business);
+      }
+      
       await Printing.sharePdf(bytes: pdfBytes, filename: 'invoice_${inv.id}.pdf');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error generating PDF: $e')));

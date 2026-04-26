@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
 import '../../core/core.dart';
+import '../../services/catalog_service.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:io';
 
 class GeneralSettingsScreen extends StatefulWidget {
@@ -19,6 +21,11 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
   late TextEditingController _emailCtrl;
   late TextEditingController _gstinCtrl;
   String? _localLogoPath;
+  String _selectedCategory = 'Retail';
+  String _selectedInvoiceFormat = 'POS';
+
+  final List<String> _categories = ['Retail', 'Pharmacy', 'Salon', 'Food', 'Studio'];
+  final List<String> _formats = ['POS', 'A4'];
 
   @override
   void initState() {
@@ -29,6 +36,39 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
     _emailCtrl = TextEditingController(text: widget.settings.businessEmail);
     _gstinCtrl = TextEditingController(text: widget.settings.gstin);
     _localLogoPath = widget.settings.businessLogo;
+    
+    if (_categories.contains(widget.settings.businessCategory)) {
+      _selectedCategory = widget.settings.businessCategory;
+    } else if (widget.settings.businessCategory.isNotEmpty) {
+      _selectedCategory = 'Retail'; // Fallback
+    }
+
+    if (_formats.contains(widget.settings.invoiceFormat)) {
+      _selectedInvoiceFormat = widget.settings.invoiceFormat;
+    }
+  }
+
+  Future<void> _importSmartCatalog() async {
+    try {
+      final items = CatalogService.getCatalogForCategory(_selectedCategory);
+      if (items.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No catalog available for this category.')));
+        return;
+      }
+      
+      final box = Hive.box<Product>('products');
+      for (var p in items) {
+        await box.put(p.id, p);
+      }
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Successfully imported ${items.length} $_selectedCategory items!'), backgroundColor: BrandPalette.teal),
+        );
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error importing catalog: $e'), backgroundColor: BrandPalette.coral));
+    }
   }
 
   Future<void> _pickLogo() async {
@@ -94,6 +134,21 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
             ),
           ),
           const SizedBox(height: 16),
+          _sectionHeader('Business Profile & Catalogs'),
+          DropdownButtonFormField<String>(
+            value: _selectedCategory,
+            decoration: InputDecoration(labelText: 'Business Category', prefixIcon: const Icon(Icons.category), border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)), filled: true, fillColor: Colors.white),
+            items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+            onChanged: (v) => setState(() => _selectedCategory = v!),
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.download, color: BrandPalette.teal),
+            label: Text('Import "$_selectedCategory" Smart Catalog', style: const TextStyle(color: BrandPalette.teal)),
+            style: OutlinedButton.styleFrom(side: const BorderSide(color: BrandPalette.teal)),
+            onPressed: _importSmartCatalog,
+          ),
+          const SizedBox(height: 20),
           _sectionHeader('Business Information'),
           _buildTextField(_nameCtrl, 'Business Name *', Icons.store),
           const SizedBox(height: 12),
@@ -102,6 +157,14 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
           _buildTextField(_emailCtrl, 'Email Address', Icons.email, inputType: TextInputType.emailAddress),
           const SizedBox(height: 12),
           _buildTextField(_addressCtrl, 'Business Address', Icons.location_on, maxLines: 3),
+          const SizedBox(height: 20),
+          _sectionHeader('Invoice Print Format'),
+          DropdownButtonFormField<String>(
+            value: _selectedInvoiceFormat,
+            decoration: InputDecoration(labelText: 'Receipt Layout', prefixIcon: const Icon(Icons.receipt), border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)), filled: true, fillColor: Colors.white),
+            items: _formats.map((f) => DropdownMenuItem(value: f, child: Text(f == 'POS' ? 'Thermal Receipt (80mm)' : 'A4 Standard Invoice'))).toList(),
+            onChanged: (v) => setState(() => _selectedInvoiceFormat = v!),
+          ),
           const SizedBox(height: 20),
           _sectionHeader('Tax Information'),
           _buildTextField(_gstinCtrl, 'GSTIN (optional)', Icons.receipt_long),
@@ -174,6 +237,8 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
     widget.settings.businessPhone = _phoneCtrl.text.trim();
     widget.settings.businessEmail = _emailCtrl.text.trim();
     widget.settings.gstin = _gstinCtrl.text.trim();
+    widget.settings.businessCategory = _selectedCategory;
+    widget.settings.invoiceFormat = _selectedInvoiceFormat;
     widget.settings.businessLogo = _localLogoPath;
     widget.settings.save();
     Navigator.pop(context);

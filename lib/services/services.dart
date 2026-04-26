@@ -8,6 +8,8 @@ export 'sync_service.dart';
 export 'reporting_service.dart';
 export 'api_service.dart';
 export 'pdf_service.dart';
+export 'a4_pdf_service.dart';
+export 'catalog_service.dart';
 export 'websocket_service.dart';
 
 abstract class OwnerAuthService {

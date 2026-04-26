@@ -699,6 +699,8 @@ class AppSettings {
     this.businessAddress = '',
     this.businessPhone = '',
     this.businessEmail = '',
+    this.businessCategory = '', // Retail, Pharmacy, Salon, Food
+    this.invoiceFormat = 'POS', // POS or A4
     this.currency = '₹',
     // Reminders
     this.paymentReminderEnabled = false,
@@ -742,6 +744,8 @@ class AppSettings {
   String businessAddress;
   String businessPhone;
   String businessEmail;
+  String businessCategory;
+  String invoiceFormat;
   String currency;
 
   // Reminders
@@ -758,6 +762,8 @@ class AppSettings {
     await prefs.setString('businessName', businessName);
     await prefs.setString('businessAddress', businessAddress);
     await prefs.setString('businessPhone', businessPhone);
+    await prefs.setString('businessCategory', businessCategory);
+    await prefs.setString('invoiceFormat', invoiceFormat);
     if (businessLogo != null) await prefs.setString('businessLogo', businessLogo!);
   }
 
@@ -767,6 +773,8 @@ class AppSettings {
     businessName = prefs.getString('businessName') ?? '';
     businessAddress = prefs.getString('businessAddress') ?? '';
     businessPhone = prefs.getString('businessPhone') ?? '';
+    businessCategory = prefs.getString('businessCategory') ?? '';
+    invoiceFormat = prefs.getString('invoiceFormat') ?? 'POS';
     businessLogo = prefs.getString('businessLogo');
   }
 }

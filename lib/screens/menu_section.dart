@@ -5,6 +5,7 @@ import 'settings_screen.dart';
 import 'expenses_screen.dart';
 import 'reports_screen.dart';
 import 'cash_bank_screen.dart';
+import 'marketing_hub.dart';
 
 class MenuSection extends StatefulWidget {
   final List<InvoiceRecord> invoices;
@@ -48,6 +49,12 @@ class _MenuSectionState extends State<MenuSection> {
             _divider(),
             _navTile(context, Icons.account_balance_wallet_outlined, 'Daily Expenses', null,
               () => _push(context, ExpensesScreen(expenses: widget.expenses, onAddExpense: widget.onAddExpense))),
+          ]),
+
+          // ── Marketing & Growth ──────────────────────────────────────
+          _sectionCard('Marketing & Growth', [
+            _navTile(context, Icons.campaign_outlined, 'AI Marketing Hub', 'Auto-Replies & Promo Images', 
+              () => _push(context, const MarketingHubScreen())),
           ]),
 
           if (settings.isAdmin) ...[
