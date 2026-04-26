@@ -480,8 +480,12 @@ class _InvoicesSectionState extends State<InvoicesSection> {
                           ),
                         const SizedBox(height: 16),
                         // Payment mode
-                        const Text('Payment Mode', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
-                        const SizedBox(height: 8),
+                        SegmentedButton<PaymentMode>(
+                          segments: const [
+                            ButtonSegment(value: PaymentMode.cash, label: Text('Cash'), icon: Icon(Icons.money, size: 14)),
+                            ButtonSegment(value: PaymentMode.upi, label: Text('UPI'), icon: Icon(Icons.qr_code_scanner, size: 14)),
+                            ButtonSegment(value: PaymentMode.credit, label: Text('Credit'), icon: Icon(Icons.credit_card, size: 14)),
+                          ],
                           selected: {paymentMode},
                           onSelectionChanged: (s) => setS(() => paymentMode = s.first),
                         ).animate().fadeIn(),
