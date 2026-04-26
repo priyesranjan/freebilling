@@ -1,23 +1,23 @@
 # ──────────────────────────────────────────────────────────────────
-#  Dukan Bill — Complete Docker Compose for Coolify
+#  Dukan Bill — Docker Compose for Coolify
 #
-#  Services:
-#   web     → Nginx (Flutter Web + Proxy) on port 80
-#   backend → Node.js API on port 3000 (internal only)
+#  NOTE: Do NOT bind port 80/443 here.
+#  Coolify's Traefik proxy handles all external traffic.
+#  Just expose internal ports and Coolify routes to them.
 # ──────────────────────────────────────────────────────────────────
 version: '3.8'
 
 services:
 
-  # ── Flutter Web + Nginx (Public-facing) ──────────────────────────
+  # ── Flutter Web + Nginx (Coolify routes traffic here) ────────────
   web:
     build:
       context: .
       dockerfile: Dockerfile.web
     container_name: dukan_bill_web
     restart: always
-    ports:
-      - "80:80"
+    expose:
+      - "80"           # Internal port — Coolify Traefik proxies to this
     depends_on:
       - backend
     healthcheck:
@@ -52,3 +52,4 @@ services:
 networks:
   default:
     name: dukan_bill_network
+
