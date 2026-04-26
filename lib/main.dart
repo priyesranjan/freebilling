@@ -10,6 +10,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   await Hive.openBox<String>('sync_queue');
+  await AppSettings.instance.load();
   runApp(const MyApp());
 }
 

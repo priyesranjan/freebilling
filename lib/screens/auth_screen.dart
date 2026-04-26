@@ -223,7 +223,7 @@ class _AuthScreenState extends State<AuthScreen> with CodeAutoFill {
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.storefront_outlined, size: 40, color: BrandPalette.teal),
-                ).animate().scale(duration: 400.ms, curve: Curves.backOut).fadeIn(),
+                ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack).fadeIn(),
                 const SizedBox(height: 24),
                 Text(
                   'Welcome to ERP Bill',

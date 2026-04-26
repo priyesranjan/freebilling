@@ -1,5 +1,6 @@
 
 import '../enums/enums.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/core.dart';
 import '../services/sync_service.dart';
 
@@ -742,5 +743,23 @@ class AppSettings {
 
   // Singleton-style global instance
   static final AppSettings instance = AppSettings();
+
+  Future<void> save() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isStaffMode', isStaffMode);
+    await prefs.setString('businessName', businessName);
+    await prefs.setString('businessAddress', businessAddress);
+    await prefs.setString('businessPhone', businessPhone);
+    if (businessLogo != null) await prefs.setString('businessLogo', businessLogo!);
+  }
+
+  Future<void> load() async {
+    final prefs = await SharedPreferences.getInstance();
+    isStaffMode = prefs.getBool('isStaffMode') ?? false;
+    businessName = prefs.getString('businessName') ?? '';
+    businessAddress = prefs.getString('businessAddress') ?? '';
+    businessPhone = prefs.getString('businessPhone') ?? '';
+    businessLogo = prefs.getString('businessLogo');
+  }
 }
 

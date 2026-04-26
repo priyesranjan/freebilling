@@ -70,6 +70,11 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
           Center(
             child: Column(
               children: [
+                Container(
+                  width: 80, height: 80,
+                  decoration: BoxDecoration(
+                    color: BrandPalette.navy.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: BrandPalette.navy.withValues(alpha: 0.2)),
                   ),
                   child: _localLogoPath != null 
@@ -170,6 +175,7 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
     widget.settings.businessEmail = _emailCtrl.text.trim();
     widget.settings.gstin = _gstinCtrl.text.trim();
     widget.settings.businessLogo = _localLogoPath;
+    widget.settings.save();
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Business details saved!'), backgroundColor: BrandPalette.teal),
