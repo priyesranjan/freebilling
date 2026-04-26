@@ -312,16 +312,16 @@ class Product implements SyncableEntity {
       id: json['id'] as String,
       name: json['name'] as String,
       mrp: (json['mrp'] as num?)?.toDouble() ?? 0.0,
-      sellingPrice: (json['sellingPrice'] as num? ?? json['price'] as num? ?? 0).toDouble(),
+      sellingPrice: (json['selling_price'] as num? ?? json['sellingPrice'] as num? ?? json['price'] as num? ?? 0).toDouble(),
       codes: (json['codes'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
       syncState: EntityState.values.firstWhere(
-        (e) => e.name == json['syncState'],
+        (e) => e.name == (json['sync_state'] ?? json['syncState']),
         orElse: () => EntityState.synced,
       ),
       variants: (json['variants'] as List<dynamic>?)?.map((e) => ProductVariant.fromJson(e as Map<String, dynamic>)).toList() ?? [],
       batches: (json['batches'] as List<dynamic>?)?.map((e) => ProductBatch.fromJson(e as Map<String, dynamic>)).toList() ?? [],
-      lowStockAlertLevel: (json['lowStockAlertLevel'] as num?)?.toDouble() ?? 0.0,
-      initialStock: (json['initialStock'] as num? ?? json['currentStock'] as num? ?? 0).toDouble(),
+      lowStockAlertLevel: (json['low_stock_level'] as num? ?? json['lowStockAlertLevel'] as num?)?.toDouble() ?? 0.0,
+      initialStock: (json['current_stock'] as num? ?? json['initialStock'] as num? ?? json['currentStock'] as num? ?? 0).toDouble(),
       taxRate: TaxRate.values.firstWhere(
         (e) => e.name == json['taxRate'],
         orElse: () => TaxRate.exempt,
@@ -335,9 +335,11 @@ class Product implements SyncableEntity {
     'name': name,
     'mrp': mrp,
     'sellingPrice': sellingPrice,
+    'selling_price': sellingPrice,
     'price': sellingPrice,
     'codes': codes,
     'syncState': syncState.name,
+    'sync_state': syncState.name,
     'variants': variants.map((v) => {
       'id': v.id,
       'name': v.name,
@@ -350,9 +352,12 @@ class Product implements SyncableEntity {
       'stockCount': b.stockCount,
     }).toList(),
     'lowStockAlertLevel': lowStockAlertLevel,
+    'low_stock_level': lowStockAlertLevel,
     'initialStock': initialStock,
     'currentStock': currentStock,
+    'current_stock': currentStock,
     'taxRate': taxRate.name,
+    'tax_rate': taxRate.name,
   }; 
 }
 

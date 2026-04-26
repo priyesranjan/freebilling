@@ -236,7 +236,15 @@ app.get('/api/products', authenticateToken, async (req, res) => {
 });
 
 app.post('/api/products', authenticateToken, async (req, res) => {
-  const { id, name, mrp, selling_price, codes, tax_rate, current_stock, low_stock_level } = req.body;
+  const id = req.body.id;
+  const name = req.body.name;
+  const mrp = req.body.mrp || 0;
+  const selling_price = req.body.selling_price || req.body.sellingPrice || req.body.price || 0;
+  const codes = req.body.codes || [];
+  const tax_rate = req.body.tax_rate || req.body.taxRate || 'exempt';
+  const current_stock = req.body.current_stock ?? req.body.currentStock ?? req.body.initialStock ?? 0;
+  const low_stock_level = req.body.low_stock_level ?? req.body.lowStockAlertLevel ?? 0;
+
   try {
     const result = await db.query(
       `INSERT INTO products (id, business_id, name, mrp, selling_price, price, codes, tax_rate, current_stock, low_stock_level) 
@@ -251,7 +259,7 @@ app.post('/api/products', authenticateToken, async (req, res) => {
          current_stock = EXCLUDED.current_stock, 
          low_stock_level = EXCLUDED.low_stock_level
        RETURNING *`,
-      [id, req.user.businessId, name, mrp || 0, selling_price || 0, selling_price || 0, JSON.stringify(codes || []), tax_rate || 'exempt', current_stock || 0, low_stock_level || 0]
+      [id, req.user.businessId, name, mrp, selling_price, selling_price, JSON.stringify(codes), tax_rate, current_stock, low_stock_level]
     );
     
     io.to(req.user.businessId).emit('sync_event', { type: 'Product', action: 'insert', data: result.rows[0] });
