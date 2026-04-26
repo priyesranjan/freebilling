@@ -1,0 +1,28 @@
+# ──────────────────────────────────────────────────────────────────
+#  Dukan Bill — Docker Compose for Coolify
+#  Runs: Node.js API backend (port 3000)
+# ──────────────────────────────────────────────────────────────────
+version: '3.8'
+
+services:
+  # ── Node.js Backend API ──────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: dukan_bill_backend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET:-erp_bill_super_secret_key}
+      TWO_FACTOR_API_KEY: ${TWO_FACTOR_API_KEY:-a4f42790-1574-11f1-bcb0-0200cd936042}
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s

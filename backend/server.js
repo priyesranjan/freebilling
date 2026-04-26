@@ -26,6 +26,9 @@ app.get('/web/*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// ── Health Check (for Docker / Coolify) ─────────────────────────
+app.get('/health', (req, res) => res.json({ status: 'ok', service: 'Dukan Bill API', version: '1.0.0' }));
+
 const JWT_SECRET = process.env.JWT_SECRET || 'erp_bill_super_secret_key';
 const TWO_FACTOR_API_KEY = 'a4f42790-1574-11f1-bcb0-0200cd936042';
 
