@@ -414,6 +414,21 @@ class CartItem {
       discountAmount: discountAmount ?? this.discountAmount,
     );
   }
+
+  Map<String, dynamic> toJson() => {
+    'product': product.toJson(),
+    'quantity': quantity,
+    'discountAmount': discountAmount,
+    'unitPrice': unitPrice,
+  };
+
+  factory CartItem.fromJson(Map<String, dynamic> json) {
+    return CartItem(
+      product: Product.fromJson(json['product']),
+      quantity: json['quantity'] as int,
+      discountAmount: (json['discountAmount'] as num? ?? 0).toDouble(),
+    );
+  }
 }
 
 class InvoiceRecord implements SyncableEntity {
@@ -481,9 +496,11 @@ class InvoiceRecord implements SyncableEntity {
       customerPhone: json['customerPhone'] as String,
       customerEmail: json['customerEmail'] as String,
       total: (json['total'] as num).toDouble(),
-      lines: [], // Note: Lines are not reconstructed from Sync Queue
-      channels: {}, // Channels not reconstructed
-      publicLink: json['publicLink'] as String,
+      lines: (json['lines'] as List? ?? [])
+          .map((l) => CartItem.fromJson(l as Map<String, dynamic>))
+          .toList(),
+      channels: (json['channels'] as List? ?? []).map((c) => DeliveryChannel.values.firstWhere((e) => e.name == c)).toSet(),
+      publicLink: json['publicLink'] as String? ?? '',
       type: DocumentType.values.firstWhere(
         (e) => e.name == json['type'],
         orElse: () => DocumentType.invoice,
@@ -504,15 +521,9 @@ class InvoiceRecord implements SyncableEntity {
     'customerEmail': customerEmail,
     'total': total,
     'type': type.name,
-    'lines': lines.map((item) => {
-      'product_id': item.product.id,
-      'quantity': item.quantity,
-      'selectedVariant_id': item.selectedVariant?.id,
-      'discountAmount': item.discountAmount,
-    }).toList(),
+    'lines': lines.map((item) => item.toJson()).toList(),
     'channels': channels.map((c) => c.name).toList(),
     'publicLink': publicLink,
-    'type': type.name,
     'syncState': syncState.name,
     'customerGstin': customerGstin,
     'businessGstin': businessGstin,

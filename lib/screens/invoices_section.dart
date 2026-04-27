@@ -494,10 +494,7 @@ class _InvoicesSectionState extends State<InvoicesSection> {
 
   void _printOrSharePdf(BuildContext context, InvoiceRecord inv) async {
     try {
-      final business = BusinessRecord(
-        id: 'B1', businessName: 'My Store', ownerName: 'Store Owner',
-        plan: BillingPlan.premium, status: BusinessStatus.onboarded, validTill: DateTime.now()
-      );
+      final business = AppSettings.instance.toBusinessRecord();
       
       final String format = AppSettings.instance.invoiceFormat;
       final Uint8List pdfBytes;

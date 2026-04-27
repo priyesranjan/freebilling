@@ -497,14 +497,21 @@ app.get('/invoice/:id', async (req, res) => {
     const title = isQuotation ? 'QUOTATION / ESTIMATE' : 'TAX INVOICE';
     const themeColor = theme === 'modern' ? '#3730a3' : theme === 'professional' ? '#1e293b' : '#1e3a5f';
 
-    const linesHTML = lines.map((l, i) => `
+    const linesHTML = lines.map((l, i) => {
+      const name = l.name || (l.product && l.product.name) || (l.product_id ? `Product ${l.product_id}` : 'Item');
+      const qty = l.quantity || l.qty || 1;
+      const rate = l.unitPrice || l.unit_price || (l.finalAmount / qty) || 0;
+      const amount = l.finalAmount || l.final_amount || (qty * rate) || 0;
+      
+      return `
       <tr>
         <td>${i + 1}</td>
-        <td>${l.name || l.product?.name || '-'}</td>
-        <td>${l.quantity || l.qty || '-'}</td>
-        <td>₹${parseFloat(l.unitPrice || l.unit_price || 0).toFixed(2)}</td>
-        <td>₹${parseFloat(l.finalAmount || l.final_amount || 0).toFixed(2)}</td>
-      </tr>`).join('');
+        <td>${name}</td>
+        <td>${qty}</td>
+        <td>₹${parseFloat(rate).toFixed(2)}</td>
+        <td>₹${parseFloat(amount).toFixed(2)}</td>
+      </tr>`;
+    }).join('');
 
     const certsHTML = certs.map(c => `<span class="cert-badge">${c}</span>`).join('');
 
