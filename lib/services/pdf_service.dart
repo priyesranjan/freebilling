@@ -270,7 +270,7 @@ class PdfInvoiceService {
   }
 
   static pw.Widget _buildQRCode(InvoiceRecord invoice) {
-    final link = invoice.publicLink.isNotEmpty ? invoice.publicLink : 'https://freebilling.app/invoice/${invoice.id}';
+    final link = invoice.publicLink.isNotEmpty ? invoice.publicLink : 'http://nu1p4y93k9miuofk9jn5z4za.91.108.111.194.sslip.io/invoice/${invoice.id}';
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.center,
       children: [
