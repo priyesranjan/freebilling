@@ -42,7 +42,7 @@ class _InvoicesSectionState extends State<InvoicesSection> {
   static const int _pageSize = 20;
 
   List<InvoiceRecord> get filtered {
-    var list = widget.invoices.where((i) => i.type == _docType).toList();
+    var list = widget.invoices.toList();
     switch (_filter) {
       case InvoiceFilter.all:
         return list;
@@ -53,9 +53,9 @@ class _InvoicesSectionState extends State<InvoicesSection> {
     }
   }
 
-  double get totalAmount => widget.invoices.fold(0, (s, i) => s + i.total);
+  double get totalAmount => widget.invoices.where((i) => i.type != DocumentType.quotation).fold(0, (s, i) => s + i.total);
   double get todayAmount => widget.invoices
-      .where((i) => isSameDate(i.createdAt, DateTime.now()))
+      .where((i) => isSameDate(i.createdAt, DateTime.now()) && i.type != DocumentType.quotation)
       .fold(0, (s, i) => s + i.total);
 
   @override
@@ -191,9 +191,10 @@ class _InvoicesSectionState extends State<InvoicesSection> {
                         );
                       }
                       final inv = paginated[index];
+                      final isQuotation = inv.type == DocumentType.quotation;
                       final isCredit = inv.paymentMode == PaymentMode.credit;
-                      final statusColor = isCredit ? const Color(0xFFE05252) : const Color(0xFF0DAB76);
-                      final statusLabel = isCredit ? 'DUE' : 'PAID';
+                      final statusColor = isQuotation ? BrandPalette.sun : (isCredit ? const Color(0xFFE05252) : const Color(0xFF0DAB76));
+                      final statusLabel = isQuotation ? 'QUOTATION' : (isCredit ? 'DUE' : 'PAID');
                       final totalQty = inv.lines.fold<int>(0, (s, l) => s + l.quantity);
 
                       final party = widget.parties?.where((p) => p.name == inv.customerName || p.phone == inv.customerPhone).firstOrNull;
@@ -594,6 +595,7 @@ class _InvoicesSectionState extends State<InvoicesSection> {
     final List<CartItem> cartItems = initialQuotation?.lines.toList() ?? [];
     PaymentMode paymentMode = initialQuotation?.paymentMode ?? PaymentMode.cash;
     DocumentType creatingType = initialQuotation == null ? _docType : DocumentType.invoice; // Converting always makes an invoice
+    bool isQuotation = creatingType == DocumentType.quotation;
 
     if (widget.products == null || widget.products!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -822,27 +824,39 @@ class _InvoicesSectionState extends State<InvoicesSection> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Loyalty & Discounts', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(child: TextField(controller: loyaltyPointsCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Redeem Points', border: OutlineInputBorder(), prefixIcon: Icon(Icons.star, size: 16)))),
-                    const SizedBox(width: 12),
-                    Expanded(child: TextField(controller: discountCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Discount (₹)', border: OutlineInputBorder(), prefixIcon: Icon(Icons.discount, size: 16)))),
-                  ],
+                SwitchListTile(
+                  title: const Text('Generate Quotation / Estimate', style: TextStyle(fontWeight: FontWeight.bold, color: BrandPalette.teal)),
+                  subtitle: const Text('This will not be added to your total sales or Khata balances.'),
+                  value: isQuotation,
+                  activeColor: BrandPalette.teal,
+                  onChanged: (val) {
+                    setS(() => isQuotation = val);
+                  },
                 ),
-                const SizedBox(height: 24),
-                const Text('Select Payment Mode', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
-                const SizedBox(height: 8),
-                SegmentedButton<PaymentMode>(
-                  segments: const [
-                    ButtonSegment(value: PaymentMode.cash, label: Text('Cash'), icon: Icon(Icons.money, size: 14)),
-                    ButtonSegment(value: PaymentMode.upi, label: Text('Online'), icon: Icon(Icons.qr_code_scanner, size: 14)),
-                    ButtonSegment(value: PaymentMode.credit, label: Text('Dues'), icon: Icon(Icons.credit_card, size: 14)),
-                  ],
-                  selected: {paymentMode},
-                  onSelectionChanged: (s) => setS(() => paymentMode = s.first),
-                ),
+                const SizedBox(height: 16),
+                if (!isQuotation) ...[
+                  const Text('Loyalty & Discounts', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(child: TextField(controller: loyaltyPointsCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Redeem Points', border: OutlineInputBorder(), prefixIcon: Icon(Icons.star, size: 16)))),
+                      const SizedBox(width: 12),
+                      Expanded(child: TextField(controller: discountCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Discount (₹)', border: OutlineInputBorder(), prefixIcon: Icon(Icons.discount, size: 16)))),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  const Text('Select Payment Mode', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                  const SizedBox(height: 8),
+                  SegmentedButton<PaymentMode>(
+                    segments: const [
+                      ButtonSegment(value: PaymentMode.cash, label: Text('Cash'), icon: Icon(Icons.money, size: 14)),
+                      ButtonSegment(value: PaymentMode.upi, label: Text('Online'), icon: Icon(Icons.qr_code_scanner, size: 14)),
+                      ButtonSegment(value: PaymentMode.credit, label: Text('Dues'), icon: Icon(Icons.credit_card, size: 14)),
+                    ],
+                    selected: {paymentMode},
+                    onSelectionChanged: (s) => setS(() => paymentMode = s.first),
+                  ),
+                ],
               ],
             ).animate().fadeIn();
           }
@@ -948,7 +962,7 @@ class _InvoicesSectionState extends State<InvoicesSection> {
                                   lines: List.from(cartItems),
                                   channels: const {},
                                   publicLink: widget.generateInvoiceLink?.call() ?? '',
-                                  type: creatingType,
+                                  type: isQuotation ? DocumentType.quotation : DocumentType.invoice,
                                   paymentMode: paymentMode,
                                   loyaltyPointsUsed: points,
                                   discountAmount: disc,

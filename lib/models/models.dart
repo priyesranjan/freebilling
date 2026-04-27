@@ -752,6 +752,12 @@ class AppSettings {
     this.businessPhone = '',
     this.businessEmail = '',
     this.businessCategory = '', // Retail, Pharmacy, Salon, Food
+    this.businessType = '',
+    this.state = '',
+    this.district = '',
+    this.city = '',
+    this.pincode = '',
+    this.businessSignature,
     this.invoiceFormat = 'POS', // POS or A4
     this.currency = '₹',
     // Reminders
@@ -760,6 +766,8 @@ class AppSettings {
     this.autoWhatsAppReminder = false,
     // Business Features
     this.enableQuotations = false,
+    this.invoiceTheme = 'standard',
+    this.certifications = const [],
   });
 
   // Item Settings
@@ -799,6 +807,12 @@ class AppSettings {
   String businessPhone;
   String businessEmail;
   String businessCategory;
+  String businessType;
+  String state;
+  String district;
+  String city;
+  String pincode;
+  String? businessSignature;
   String invoiceFormat;
   String currency;
 
@@ -809,6 +823,8 @@ class AppSettings {
 
   // Business Features
   bool enableQuotations;
+  String invoiceTheme;
+  List<String> certifications;
 
   // Integrations
   String razorpayKeyId = 'rzp_test_SDriiZBIndIyMP';
@@ -834,7 +850,15 @@ class AppSettings {
     await prefs.setString('whatsappApiToken', whatsappApiToken);
     await prefs.setString('whatsappPhoneNumberId', whatsappPhoneNumberId);
     await prefs.setBool('enableQuotations', enableQuotations);
+    await prefs.setString('invoiceTheme', invoiceTheme);
+    await prefs.setStringList('certifications', certifications);
+    await prefs.setString('businessType', businessType);
+    await prefs.setString('state', state);
+    await prefs.setString('district', district);
+    await prefs.setString('city', city);
+    await prefs.setString('pincode', pincode);
     if (businessLogo != null) await prefs.setString('businessLogo', businessLogo!);
+    if (businessSignature != null) await prefs.setString('businessSignature', businessSignature!);
   }
 
   BusinessRecord toBusinessRecord() {
@@ -863,7 +887,15 @@ class AppSettings {
     whatsappApiToken = prefs.getString('whatsappApiToken') ?? '';
     whatsappPhoneNumberId = prefs.getString('whatsappPhoneNumberId') ?? '';
     enableQuotations = prefs.getBool('enableQuotations') ?? false;
+    invoiceTheme = prefs.getString('invoiceTheme') ?? 'standard';
+    certifications = prefs.getStringList('certifications') ?? [];
+    businessType = prefs.getString('businessType') ?? '';
+    state = prefs.getString('state') ?? '';
+    district = prefs.getString('district') ?? '';
+    city = prefs.getString('city') ?? '';
+    pincode = prefs.getString('pincode') ?? '';
     businessLogo = prefs.getString('businessLogo');
+    businessSignature = prefs.getString('businessSignature');
   }
 }
 

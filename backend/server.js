@@ -276,6 +276,44 @@ app.put('/api/businesses/onboard', authenticateToken, async (req, res) => {
   }
 });
 
+// --- FULL BUSINESS PROFILE ENDPOINT ---
+app.put('/api/businesses/profile', authenticateToken, async (req, res) => {
+  const {
+    name, address, phone, email, gstin, category, businessType,
+    state, district, city, pincode, invoiceFormat, invoiceTheme, certifications
+  } = req.body;
+  try {
+    await db.query(
+      `UPDATE businesses SET
+        name = COALESCE($1, name),
+        address = COALESCE($2, address),
+        phone = COALESCE($3, phone),
+        email = COALESCE($4, email),
+        gstin = COALESCE($5, gstin),
+        category = COALESCE($6, category),
+        business_type = COALESCE($7, business_type),
+        state = COALESCE($8, state),
+        district = COALESCE($9, district),
+        city = COALESCE($10, city),
+        pincode = COALESCE($11, pincode),
+        invoice_format = COALESCE($12, invoice_format),
+        invoice_theme = COALESCE($13, invoice_theme),
+        certifications = COALESCE($14, certifications)
+      WHERE id = $15`,
+      [
+        name, address, phone, email, gstin, category, businessType,
+        state, district, city, pincode, invoiceFormat, invoiceTheme,
+        certifications ? JSON.stringify(certifications) : null,
+        req.user.businessId
+      ]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Profile Update Error:', err);
+    res.status(500).json({ error: 'Failed to update profile', details: err.message });
+  }
+});
+
 app.post('/api/upload-logo', upload.single('logo'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded' });
@@ -397,19 +435,162 @@ app.get('/api/invoices', authenticateToken, async (req, res) => {
 });
 
 app.post('/api/invoices', authenticateToken, async (req, res) => {
-  const { id, customer_name, customer_phone, total, payment_mode } = req.body;
+  const { id, customer_name, customer_phone, total, payment_mode, invoice_type, lines } = req.body;
   try {
     const result = await db.query(
-      `INSERT INTO invoices (id, business_id, customer_name, customer_phone, total, payment_mode) 
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [id, req.user.businessId, customer_name, customer_phone, total, payment_mode]
+      `INSERT INTO invoices (id, business_id, customer_name, customer_phone, total, payment_mode, invoice_type, lines) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+       ON CONFLICT (id) DO UPDATE SET
+         customer_name = EXCLUDED.customer_name,
+         total = EXCLUDED.total,
+         payment_mode = EXCLUDED.payment_mode,
+         invoice_type = EXCLUDED.invoice_type,
+         lines = EXCLUDED.lines
+       RETURNING *`,
+      [id, req.user.businessId, customer_name, customer_phone, total, payment_mode, invoice_type || 'invoice', JSON.stringify(lines || [])]
     );
     
     io.to(req.user.businessId).emit('sync_event', { type: 'InvoiceRecord', action: 'insert', data: result.rows[0] });
     
     res.json(result.rows[0]);
   } catch (err) {
+    console.error('Save Invoice Error:', err);
     res.status(500).json({ error: 'Database error' });
+  }
+});
+
+// --- PUBLIC INVOICE VIEWER (for QR Code Scanning) ---
+app.get('/api/invoice/:id', async (req, res) => {
+  try {
+    const invResult = await db.query(
+      `SELECT i.*, b.name as business_name, b.address as business_address, b.phone as business_phone,
+              b.gstin, b.logo_url, b.certifications, b.invoice_theme
+       FROM invoices i JOIN businesses b ON i.business_id = b.id
+       WHERE i.id = $1`,
+      [req.params.id]
+    );
+    if (invResult.rows.length === 0) return res.status(404).json({ error: 'Invoice not found' });
+    res.json(invResult.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Online verifiable invoice HTML page
+app.get('/invoice/:id', async (req, res) => {
+  try {
+    const invResult = await db.query(
+      `SELECT i.*, b.name as business_name, b.address as business_address, b.phone as business_phone,
+              b.gstin, b.logo_url, b.certifications, b.invoice_theme
+       FROM invoices i JOIN businesses b ON i.business_id = b.id
+       WHERE i.id = $1`,
+      [req.params.id]
+    );
+    if (invResult.rows.length === 0) {
+      return res.status(404).send('<h2>Invoice not found</h2>');
+    }
+    const inv = invResult.rows[0];
+    const lines = (typeof inv.lines === 'string' ? JSON.parse(inv.lines) : inv.lines) || [];
+    const certs = (typeof inv.certifications === 'string' ? JSON.parse(inv.certifications) : inv.certifications) || [];
+    const theme = inv.invoice_theme || 'standard';
+    const isQuotation = inv.invoice_type === 'quotation';
+    const title = isQuotation ? 'QUOTATION / ESTIMATE' : 'TAX INVOICE';
+    const themeColor = theme === 'modern' ? '#3730a3' : theme === 'professional' ? '#1e293b' : '#1e3a5f';
+
+    const linesHTML = lines.map((l, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${l.name || l.product?.name || '-'}</td>
+        <td>${l.qty || l.quantity || '-'}</td>
+        <td>₹${parseFloat(l.unitPrice || l.unit_price || 0).toFixed(2)}</td>
+        <td>₹${parseFloat(l.finalAmount || l.final_amount || 0).toFixed(2)}</td>
+      </tr>`).join('');
+
+    const certsHTML = certs.map(c => `<span class="cert-badge">${c}</span>`).join('');
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title} - ${inv.business_name}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; min-height: 100vh; padding: 20px; }
+    .invoice-wrap { max-width: 800px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.1); }
+    .header { background: ${themeColor}; color: white; padding: 28px 32px; }
+    .header h1 { font-size: 14px; opacity: 0.8; letter-spacing: 2px; text-transform: uppercase; }
+    .header h2 { font-size: 28px; font-weight: 700; margin-top: 4px; }
+    .header .meta { font-size: 12px; opacity: 0.7; margin-top: 4px; }
+    .doc-type { background: rgba(255,255,255,0.15); display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-top: 10px; letter-spacing: 1px; }
+    .body { padding: 28px 32px; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+    .info-box h4 { font-size: 11px; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px; margin-bottom: 6px; }
+    .info-box p { font-size: 14px; color: #1e293b; }
+    .info-box .big { font-size: 18px; font-weight: 700; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th { background: ${themeColor}; color: white; padding: 10px 12px; text-align: left; font-size: 12px; }
+    td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+    tr:hover td { background: #f8fafc; }
+    .totals { text-align: right; margin-bottom: 24px; }
+    .totals table { width: 280px; margin-left: auto; }
+    .totals td { border: none; }
+    .grand-total { font-size: 18px; font-weight: 700; color: ${themeColor}; }
+    .certs { margin: 16px 0; display: flex; flex-wrap: wrap; gap: 8px; }
+    .cert-badge { background: #eff6ff; color: ${themeColor}; border: 1px solid ${themeColor}; border-radius: 4px; padding: 3px 10px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+    .footer { border-top: 1px solid #e2e8f0; padding: 20px 32px; background: #f8fafc; text-align: center; color: #64748b; font-size: 12px; }
+    .verified-badge { display: inline-flex; align-items: center; gap: 6px; background: #dcfce7; color: #15803d; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin-top: 10px; }
+    @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } .body { padding: 16px; } .header { padding: 20px 16px; } }
+  </style>
+</head>
+<body>
+  <div class="invoice-wrap">
+    <div class="header">
+      <h1>${inv.business_name}</h1>
+      <h2>₹${parseFloat(inv.total).toLocaleString('en-IN')}</h2>
+      <div class="meta">${inv.business_address || ''} | ${inv.business_phone || ''} ${inv.gstin ? '| GSTIN: ' + inv.gstin : ''}</div>
+      <span class="doc-type">✓ ${title}</span>
+    </div>
+    <div class="body">
+      <div class="info-grid">
+        <div class="info-box">
+          <h4>Billed To</h4>
+          <p class="big">${inv.customer_name || 'Walk-in Customer'}</p>
+          <p>${inv.customer_phone || ''}</p>
+        </div>
+        <div class="info-box">
+          <h4>Invoice Details</h4>
+          <p><strong>Invoice No:</strong> ${inv.id}</p>
+          <p><strong>Date:</strong> ${new Date(inv.created_at).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })}</p>
+          <p><strong>Payment:</strong> ${(inv.payment_mode || 'cash').toUpperCase()}</p>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>#</th><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead>
+        <tbody>${linesHTML || '<tr><td colspan="5" style="text-align:center;color:#94a3b8">No items</td></tr>'}</tbody>
+      </table>
+      <div class="totals">
+        <table>
+          <tr><td>Subtotal</td><td>₹${parseFloat(inv.total).toFixed(2)}</td></tr>
+          <tr class="grand-total"><td><strong>Grand Total</strong></td><td><strong>₹${parseFloat(inv.total).toFixed(2)}</strong></td></tr>
+        </table>
+      </div>
+      ${certsHTML ? '<div class="certs">' + certsHTML + '</div>' : ''}
+      <div style="text-align:center">
+        <span class="verified-badge">✓ E-Verified Bill | Dukan Bill</span>
+      </div>
+    </div>
+    <div class="footer">
+      <p>Thank you for your business! This is a digitally verified document.</p>
+      <p style="margin-top:4px">Powered by <strong>Dukan Bill</strong> | freebilling.app</p>
+    </div>
+  </div>
+</body>
+</html>`;
+    res.send(html);
+  } catch (err) {
+    console.error('Invoice View Error:', err);
+    res.status(500).send('<h2>Something went wrong</h2>');
   }
 });
 
@@ -417,7 +598,7 @@ const PORT = process.env.PORT || 3000;
 
 async function runPatch() {
   try {
-    // Patch Businesses
+    // Patch Businesses table with all new columns
     await db.query(`
       ALTER TABLE businesses 
       ADD COLUMN IF NOT EXISTS business_type VARCHAR(100),
@@ -425,7 +606,18 @@ async function runPatch() {
       ADD COLUMN IF NOT EXISTS category VARCHAR(100),
       ADD COLUMN IF NOT EXISTS logo_url VARCHAR(500),
       ADD COLUMN IF NOT EXISTS website_config JSONB DEFAULT '{}',
-      ADD COLUMN IF NOT EXISTS gmb_location_id VARCHAR(255)
+      ADD COLUMN IF NOT EXISTS gmb_location_id VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS address TEXT,
+      ADD COLUMN IF NOT EXISTS email VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS gstin VARCHAR(50),
+      ADD COLUMN IF NOT EXISTS state VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS district VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS city VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS pincode VARCHAR(20),
+      ADD COLUMN IF NOT EXISTS invoice_format VARCHAR(20) DEFAULT 'POS',
+      ADD COLUMN IF NOT EXISTS invoice_theme VARCHAR(30) DEFAULT 'standard',
+      ADD COLUMN IF NOT EXISTS certifications JSONB DEFAULT '[]',
+      ADD COLUMN IF NOT EXISTS signature_url VARCHAR(500)
     `);
     // Patch Products
     await db.query(`
@@ -434,9 +626,18 @@ async function runPatch() {
       ADD COLUMN IF NOT EXISTS selling_price DECIMAL(10, 2) DEFAULT 0,
       ADD COLUMN IF NOT EXISTS discount_percent DECIMAL(5, 2) DEFAULT 0
     `);
-    console.log("Database Auto-Patched!");
+    // Patch Invoices with new fields
+    await db.query(`
+      ALTER TABLE invoices
+      ADD COLUMN IF NOT EXISTS invoice_type VARCHAR(30) DEFAULT 'invoice',
+      ADD COLUMN IF NOT EXISTS lines JSONB DEFAULT '[]',
+      ADD COLUMN IF NOT EXISTS discount_amount DECIMAL(15,2) DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS customer_gstin VARCHAR(50),
+      ADD COLUMN IF NOT EXISTS customer_email VARCHAR(255)
+    `);
+    console.log('✅ Database Auto-Patched!');
   } catch (err) {
-    console.error("Auto-Patch Error:", err);
+    console.error('Auto-Patch Error:', err);
   }
 }
 

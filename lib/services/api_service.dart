@@ -234,6 +234,13 @@ class ApiService {
         'customer_phone': i.customerPhone,
         'total': i.total,
         'payment_mode': i.paymentMode.name,
+        'invoice_type': i.type.name,
+        'lines': i.lines.map((l) => {
+          'name': l.product.name,
+          'quantity': l.quantity,
+          'unitPrice': l.unitPrice,
+          'finalAmount': l.finalAmount,
+        }).toList(),
       }),
     );
     if (response.statusCode == 200) {
@@ -267,7 +274,7 @@ class ApiService {
   static Future<void> updateBusinessProfile(AppSettings settings) async {
     final token = await getToken();
     final response = await http.put(
-      Uri.parse('$baseUrl/businesses/profile'), // Adjust endpoint to match your backend route
+      Uri.parse('$baseUrl/businesses/profile'),
       headers: _headers(token),
       body: jsonEncode({
         'name': settings.businessName,
@@ -276,8 +283,14 @@ class ApiService {
         'email': settings.businessEmail,
         'gstin': settings.gstin,
         'category': settings.businessCategory,
-        'invoice_format': settings.invoiceFormat,
-        // Logo upload handled separately, or URL passed here if already uploaded
+        'businessType': settings.businessType,
+        'state': settings.state,
+        'district': settings.district,
+        'city': settings.city,
+        'pincode': settings.pincode,
+        'invoiceFormat': settings.invoiceFormat,
+        'invoiceTheme': settings.invoiceTheme,
+        'certifications': settings.certifications,
       }),
     );
     if (response.statusCode != 200) {

@@ -3,10 +3,21 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:intl/intl.dart';
 import '../models/models.dart';
+import 'dart:io';
 
 class PdfInvoiceService {
   static Future<Uint8List> generateInvoice(InvoiceRecord invoice, BusinessRecord business) async {
     final pdf = pw.Document();
+    
+    final settings = AppSettings.instance;
+    if (settings.businessSignature != null) {
+      final file = File(settings.businessSignature!);
+      if (file.existsSync()) {
+        signatureImage = pw.MemoryImage(file.readAsBytesSync());
+      }
+    } else {
+      signatureImage = null;
+    }
 
     // 80mm roll width is approx 226 points (80mm / 25.4 * 72)
     const double rollWidth = 226.77; 
@@ -29,6 +40,19 @@ class PdfInvoiceService {
               pw.Divider(borderStyle: pw.BorderStyle.dashed),
               _buildTermsAndConditions(),
               _buildQRCode(invoice),
+              if (signatureImage != null)
+                pw.Container(
+                  alignment: pw.Alignment.centerRight,
+                  margin: const pw.EdgeInsets.only(top: 10),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    children: [
+                      pw.Image(signatureImage!, height: 40, fit: pw.BoxFit.contain),
+                      pw.SizedBox(height: 2),
+                      pw.Text('Authorized Signatory', style: const pw.TextStyle(fontSize: 8)),
+                    ],
+                  ),
+                ),
               pw.SizedBox(height: 10),
               _buildFooter(),
             ],
@@ -39,6 +63,8 @@ class PdfInvoiceService {
 
     return pdf.save();
   }
+
+  static pw.ImageProvider? signatureImage;
 
   static pw.Widget _buildHeader(InvoiceRecord invoice, BusinessRecord business) {
     final settings = AppSettings.instance;
@@ -62,7 +88,7 @@ class PdfInvoiceService {
         pw.Container(
           decoration: pw.BoxDecoration(border: pw.Border.all(width: 1)),
           padding: const pw.EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-          child: pw.Text('TAX INVOICE', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
+          child: pw.Text(invoice.type == DocumentType.quotation ? 'QUOTATION / ESTIMATE' : 'TAX INVOICE', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
         ),
       ],
     );

@@ -338,67 +338,69 @@ class _PlatformShellState extends State<PlatformShell> {
     setState(() {
       _invoices.insert(0, invoice);
       
-      // Khata (Ledger) Auto-Update Logic
-      if (invoice.customerPhone.isNotEmpty) {
-        final existingPartyIdx = _parties.indexWhere((p) => p.phone == invoice.customerPhone);
-        PartyRecord party;
-        if (existingPartyIdx >= 0) {
-          party = _parties[existingPartyIdx];
-        } else {
-          party = PartyRecord(
-            id: 'PARTY-${DateTime.now().millisecondsSinceEpoch}',
-            name: invoice.customerName.isNotEmpty ? invoice.customerName : 'Unknown Customer',
-            phone: invoice.customerPhone,
-            type: PartyType.customer,
-            balance: 0,
-            syncState: EntityState.pendingInsert,
-          );
-        }
+      // Khata (Ledger) Auto-Update Logic & Stock Deduction
+      if (invoice.type != DocumentType.quotation) {
+        if (invoice.customerPhone.isNotEmpty) {
+          final existingPartyIdx = _parties.indexWhere((p) => p.phone == invoice.customerPhone);
+          PartyRecord party;
+          if (existingPartyIdx >= 0) {
+            party = _parties[existingPartyIdx];
+          } else {
+            party = PartyRecord(
+              id: 'PARTY-${DateTime.now().millisecondsSinceEpoch}',
+              name: invoice.customerName.isNotEmpty ? invoice.customerName : 'Unknown Customer',
+              phone: invoice.customerPhone,
+              type: PartyType.customer,
+              balance: 0,
+              syncState: EntityState.pendingInsert,
+            );
+          }
 
-        // Add to customer's "To Get" balance
-        double newBalance = party.balance + invoice.total;
-        
-        // If they paid immediately via Cash/UPI, settle the balance
-        if (invoice.paymentMode != PaymentMode.credit) {
-            newBalance -= invoice.total;
-        }
-
-        final updatedParty = PartyRecord(
-            id: party.id,
-            name: party.name,
-            phone: party.phone,
-            type: party.type,
-            balance: newBalance,
-            syncState: EntityState.pendingUpdate,
-        );
-
-        if (existingPartyIdx >= 0) {
-            _parties[existingPartyIdx] = updatedParty;
-        } else {
-            _parties.add(updatedParty);
-        }
-        SyncService.instance.enqueueForSync(updatedParty);
-      }
-
-      // Stock Deduction Logic
-      for (final line in invoice.lines) {
-        final productIndex = _products.indexWhere((p) => p.id == line.product.id);
-        if (productIndex >= 0) {
-          final product = _products[productIndex];
-          final adjustmentBatch = ProductBatch(
-            batchNumber: 'INV-${invoice.id}',
-            mfgDate: DateTime.now(),
-            expiryDate: null,
-            stockCount: -line.quantity.toDouble(), // Negative stock to deduct
-          );
+          // Add to customer's "To Get" balance
+          double newBalance = party.balance + invoice.total;
           
-          final updatedProduct = product.copyWith(
-            batches: [...product.batches, adjustmentBatch],
-            syncState: EntityState.pendingUpdate,
+          // If they paid immediately via Cash/UPI, settle the balance
+          if (invoice.paymentMode != PaymentMode.credit) {
+              newBalance -= invoice.total;
+          }
+
+          final updatedParty = PartyRecord(
+              id: party.id,
+              name: party.name,
+              phone: party.phone,
+              type: party.type,
+              balance: newBalance,
+              syncState: EntityState.pendingUpdate,
           );
-          
-          _products[productIndex] = updatedProduct;
-          SyncService.instance.enqueueForSync(updatedProduct);
+
+          if (existingPartyIdx >= 0) {
+              _parties[existingPartyIdx] = updatedParty;
+          } else {
+              _parties.add(updatedParty);
+          }
+          SyncService.instance.enqueueForSync(updatedParty);
+        }
+
+        // Stock Deduction Logic
+        for (final line in invoice.lines) {
+          final productIndex = _products.indexWhere((p) => p.id == line.product.id);
+          if (productIndex >= 0) {
+            final product = _products[productIndex];
+            final adjustmentBatch = ProductBatch(
+              batchNumber: 'INV-${invoice.id}',
+              mfgDate: DateTime.now(),
+              expiryDate: null,
+              stockCount: -line.quantity.toDouble(), // Negative stock to deduct
+            );
+            
+            final updatedProduct = product.copyWith(
+              batches: [...product.batches, adjustmentBatch],
+              syncState: EntityState.pendingUpdate,
+            );
+            
+            _products[productIndex] = updatedProduct;
+            SyncService.instance.enqueueForSync(updatedProduct);
+          }
         }
       }
     });

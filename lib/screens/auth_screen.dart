@@ -28,7 +28,7 @@ class _AuthScreenState extends State<AuthScreen> with CodeAutoFill {
   final _nameController = TextEditingController();
   final _categoryController = TextEditingController();
   
-  String _businessType = 'retail';
+  String _businessType = IndianGeography.businessTypes.first;
   
   Uint8List? _logoBytes;
   String? _logoName;
@@ -170,6 +170,18 @@ class _AuthScreenState extends State<AuthScreen> with CodeAutoFill {
       }
 
       if (business == null || business['business_type'] == null || business['website_slug'] == null) {
+        if (_isLogin) {
+          // Unregistered user attempted to login. Switch them to signup flow.
+          if (!mounted) return;
+          setState(() {
+            _isLogin = false;
+            _otpSent = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Account not found. Please complete signup to continue.')),
+          );
+          return;
+        }
         // Fallback for demo prototype if API returns null business object
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const PlatformShell()),
@@ -296,23 +308,40 @@ class _AuthScreenState extends State<AuthScreen> with CodeAutoFill {
                         labelText: 'Business Type',
                         prefixIcon: Icon(Icons.category),
                       ),
-                      items: const [
-                        DropdownMenuItem(value: 'retail', child: Text('Retail Store')),
-                        DropdownMenuItem(value: 'wholesale', child: Text('Wholesale')),
-                        DropdownMenuItem(value: 'service', child: Text('Service/Agency')),
-                        DropdownMenuItem(value: 'restaurant', child: Text('Restaurant/Cafe')),
-                      ],
+                      items: IndianGeography.businessTypes.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                       onChanged: (val) {
                         if (val != null) setState(() => _businessType = val);
                       },
                     ),
                     const SizedBox(height: 16),
-                    TextField(
-                      controller: _categoryController,
-                      decoration: const InputDecoration(
-                        labelText: 'Category (e.g. Electronics, Clothing)',
-                        prefixIcon: Icon(Icons.local_offer),
-                      ),
+                    Autocomplete<String>(
+                      optionsBuilder: (TextEditingValue textEditingValue) {
+                        if (textEditingValue.text == '') {
+                          return IndianGeography.businessCategories;
+                        }
+                        return IndianGeography.businessCategories.where((String option) {
+                          return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
+                        });
+                      },
+                      onSelected: (String selection) {
+                        _categoryController.text = selection;
+                      },
+                      fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
+                        _categoryController.text = controller.text;
+                        return TextField(
+                          controller: controller,
+                          focusNode: focusNode,
+                          onEditingComplete: onEditingComplete,
+                          decoration: const InputDecoration(
+                            labelText: 'Business Category',
+                            prefixIcon: Icon(Icons.local_offer),
+                            hintText: 'Search categories...',
+                          ),
+                          onChanged: (val) {
+                            _categoryController.text = val;
+                          },
+                        );
+                      },
                     ),
                     const SizedBox(height: 16),
                     ListTile(
