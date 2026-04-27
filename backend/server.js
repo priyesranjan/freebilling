@@ -501,7 +501,7 @@ app.get('/invoice/:id', async (req, res) => {
       <tr>
         <td>${i + 1}</td>
         <td>${l.name || l.product?.name || '-'}</td>
-        <td>${l.qty || l.quantity || '-'}</td>
+        <td>${l.quantity || l.qty || '-'}</td>
         <td>₹${parseFloat(l.unitPrice || l.unit_price || 0).toFixed(2)}</td>
         <td>₹${parseFloat(l.finalAmount || l.final_amount || 0).toFixed(2)}</td>
       </tr>`).join('');
