@@ -206,17 +206,46 @@ class ApiService {
     if (response.statusCode == 200) {
       final List data = jsonDecode(response.body);
       return data.map((json) {
+        // Parse lines from the JSONB column stored in the backend
+        final rawLines = json['lines'];
+        List<CartItem> parsedLines = [];
+        if (rawLines != null) {
+          final linesList = rawLines is String ? jsonDecode(rawLines) : rawLines;
+          if (linesList is List) {
+            parsedLines = linesList.map<CartItem>((l) {
+              final unitPrice = double.tryParse(l['unitPrice']?.toString() ?? '0') ?? 0.0;
+              final qty = int.tryParse(l['quantity']?.toString() ?? '1') ?? 1;
+              // Reconstruct a stub Product from the stored name and price
+              final product = Product(
+                id: l['product_id'] ?? 'item_${l['name']}',
+                name: l['name'] ?? 'Item',
+                sellingPrice: unitPrice,
+                codes: [],
+              );
+              return CartItem(product: product, quantity: qty);
+            }).toList();
+          }
+        }
+
         return InvoiceRecord(
           id: json['id'],
           customerName: json['customer_name'] ?? '',
           customerPhone: json['customer_phone'] ?? '',
-          customerEmail: '',
+          customerEmail: json['customer_email'] ?? '',
           total: double.tryParse(json['total'].toString()) ?? 0.0,
-          paymentMode: PaymentMode.values.firstWhere((e) => e.name == json['payment_mode'], orElse: () => PaymentMode.cash),
+          paymentMode: PaymentMode.values.firstWhere(
+            (e) => e.name == json['payment_mode'],
+            orElse: () => PaymentMode.cash,
+          ),
+          type: DocumentType.values.firstWhere(
+            (e) => e.name == (json['invoice_type'] ?? 'invoice'),
+            orElse: () => DocumentType.invoice,
+          ),
           createdAt: DateTime.parse(json['created_at']),
-          lines: [], // In full version, fetch lines too
+          lines: parsedLines,
           channels: {},
           publicLink: '',
+          discountAmount: double.tryParse(json['discount_amount']?.toString() ?? '0') ?? 0.0,
         );
       }).toList();
     }
