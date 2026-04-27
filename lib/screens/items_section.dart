@@ -75,7 +75,7 @@ class _ItemsSectionState extends State<ItemsSection> {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 child: TextField(
                   onChanged: (val) => setState(() => _searchQuery = val),
                   decoration: InputDecoration(
@@ -95,7 +95,7 @@ class _ItemsSectionState extends State<ItemsSection> {
               const SizedBox(height: 12),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Row(
                   children: ['All', 'Low Stock', 'In Stock'].map((f) {
                     final isSelected = _filter == f;
@@ -136,7 +136,7 @@ class _ItemsSectionState extends State<ItemsSection> {
               ),
               if (_filter == 'Low Stock' && lowStockCount > 0)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   child: SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
@@ -167,7 +167,7 @@ class _ItemsSectionState extends State<ItemsSection> {
               ),
             )
           : ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 80),
               itemCount: items.length,
               itemBuilder: (context, index) {
                 final product = items[index];

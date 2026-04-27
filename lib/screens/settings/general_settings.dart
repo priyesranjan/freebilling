@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/models.dart';
 import '../../core/core.dart';
 import '../../services/catalog_service.dart';
+import '../../services/api_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:io';
@@ -231,7 +232,7 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
     );
   }
 
-  void _save() {
+  Future<void> _save() async {
     widget.settings.businessName = _nameCtrl.text.trim();
     widget.settings.businessAddress = _addressCtrl.text.trim();
     widget.settings.businessPhone = _phoneCtrl.text.trim();
@@ -240,10 +241,28 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
     widget.settings.businessCategory = _selectedCategory;
     widget.settings.invoiceFormat = _selectedInvoiceFormat;
     widget.settings.businessLogo = _localLogoPath;
-    widget.settings.save();
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Business details saved!'), backgroundColor: BrandPalette.teal),
-    );
+    
+    // Save locally
+    await widget.settings.save();
+    
+    // Sync with backend
+    try {
+      await ApiService.updateBusinessProfile(widget.settings);
+    } catch (e) {
+      debugPrint('Failed to sync profile to backend: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Saved locally, but failed to sync to cloud: $e'), backgroundColor: BrandPalette.coral),
+        );
+      }
+      return;
+    }
+
+    if (mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Business details saved to cloud!'), backgroundColor: BrandPalette.teal),
+      );
+    }
   }
 }

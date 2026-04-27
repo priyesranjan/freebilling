@@ -263,4 +263,25 @@ class ApiService {
       throw Exception('Failed to update onboarding info');
     }
   }
+
+  static Future<void> updateBusinessProfile(AppSettings settings) async {
+    final token = await getToken();
+    final response = await http.put(
+      Uri.parse('$baseUrl/businesses/profile'), // Adjust endpoint to match your backend route
+      headers: _headers(token),
+      body: jsonEncode({
+        'name': settings.businessName,
+        'address': settings.businessAddress,
+        'phone': settings.businessPhone,
+        'email': settings.businessEmail,
+        'gstin': settings.gstin,
+        'category': settings.businessCategory,
+        'invoice_format': settings.invoiceFormat,
+        // Logo upload handled separately, or URL passed here if already uploaded
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update business profile: ${response.body}');
+    }
+  }
 }

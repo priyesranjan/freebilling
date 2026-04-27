@@ -206,6 +206,7 @@ enum TaxRate {
 enum PaymentMode {
   cash,
   upi,
+  bankTransfer,
   credit,
 }
 
@@ -545,6 +546,24 @@ class PartyRecord implements SyncableEntity {
   @override
   final EntityState syncState;
 
+  PartyRecord copyWith({
+    String? id,
+    String? name,
+    String? phone,
+    PartyType? type,
+    double? balance,
+    EntityState? syncState,
+  }) {
+    return PartyRecord(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      phone: phone ?? this.phone,
+      type: type ?? this.type,
+      balance: balance ?? this.balance,
+      syncState: syncState ?? this.syncState,
+    );
+  }
+
   factory PartyRecord.fromJson(Map<String, dynamic> json) {
     return PartyRecord(
       id: json['id'] as String,
@@ -661,6 +680,19 @@ class ExpenseRecord implements SyncableEntity {
     'partyName': partyName,
     'syncState': syncState.name,
   };
+
+  factory ExpenseRecord.fromJson(Map<String, dynamic> json) {
+    return ExpenseRecord(
+      id: json['id'],
+      date: DateTime.parse(json['date']),
+      amount: (json['amount'] as num).toDouble(),
+      category: ExpenseCategory.values.firstWhere((e) => e.name == json['category'], orElse: () => ExpenseCategory.other),
+      paymentMode: PaymentMode.values.firstWhere((e) => e.name == json['paymentMode'], orElse: () => PaymentMode.cash),
+      note: json['note'] ?? '',
+      partyName: json['partyName'] ?? '',
+      syncState: EntityState.values.firstWhere((e) => e.name == json['syncState'], orElse: () => EntityState.synced),
+    );
+  }
 }
 
 // --- Bank Account ---
@@ -803,6 +835,18 @@ class AppSettings {
     await prefs.setString('whatsappPhoneNumberId', whatsappPhoneNumberId);
     await prefs.setBool('enableQuotations', enableQuotations);
     if (businessLogo != null) await prefs.setString('businessLogo', businessLogo!);
+  }
+
+  BusinessRecord toBusinessRecord() {
+    return BusinessRecord(
+      id: 'default',
+      businessName: businessName,
+      ownerName: 'Owner',
+      plan: BillingPlan.premium,
+      status: BusinessStatus.onboarded,
+      validTill: DateTime.now().add(const Duration(days: 365)),
+      category: businessCategory,
+    );
   }
 
   Future<void> load() async {

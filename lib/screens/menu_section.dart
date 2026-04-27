@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../core/core.dart';
+import '../enums/enums.dart';
 import 'settings_screen.dart';
 import 'expenses_screen.dart';
 import 'reports_screen.dart';
 import 'cash_bank_screen.dart';
 import 'marketing_hub.dart';
 import 'settings/upgrade_screen.dart';
+import 'auth_screen.dart';
+import '../services/api_service.dart';
 
 class MenuSection extends StatefulWidget {
   final List<InvoiceRecord> invoices;
@@ -14,6 +17,7 @@ class MenuSection extends StatefulWidget {
   final List<Product> products;
   final Function(ExpenseRecord) onAddExpense;
   final Function(AppSettings) onUpdateSettings;
+  final void Function(AppSection)? onSwitchTab;
 
   const MenuSection({
     super.key,
@@ -22,6 +26,7 @@ class MenuSection extends StatefulWidget {
     required this.products,
     required this.onAddExpense,
     required this.onUpdateSettings,
+    this.onSwitchTab,
   });
 
   @override
@@ -44,9 +49,17 @@ class _MenuSectionState extends State<MenuSection> {
 
           // ── Quick Actions ───────────────────────────────────────────
           _sectionCard('Business Operations', [
-            _navTile(context, Icons.inventory_2_outlined, 'Manage Items', '${widget.products.length} Products', () => _pushTab(context, 1)),
+            _navTile(context, Icons.inventory_2_outlined, 'Manage Items', '${widget.products.length} Products',
+              () {
+                Navigator.pop(context);
+                widget.onSwitchTab?.call(AppSection.items);
+              }),
             _divider(),
-            _navTile(context, Icons.receipt_long_outlined, 'Sales & Invoices', '${widget.invoices.length} Bills', () => _pushTab(context, 2)),
+            _navTile(context, Icons.receipt_long_outlined, 'Sales & Invoices', '${widget.invoices.length} Bills',
+              () {
+                Navigator.pop(context);
+                widget.onSwitchTab?.call(AppSection.invoices);
+              }),
             _divider(),
             _navTile(context, Icons.account_balance_wallet_outlined, 'Daily Expenses', null,
               () => _push(context, ExpensesScreen(expenses: widget.expenses, onAddExpense: widget.onAddExpense))),
@@ -68,11 +81,9 @@ class _MenuSectionState extends State<MenuSection> {
             ]),
           ],
 
-          // ── Data & Security ─────────────────────────────────────────
+          // ── Data & Security ─────────────────────────────────────────────
           _sectionCard('Data & Security', [
             _navTile(context, Icons.cloud_upload_outlined, 'Backup to Cloud', 'Last sync: Just now', () => _showSyncSuccess(context)),
-            _divider(),
-            _navTile(context, Icons.share_outlined, 'Export Data (Excel/PDF)', 'Download business reports', () => _push(context, ReportsScreen(invoices: widget.invoices, expenses: widget.expenses, products: widget.products))),
           ]),
 
           // ── Settings & Support ─────────────────────────────────────
@@ -126,9 +137,17 @@ class _MenuSectionState extends State<MenuSection> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Logged out successfully.')));
+              await ApiService.clearToken();
+              // Do not clear AppSettings so the profile remains if they log back in,
+              // but if they log in as someone else, the API will overwrite it later.
+              if (context.mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const AuthScreen()),
+                  (route) => false,
+                );
+              }
             }, 
             child: const Text('Log Out', style: TextStyle(color: BrandPalette.coral, fontWeight: FontWeight.bold))
           ),
@@ -140,8 +159,8 @@ class _MenuSectionState extends State<MenuSection> {
   // ── Profile Header Widget ───────────────────────────────────────────
   Widget _buildProfileHeader(BuildContext context, AppSettings settings) {
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: BrandPalette.navy,
         borderRadius: BorderRadius.circular(16),
@@ -201,14 +220,14 @@ class _MenuSectionState extends State<MenuSection> {
 
   // ── Section Card ────────────────────────────────────────────────────
   Widget _sectionCard(String title, List<Widget> children) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+    return Container(
+      margin: const EdgeInsets.fromLTRB(10, 8, 10, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 4, bottom: 6),
-            child: Text(title, style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.bold, fontSize: 12)),
+            padding: const EdgeInsets.fromLTRB(14, 20, 14, 12),
+            child: Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
           ),
           Container(
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade200)),

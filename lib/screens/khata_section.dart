@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
 import '../models/models.dart';
 import '../enums/enums.dart';
 import '../core/core.dart';
@@ -6,9 +7,10 @@ import 'package:url_launcher/url_launcher.dart';
 
 class KhataSection extends StatefulWidget {
   final List<PartyRecord> parties;
+  final List<InvoiceRecord> invoices;
   final void Function(PartyRecord)? onPartyAdded;
 
-  const KhataSection({super.key, this.parties = const [], this.onPartyAdded});
+  const KhataSection({super.key, this.parties = const [], this.invoices = const [], this.onPartyAdded});
 
   @override
   State<KhataSection> createState() => _KhataSectionState();
@@ -27,6 +29,10 @@ class _KhataSectionState extends State<KhataSection> with SingleTickerProviderSt
     _tabController.dispose();
     super.dispose();
   }
+
+  int _customerPage = 1;
+  int _supplierPage = 1;
+  static const int _pageSize = 20;
 
   List<PartyRecord> get _parties => widget.parties;
 
@@ -78,8 +84,8 @@ class _KhataSectionState extends State<KhataSection> with SingleTickerProviderSt
       children: [
         // Summary banner
         Container(
-          margin: const EdgeInsets.all(16),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          margin: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(12),
@@ -98,12 +104,30 @@ class _KhataSectionState extends State<KhataSection> with SingleTickerProviderSt
         else
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
-              itemCount: parties.length,
+              padding: const EdgeInsets.fromLTRB(10, 0, 10, 80),
+              itemCount: parties.take((type == PartyType.customer ? _customerPage : _supplierPage) * _pageSize).length + (parties.length > (type == PartyType.customer ? _customerPage : _supplierPage) * _pageSize ? 1 : 0),
               itemBuilder: (context, index) {
-                final party = parties[index];
+                final paginated = parties.take((type == PartyType.customer ? _customerPage : _supplierPage) * _pageSize).toList();
+                
+                if (index == paginated.length) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: OutlinedButton.icon(
+                        onPressed: () => setState(() {
+                          if (type == PartyType.customer) _customerPage++;
+                          else _supplierPage++;
+                        }),
+                        icon: const Icon(Icons.expand_more),
+                        label: Text('Load more (${parties.length - paginated.length} remaining)'),
+                      ),
+                    ),
+                  );
+                }
+
+                final party = paginated[index];
                 final isToGet = party.balance > 0;
-                final pColor = isToGet ? BrandPalette.teal : BrandPalette.coral;
+                final pColor = isToGet ? const Color(0xFF0DAB76) : const Color(0xFFE05252);
 
                 return Card(
                   elevation: 0,
@@ -121,9 +145,9 @@ class _KhataSectionState extends State<KhataSection> with SingleTickerProviderSt
                         children: [
                           CircleAvatar(
                             radius: 22,
-                            backgroundColor: BrandPalette.navy.withValues(alpha: 0.1),
+                            backgroundColor: const Color(0xFF1A6FE3).withOpacity(0.08),
                             child: Text(party.name[0].toUpperCase(),
-                              style: const TextStyle(color: BrandPalette.navy, fontWeight: FontWeight.bold, fontSize: 16)),
+                              style: const TextStyle(color: Color(0xFF1A6FE3), fontWeight: FontWeight.bold, fontSize: 16)),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -141,7 +165,7 @@ class _KhataSectionState extends State<KhataSection> with SingleTickerProviderSt
                               Text('₹${party.balance.abs().toStringAsFixed(0)}',
                                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: pColor)),
                               Text(isToGet ? 'To Get' : 'To Give',
-                                style: TextStyle(fontSize: 10, color: pColor)),
+                                style: TextStyle(fontSize: 10, color: pColor, fontWeight: FontWeight.w600)),
                             ],
                           ),
                           const SizedBox(width: 8),
@@ -150,22 +174,20 @@ class _KhataSectionState extends State<KhataSection> with SingleTickerProviderSt
                             onTap: () {
                               if (party.phone.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Phone number missing!'), backgroundColor: BrandPalette.coral),
+                                  const SnackBar(content: Text('Phone number missing!'), backgroundColor: Colors.red),
                                 );
                                 return;
                               }
-                              
                               final String text = isToGet 
                                 ? 'Namaste ${party.name}, a friendly reminder from ${AppSettings.instance.businessName} regarding your pending balance of ₹${party.balance.abs().toStringAsFixed(0)}. Please settle it at your earliest convenience. Thank you!'
                                 : 'Namaste ${party.name}, this is regarding the balance of ₹${party.balance.abs().toStringAsFixed(0)} we owe you. We are processing it. Thank you!';
-                              
                               final Uri whatsappUri = Uri.parse('https://wa.me/91${party.phone}?text=${Uri.encodeComponent(text)}');
                               launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
                             },
                             child: Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: Colors.green.withValues(alpha: 0.1),
+                                color: Colors.green.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Icon(Icons.chat, color: Colors.green, size: 18),
@@ -193,7 +215,7 @@ class _KhataSectionState extends State<KhataSection> with SingleTickerProviderSt
         minChildSize: 0.5,
         maxChildSize: 0.95,
         expand: false,
-        builder: (context, scrollController) => _LedgerSheet(party: party, scrollController: scrollController),
+        builder: (context, scrollController) => _LedgerSheet(party: party, parties: widget.parties, invoices: widget.invoices, scrollController: scrollController),
       ),
     );
   }
@@ -273,9 +295,11 @@ class _KhataSectionState extends State<KhataSection> with SingleTickerProviderSt
 // --- Ledger Detail Sheet ---
 class _LedgerSheet extends StatefulWidget {
   final PartyRecord party;
+  final List<PartyRecord> parties;
+  final List<InvoiceRecord> invoices;
   final ScrollController scrollController;
 
-  const _LedgerSheet({required this.party, required this.scrollController});
+  const _LedgerSheet({required this.party, required this.parties, required this.invoices, required this.scrollController});
 
   @override
   State<_LedgerSheet> createState() => _LedgerSheetState();
@@ -287,14 +311,42 @@ class _LedgerSheetState extends State<_LedgerSheet> {
   @override
   void initState() {
     super.initState();
-    // Add opening balance as first transaction
-    _transactions.add({'type': 'open', 'amount': widget.party.balance.abs(), 'date': DateTime.now().subtract(const Duration(days: 30)), 'note': 'Opening Balance'});
+    // 1. Add opening balance
+    _transactions.add({'type': 'open', 'amount': widget.party.balance.abs(), 'date': DateTime.now().subtract(const Duration(days: 30)), 'note': 'Opening Balance', 'invoice': null});
+    
+    // 2. Add invoices related to this party
+    final partyInvoices = widget.invoices.where((i) => i.customerPhone == widget.party.phone || i.customerName == widget.party.name).toList();
+    for (var inv in partyInvoices) {
+      final isIn = widget.party.type == PartyType.supplier; // If supplier gave us bill, we owe them (in). If we gave customer bill, they owe us (in).
+      // Wait, standard accounting: Sale to customer increases their balance (they owe us). Purchase from supplier increases our debt.
+      // Let's just log the invoice.
+      _transactions.add({
+        'type': widget.party.type == PartyType.customer ? 'sale' : 'purchase',
+        'amount': inv.total,
+        'date': inv.createdAt,
+        'note': 'Bill #${inv.id.substring(max(0, inv.id.length - 6))}',
+        'invoice': inv,
+      });
+      // If payment was made on the bill, log the payment
+      if (inv.paymentMode != PaymentMode.credit) {
+        _transactions.add({
+          'type': widget.party.type == PartyType.customer ? 'in' : 'out',
+          'amount': inv.total,
+          'date': inv.createdAt,
+          'note': 'Payment for Bill #${inv.id.substring(max(0, inv.id.length - 6))} (${inv.paymentMode.name.toUpperCase()})',
+          'invoice': null,
+        });
+      }
+    }
+    
+    // 3. Sort by date descending
+    _transactions.sort((a, b) => (b['date'] as DateTime).compareTo(a['date'] as DateTime));
   }
 
   @override
   Widget build(BuildContext context) {
     final isToGet = widget.party.balance > 0;
-    final color = isToGet ? BrandPalette.teal : BrandPalette.coral;
+    final color = isToGet ? const Color(0xFF0DAB76) : const Color(0xFFE05252);
 
     return Column(
       children: [
@@ -305,8 +357,8 @@ class _LedgerSheetState extends State<_LedgerSheet> {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              CircleAvatar(radius: 22, backgroundColor: BrandPalette.navy.withValues(alpha: 0.1),
-                child: Text(widget.party.name[0], style: const TextStyle(color: BrandPalette.navy, fontWeight: FontWeight.bold, fontSize: 16))),
+              CircleAvatar(radius: 22, backgroundColor: const Color(0xFF1A6FE3).withOpacity(0.08),
+                child: Text(widget.party.name[0], style: const TextStyle(color: Color(0xFF1A6FE3), fontWeight: FontWeight.bold, fontSize: 16))),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -323,7 +375,7 @@ class _LedgerSheetState extends State<_LedgerSheet> {
                   Text('₹${widget.party.balance.abs().toStringAsFixed(0)}',
                     style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 20)),
                   Text(isToGet ? 'You will get' : 'You will give',
-                    style: TextStyle(color: color, fontSize: 11)),
+                    style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600)),
                 ],
               ),
             ],
@@ -339,7 +391,7 @@ class _LedgerSheetState extends State<_LedgerSheet> {
                   onPressed: () => _recordPayment(context, 'in'),
                   icon: const Icon(Icons.add, size: 16),
                   label: const Text('Payment In'),
-                  style: ElevatedButton.styleFrom(backgroundColor: BrandPalette.teal, foregroundColor: Colors.white),
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0DAB76), foregroundColor: Colors.white, elevation: 0),
                 ),
               ),
               const SizedBox(width: 12),
@@ -348,7 +400,7 @@ class _LedgerSheetState extends State<_LedgerSheet> {
                   onPressed: () => _recordPayment(context, 'out'),
                   icon: const Icon(Icons.remove, size: 16),
                   label: const Text('Payment Out'),
-                  style: ElevatedButton.styleFrom(backgroundColor: BrandPalette.coral, foregroundColor: Colors.white),
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE05252), foregroundColor: Colors.white, elevation: 0),
                 ),
               ),
             ],
@@ -359,22 +411,90 @@ class _LedgerSheetState extends State<_LedgerSheet> {
         Expanded(
           child: ListView.builder(
             controller: widget.scrollController,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             itemCount: _transactions.length,
+            reverse: true, // Chat lists usually start from bottom
             itemBuilder: (context, i) {
               final tx = _transactions[i];
-              final isIn = tx['type'] == 'in' || tx['type'] == 'open';
-              final txColor = isIn ? BrandPalette.teal : BrandPalette.coral;
-              return ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: CircleAvatar(
-                  radius: 18,
-                  backgroundColor: txColor.withValues(alpha: 0.1),
-                  child: Icon(isIn ? Icons.arrow_downward : Icons.arrow_upward, color: txColor, size: 16),
+              final type = tx['type'] as String;
+              
+              // Logic for "You Gave" (Red, Left) vs "You Got" (Green, Right)
+              final isYouGot = type == 'in' || type == 'purchase' || (type == 'open' && widget.party.balance < 0);
+              final isYouGave = type == 'out' || type == 'sale' || (type == 'open' && widget.party.balance >= 0);
+              
+              final isRightSide = isYouGot; // "You Got" on right, "You Gave" on left
+              final bubbleColor = isYouGot ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE); // Light green vs Light red
+              final textColor = isYouGot ? const Color(0xFF2E7D32) : const Color(0xFFC62828); // Dark green vs Dark red
+              
+              final invoice = tx['invoice'] as InvoiceRecord?;
+              
+              String actionText = isYouGot ? 'You Got' : 'You Gave';
+              if (type == 'sale') actionText = 'Dues Added (Bill)';
+              if (type == 'purchase') actionText = 'Bill Added';
+
+              return Align(
+                alignment: isRightSide ? Alignment.centerRight : Alignment.centerLeft,
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+                  child: InkWell(
+                    onTap: invoice != null ? () {
+                      // Navigate to invoice detail in the future
+                    } : null,
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: bubbleColor,
+                        borderRadius: BorderRadius.circular(16).copyWith(
+                          bottomRight: isRightSide ? const Radius.circular(4) : const Radius.circular(16),
+                          bottomLeft: !isRightSide ? const Radius.circular(4) : const Radius.circular(16),
+                        ),
+                        border: Border.all(color: textColor.withValues(alpha: 0.2)),
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 4, offset: const Offset(0, 2))
+                        ]
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(isYouGot ? Icons.arrow_downward : Icons.arrow_upward, size: 14, color: textColor),
+                              const SizedBox(width: 4),
+                              Text(actionText, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: textColor)),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text('₹${tx['amount'].toStringAsFixed(0)}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: textColor)),
+                          const SizedBox(height: 6),
+                          if (tx['note'] != null && tx['note'].toString().isNotEmpty)
+                            Container(
+                              margin: const EdgeInsets.only(bottom: 4),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.7), borderRadius: BorderRadius.circular(6)),
+                              child: Text(tx['note'], style: TextStyle(fontSize: 12, color: Colors.grey.shade800)),
+                            ),
+                          if (invoice != null)
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.receipt_long, size: 12, color: textColor.withValues(alpha: 0.8)),
+                                const SizedBox(width: 4),
+                                Text('View Bill', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: textColor.withValues(alpha: 0.8))),
+                              ],
+                            ),
+                          const SizedBox(height: 4),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: Text(formatDate(tx['date']), style: TextStyle(fontSize: 10, color: textColor.withValues(alpha: 0.7))),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-                title: Text(tx['note'] ?? '', style: const TextStyle(fontSize: 14)),
-                subtitle: Text(formatDate(tx['date']), style: const TextStyle(fontSize: 11)),
-                trailing: Text('₹${tx['amount'].toStringAsFixed(0)}', style: TextStyle(color: txColor, fontWeight: FontWeight.bold)),
               );
             },
           ),
@@ -386,42 +506,100 @@ class _LedgerSheetState extends State<_LedgerSheet> {
   void _recordPayment(BuildContext context, String direction) {
     final amtCtrl = TextEditingController();
     final noteCtrl = TextEditingController();
-    showDialog(
+    PaymentMode selectedMode = PaymentMode.cash;
+
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(direction == 'in' ? 'Record Payment In' : 'Record Payment Out'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: amtCtrl, keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Amount (₹)', border: OutlineInputBorder())),
-            const SizedBox(height: 12),
-            TextField(controller: noteCtrl, decoration: const InputDecoration(labelText: 'Note (optional)', border: OutlineInputBorder())),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: direction == 'in' ? BrandPalette.teal : BrandPalette.coral),
-            onPressed: () {
-              final amt = double.tryParse(amtCtrl.text) ?? 0;
-              if (amt <= 0) return;
-              setState(() {
-                _transactions.insert(0, {
-                  'type': direction,
-                  'amount': amt,
-                  'date': DateTime.now(),
-                  'note': noteCtrl.text.isEmpty ? (direction == 'in' ? 'Payment Received' : 'Payment Sent') : noteCtrl.text,
-                });
-              });
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('₹${amt.toStringAsFixed(0)} recorded!'), backgroundColor: BrandPalette.teal),
-              );
-            },
-            child: const Text('Save'),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(20, 24, 20, MediaQuery.of(ctx).viewInsets.bottom + 24),
+        child: StatefulBuilder(
+          builder: (ctx2, setModalState) => Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(direction == 'in' ? 'Record Payment In' : 'Record Payment Out', 
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              TextField(
+                controller: amtCtrl, 
+                keyboardType: TextInputType.number,
+                autofocus: true,
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                decoration: InputDecoration(
+                  labelText: 'Amount',
+                  prefixText: '₹ ',
+                  prefixStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                )
+              ),
+              const SizedBox(height: 16),
+              Text('Payment Mode', style: TextStyle(color: Colors.grey.shade700, fontSize: 12, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              SegmentedButton<PaymentMode>(
+                segments: const [
+                  ButtonSegment(value: PaymentMode.cash, label: Text('Cash'), icon: Icon(Icons.money)),
+                  ButtonSegment(value: PaymentMode.upi, label: Text('UPI'), icon: Icon(Icons.qr_code_scanner)),
+                  ButtonSegment(value: PaymentMode.bankTransfer, label: Text('Bank'), icon: Icon(Icons.account_balance)),
+                ],
+                selected: {selectedMode},
+                onSelectionChanged: (s) => setModalState(() => selectedMode = s.first),
+                style: SegmentedButton.styleFrom(
+                  selectedBackgroundColor: const Color(0xFF1A6FE3).withOpacity(0.1),
+                  selectedForegroundColor: const Color(0xFF1A6FE3),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: noteCtrl, 
+                decoration: InputDecoration(
+                  labelText: 'Note (optional)', 
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                )
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: direction == 'in' ? const Color(0xFF0DAB76) : const Color(0xFFE05252),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () {
+                    final amt = double.tryParse(amtCtrl.text) ?? 0;
+                    if (amt <= 0) return;
+                    setState(() {
+                      _transactions.insert(0, {
+                        'type': direction,
+                        'amount': amt,
+                        'date': DateTime.now(),
+                        'note': noteCtrl.text.isEmpty ? (direction == 'in' ? 'Payment Received' : 'Payment Sent') : noteCtrl.text,
+                        'invoice': null,
+                      });
+                      // Update party balance
+                      final idx = widget.parties.indexWhere((p) => p.id == widget.party.id);
+                      if (idx != -1) {
+                        final newBalance = widget.party.balance + (direction == 'in' ? -amt : amt);
+                        widget.parties[idx] = widget.party.copyWith(balance: newBalance);
+                      }
+                    });
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('₹${amt.toStringAsFixed(0)} recorded!'), backgroundColor: const Color(0xFF0DAB76)),
+                    );
+                  },
+                  child: const Text('Save Payment', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

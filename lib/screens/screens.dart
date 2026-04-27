@@ -1,7 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'dart:math';
 import 'dart:async';
+import 'dart:io' as dart_io;
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
 import '../enums/enums.dart';
 import '../services/services.dart';
@@ -11,6 +14,9 @@ import 'items_section.dart';
 import 'invoices_section.dart';
 import 'khata_section.dart';
 import 'menu_section.dart';
+import 'settings/general_settings.dart';
+import 'expenses_screen.dart';
+import 'global_search.dart';
 
 import 'package:sms_autofill/sms_autofill.dart';
 import 'auth_screen.dart';
@@ -234,10 +240,20 @@ class _PlatformShellState extends State<PlatformShell> {
       _businesses = [];
       _products = [];
       _parties = [];
-      _invoices = [];
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
     }
+
+    final prefs = await SharedPreferences.getInstance();
+    final String? expensesJson = prefs.getString('local_expenses');
+    if (expensesJson != null) {
+      try {
+        final List<dynamic> decoded = jsonDecode(expensesJson);
+        _expenses = decoded.map((e) => ExpenseRecord.fromJson(e)).toList();
+      } catch (e) {
+        debugPrint('Error parsing local expenses: $e');
+      }
+    }
+
+    if (mounted) setState(() => _isLoading = false);
   }
 
   @override
@@ -389,11 +405,15 @@ class _PlatformShellState extends State<PlatformShell> {
     SyncService.instance.enqueueForSync(invoice);
   }
 
-  void _storeExpense(ExpenseRecord expense) {
+  void _storeExpense(ExpenseRecord expense) async {
     setState(() {
       _expenses.insert(0, expense);
     });
     SyncService.instance.enqueueForSync(expense);
+    // Save locally
+    final prefs = await SharedPreferences.getInstance();
+    final String encoded = jsonEncode(_expenses.map((e) => e.toJson()).toList());
+    await prefs.setString('local_expenses', encoded);
   }
 
   Widget _sectionWidget() {
@@ -406,6 +426,11 @@ class _PlatformShellState extends State<PlatformShell> {
           parties: _parties,
           expenses: _expenses,
           onAddSale: () => setState(() => _section = AppSection.invoices),
+          onSwitchTab: (tab) => setState(() => _section = tab),
+          onViewExpenses: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => ExpensesScreen(expenses: _expenses, onAddExpense: _storeExpense)),
+          ),
         );
       case AppSection.items:
         return ItemsSection(
@@ -425,6 +450,7 @@ class _PlatformShellState extends State<PlatformShell> {
       case AppSection.khata:
         return KhataSection(
           parties: _parties,
+          invoices: _invoices,
           onPartyAdded: (p) => setState(() => _parties.add(p)),
         );
       case AppSection.menu:
@@ -434,6 +460,7 @@ class _PlatformShellState extends State<PlatformShell> {
           products: _products,
           onAddExpense: _storeExpense,
           onUpdateSettings: (s) => setState(() {}),
+          onSwitchTab: (tab) => setState(() => _section = tab),
         );
     }
   }
@@ -458,6 +485,80 @@ class _PlatformShellState extends State<PlatformShell> {
         key: ValueKey<AppSection>(_section),
         child: _sectionWidget(),
       ),
+    );
+  }
+
+  Widget _buildBusinessAvatar() {
+    final settings = AppSettings.instance;
+    final logo = settings.businessLogo;
+    final initial = settings.businessName.isNotEmpty
+        ? settings.businessName[0].toUpperCase()
+        : 'B';
+    return Container(
+      width: 42,
+      height: 42,
+      decoration: BoxDecoration(
+        color: BrandPalette.navy,
+        borderRadius: BorderRadius.circular(11),
+        boxShadow: [
+          BoxShadow(
+            color: BrandPalette.navy.withValues(alpha: 0.25),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+        image: logo != null
+            ? DecorationImage(
+                image: dart_io.File(logo).existsSync()
+                    ? FileImage(dart_io.File(logo)) as ImageProvider
+                    : const AssetImage('assets/placeholder.png'),
+                fit: BoxFit.cover,
+              )
+            : null,
+      ),
+      child: logo == null
+          ? Center(
+              child: Text(
+                initial,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            )
+          : null,
+    );
+  }
+
+  Widget _buildAppBarTitle() {
+    final settings = AppSettings.instance;
+    final bizName = settings.businessName.isEmpty ? 'My Business' : settings.businessName;
+    final sub = settings.businessCategory.isNotEmpty
+        ? settings.businessCategory
+        : 'Tap logo to edit profile';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          bizName,
+          style: GoogleFonts.spaceGrotesk(
+            fontSize: 17,
+            fontWeight: FontWeight.w800,
+            color: BrandPalette.navy,
+          ),
+          overflow: TextOverflow.ellipsis,
+        ),
+        Text(
+          sub,
+          style: GoogleFonts.dmSans(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: BrandPalette.navy.withValues(alpha: 0.55),
+          ),
+        ),
+      ],
     );
   }
 
@@ -602,55 +703,81 @@ class _PlatformShellState extends State<PlatformShell> {
     }
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF1F5F9),
       appBar: AppBar(
-        titleSpacing: 18,
-        toolbarHeight: 78,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'Dukan Bill',
-              style: GoogleFonts.spaceGrotesk(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: BrandPalette.navy,
-              ),
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        titleSpacing: 0,
+        toolbarHeight: 62,
+        leading: GestureDetector(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => GeneralSettingsScreen(settings: AppSettings.instance),
             ),
-            Text(
-              'Scan faster. Bill smarter.',
-              style: GoogleFonts.dmSans(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: BrandPalette.navy.withValues(alpha: 0.7),
-              ),
-            ),
-          ],
-        ),
-        actions: const <Widget>[
-          SyncIndicator(),
-          SizedBox(width: 16),
-        ],
-      ),
-      body: BrandedBackdrop(
-        child: SafeArea(
+          ).then((_) => setState(() {})),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-            child: _animatedSectionBody(),
+            padding: const EdgeInsets.fromLTRB(14, 8, 6, 8),
+            child: _buildBusinessAvatar(),
           ),
         ),
+        title: _buildAppBarTitle(),
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.search, color: Color(0xFF64748B)),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => GlobalSearchScreen(
+                businesses: _businesses,
+                products: _products,
+                invoices: _invoices,
+                parties: _parties,
+                expenses: _expenses,
+              )),
+            ),
+          ),
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_none, color: Color(0xFF64748B)),
+                onPressed: () {},
+              ),
+              Positioned(
+                right: 12,
+                top: 14,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(color: Color(0xFFEF4444), shape: BoxShape.circle),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 4),
+        ],
       ),
+      body: SafeArea(
+        child: _animatedSectionBody(),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.85),
-          border: Border(top: BorderSide(color: Colors.black.withValues(alpha: 0.05))),
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -2))
+          ]
         ),
         child: NavigationBar(
           selectedIndex: _section.index,
-          backgroundColor: Colors.transparent,
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.transparent,
           elevation: 0,
-          height: 72,
-          indicatorColor: BrandPalette.teal.withValues(alpha: 0.12),
+          height: 64,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          indicatorColor: Colors.transparent,
+
           onDestinationSelected: (int index) {
             setState(() {
               _section = AppSection.values[index];
@@ -658,29 +785,29 @@ class _PlatformShellState extends State<PlatformShell> {
           },
           destinations: const <NavigationDestination>[
             NavigationDestination(
-              icon: Icon(Icons.dashboard_outlined, size: 24),
-              selectedIcon: Icon(Icons.dashboard, color: BrandPalette.teal),
+              icon: Icon(Icons.home_outlined, size: 22),
+              selectedIcon: Icon(Icons.home_rounded, color: Color(0xFF1A6FE3)),
               label: 'Home',
             ),
             NavigationDestination(
-              icon: Icon(Icons.inventory_2_outlined, size: 24),
-              selectedIcon: Icon(Icons.inventory_2, color: BrandPalette.teal),
+              icon: Icon(Icons.inventory_2_outlined, size: 22),
+              selectedIcon: Icon(Icons.inventory_2_rounded, color: Color(0xFF1A6FE3)),
               label: 'Items',
             ),
             NavigationDestination(
-              icon: Icon(Icons.receipt_long_outlined, size: 24),
-              selectedIcon: Icon(Icons.receipt_long, color: BrandPalette.teal),
+              icon: Icon(Icons.receipt_long_outlined, size: 22),
+              selectedIcon: Icon(Icons.receipt_long_rounded, color: Color(0xFF1A6FE3)),
               label: 'Bills',
             ),
             NavigationDestination(
-              icon: Icon(Icons.contacts_outlined, size: 24),
-              selectedIcon: Icon(Icons.contacts, color: BrandPalette.teal),
+              icon: Icon(Icons.group_outlined, size: 22),
+              selectedIcon: Icon(Icons.group_rounded, color: Color(0xFF1A6FE3)),
               label: 'Parties',
             ),
             NavigationDestination(
-              icon: Icon(Icons.menu_rounded, size: 24),
-              selectedIcon: Icon(Icons.menu_open_rounded, color: BrandPalette.teal),
-              label: 'Menu',
+              icon: Icon(Icons.grid_view_rounded, size: 22),
+              selectedIcon: Icon(Icons.grid_view_rounded, color: Color(0xFF1A6FE3)),
+              label: 'More',
             ),
           ],
         ),

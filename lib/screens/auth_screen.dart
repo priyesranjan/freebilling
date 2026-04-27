@@ -6,6 +6,7 @@ import 'package:pinput/pinput.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../core/core.dart';
+import '../models/models.dart';
 import '../services/services.dart';
 import 'screens.dart';
 
@@ -161,9 +162,17 @@ class _AuthScreenState extends State<AuthScreen> with CodeAutoFill {
       if (!mounted) return;
       
       // If we somehow logged in but the backend lacks crucial info
-      if (business['business_type'] == null || business['website_slug'] == null) {
+      if (!_isLogin) {
+        final settings = AppSettings.instance;
+        settings.businessName = _nameController.text.trim();
+        settings.businessCategory = _businessType;
+        await settings.save();
+      }
+
+      if (business == null || business['business_type'] == null || business['website_slug'] == null) {
+        // Fallback for demo prototype if API returns null business object
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+          MaterialPageRoute(builder: (context) => const PlatformShell()),
         );
       } else {
         Navigator.of(context).pushReplacement(

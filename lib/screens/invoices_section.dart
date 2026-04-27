@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../models/models.dart';
 import '../core/core.dart';
 import '../enums/enums.dart';
@@ -37,6 +38,8 @@ class InvoicesSection extends StatefulWidget {
 class _InvoicesSectionState extends State<InvoicesSection> {
   InvoiceFilter _filter = InvoiceFilter.all;
   DocumentType _docType = DocumentType.invoice;
+  int _currentPage = 1;
+  static const int _pageSize = 20;
 
   List<InvoiceRecord> get filtered {
     var list = widget.invoices.where((i) => i.type == _docType).toList();
@@ -68,7 +71,7 @@ class _InvoicesSectionState extends State<InvoicesSection> {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(50),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             child: Row(
               children: InvoiceFilter.values.map((f) {
                 final isSelected = _filter == f;
@@ -127,8 +130,8 @@ class _InvoicesSectionState extends State<InvoicesSection> {
           // Summary banner
           if (widget.invoices.isNotEmpty)
             Container(
-              margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              margin: const EdgeInsets.fromLTRB(10, 12, 10, 4),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(colors: [BrandPalette.teal, Color(0xFF15A89E)]),
                 borderRadius: BorderRadius.circular(12),
@@ -170,88 +173,119 @@ class _InvoicesSectionState extends State<InvoicesSection> {
                     ),
                   )
                 : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
-                    itemCount: bills.length,
+                    padding: const EdgeInsets.fromLTRB(0, 8, 0, 80),
+                    itemCount: bills.take(_currentPage * _pageSize).length + (bills.length > _currentPage * _pageSize ? 1 : 0),
                     itemBuilder: (context, index) {
-                      final inv = bills[index];
+                      final paginated = bills.take(_currentPage * _pageSize).toList();
+                      // Load more button
+                      if (index == paginated.length) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: OutlinedButton.icon(
+                              onPressed: () => setState(() => _currentPage++),
+                              icon: const Icon(Icons.expand_more),
+                              label: Text('Load more (${bills.length - paginated.length} remaining)'),
+                            ),
+                          ),
+                        );
+                      }
+                      final inv = paginated[index];
                       final isCredit = inv.paymentMode == PaymentMode.credit;
-                      final statusColor = isCredit ? BrandPalette.coral : BrandPalette.teal;
-                      final statusLabel = isCredit ? 'UNPAID' : 'PAID';
+                      final statusColor = isCredit ? const Color(0xFFE05252) : const Color(0xFF0DAB76);
+                      final statusLabel = isCredit ? 'DUE' : 'PAID';
+                      final totalQty = inv.lines.fold<int>(0, (s, l) => s + l.quantity);
 
-                      return Card(
-                        elevation: 0,
-                        margin: const EdgeInsets.only(bottom: 10),
-                        shape: RoundedRectangleBorder(
+                      final party = widget.parties?.where((p) => p.name == inv.customerName || p.phone == inv.customerPhone).firstOrNull;
+                      final double balance = party?.balance.abs() ?? (isCredit ? inv.total : 0.0);
+
+                      return Container(
+                        margin: const EdgeInsets.fromLTRB(10, 0, 10, 12),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(color: Colors.grey.shade200),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.02),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: InkWell(
                           borderRadius: BorderRadius.circular(12),
                           onTap: () => _showInvoiceDetail(context, inv),
-                          child: Padding(
-                            padding: const EdgeInsets.all(14),
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 22,
-                                  backgroundColor: BrandPalette.navy.withValues(alpha: 0.08),
-                                  child: Text(
-                                    inv.customerName.isNotEmpty ? inv.customerName[0].toUpperCase() : '?',
-                                    style: const TextStyle(color: BrandPalette.navy, fontWeight: FontWeight.bold, fontSize: 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Top Row: Name and ID/Date
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      inv.customerName.isEmpty ? 'Walk-in Customer' : inv.customerName,
+                                      style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: const Color(0xFF334155)),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
-                                      Text(inv.customerName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                                      const SizedBox(height: 3),
-                                      Row(
-                                        children: [
-                                          Text(formatDateTime(inv.createdAt), style: TextStyle(color: Colors.grey.shade600, fontSize: 11)),
-                                          const SizedBox(width: 8),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                                            decoration: BoxDecoration(
-                                              color: statusColor.withValues(alpha: 0.1),
-                                              borderRadius: BorderRadius.circular(4),
-                                            ),
-                                            child: Text(statusLabel, style: TextStyle(color: statusColor, fontSize: 9, fontWeight: FontWeight.bold)),
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(inv.paymentMode.name.toUpperCase(), style: const TextStyle(fontSize: 9, color: Colors.grey)),
-                                        ],
-                                      ),
+                                      Text('#${inv.id.substring(inv.id.length > 5 ? inv.id.length - 5 : 0)}', style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF94A3B8))),
+                                      Text(formatDate(inv.createdAt), style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF94A3B8))),
                                     ],
                                   ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              
+                              // Tag Row
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: statusColor.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text('₹${inv.total.toStringAsFixed(0)}',
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: BrandPalette.navy)),
-                                    const SizedBox(height: 4),
-                                    // Share button
-                                    InkWell(
-                                      onTap: () {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('Invoice link copied!'), duration: Duration(seconds: 1)),
-                                        );
-                                      },
-                                      child: const Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(Icons.share, size: 12, color: BrandPalette.teal),
-                                          SizedBox(width: 4),
-                                          Text('Share', style: TextStyle(color: BrandPalette.teal, fontSize: 11)),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                                child: Text(statusLabel, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.bold, color: statusColor)),
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Bottom Row: Total, Balance, Actions
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Total', style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF64748B))),
+                                      Text('₹ ${inv.total.toStringAsFixed(2)}', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: const Color(0xFF334155))),
+                                    ],
+                                  ),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Balance', style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF64748B))),
+                                      Text('₹ ${balance.toStringAsFixed(2)}', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: const Color(0xFF334155))),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      GestureDetector(onTap: () => _printInvoice(context, inv), child: const Icon(Icons.print_outlined, size: 20, color: Color(0xFF94A3B8))),
+                                      const SizedBox(width: 16),
+                                      GestureDetector(onTap: () => _shareInvoice(context, inv), child: const Icon(Icons.share_outlined, size: 20, color: Color(0xFF94A3B8))),
+                                      const SizedBox(width: 12),
+                                      GestureDetector(onTap: () => _downloadInvoice(context, inv), child: const Icon(Icons.download_rounded, size: 20, color: Color(0xFF94A3B8))),
+                                    ],
+                                  )
+                                ],
+                              ),
+                            ],
                           ),
                         ),
                       );
@@ -260,16 +294,75 @@ class _InvoicesSectionState extends State<InvoicesSection> {
           ),
         ],
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           HapticFeedback.lightImpact();
           _showCreateBillSheet(context);
         },
-        backgroundColor: BrandPalette.coral,
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: Text(_docType == DocumentType.quotation ? 'Create Quotation' : 'Create Bill', style: const TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFFEF4444),
+        icon: Container(
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.white, width: 1.5),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.currency_rupee, color: Colors.white, size: 14),
+        ),
+        label: Text(_docType == DocumentType.quotation ? 'Create Quotation' : 'Add New Sale', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
     );
+  }
+
+  Widget _invAction(IconData icon, String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1A6FE3).withOpacity(0.07),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(icon, size: 12, color: const Color(0xFF1A6FE3)),
+          const SizedBox(width: 4),
+          Text(label, style: const TextStyle(fontSize: 11, color: Color(0xFF1A6FE3), fontWeight: FontWeight.w600)),
+        ]),
+      ),
+    );
+  }
+
+  void _printInvoice(BuildContext context, InvoiceRecord inv) async {
+    try {
+      final bytes = await PdfInvoiceService.generateInvoice(inv, AppSettings.instance.toBusinessRecord());
+      await Printing.layoutPdf(onLayout: (_) async => bytes);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Print error: $e'), backgroundColor: Colors.red));
+      }
+    }
+  }
+
+  void _shareInvoice(BuildContext context, InvoiceRecord inv) {
+    final link = widget.generateInvoiceLink?.call() ?? '';
+    final msg = 'Invoice from ${AppSettings.instance.businessName}\nTotal: ₹${inv.total.toStringAsFixed(0)}\nView: $link';
+    final phone = inv.customerPhone.replaceAll(RegExp(r'[^0-9]'), '');
+    if (phone.isNotEmpty) {
+      launchUrl(Uri.parse('https://wa.me/91$phone?text=${Uri.encodeComponent(msg)}'), mode: LaunchMode.externalApplication);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No phone number on this invoice')));
+    }
+  }
+
+  void _downloadInvoice(BuildContext context, InvoiceRecord inv) async {
+    try {
+      final bytes = await PdfInvoiceService.generateInvoice(inv, AppSettings.instance.toBusinessRecord());
+      await Printing.sharePdf(bytes: bytes, filename: 'invoice_${inv.id}.pdf');
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Download error: $e'), backgroundColor: Colors.red));
+      }
+    }
   }
 
   void _showInvoiceDetail(BuildContext context, InvoiceRecord inv) {
