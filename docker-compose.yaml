@@ -34,8 +34,8 @@ services:
       NODE_ENV: production
       PORT: 3000
       DATABASE_URL: ${DATABASE_URL}
-      JWT_SECRET: ${JWT_SECRET:-erp_bill_super_secret_key}
-      TWO_FACTOR_API_KEY: ${TWO_FACTOR_API_KEY:-a4f42790-1574-11f1-bcb0-0200cd936042}
+      JWT_SECRET: ${JWT_SECRET}
+      TWO_FACTOR_API_KEY: ${TWO_FACTOR_API_KEY}
     healthcheck:
       # Use node (always available in node:18-slim) — wget is NOT in slim image
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health',r=>{process.exitCode=r.statusCode===200?0:1}).on('error',()=>process.exitCode=1)"]
