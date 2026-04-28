@@ -8,6 +8,7 @@ const path = require('path');
 const { Server } = require('socket.io');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const multer = require('multer');
+const fs = require('fs');
 
 require('dotenv').config();
 
@@ -19,15 +20,41 @@ const io = new Server(server, {
 
 app.use(cors());
 app.use(express.json());
+
+// API router (mounted at /api)
+const apiRouter = express.Router();
+app.use('/api', apiRouter);
+
+// Request logging
+app.use((req, res, next) => {
+  console.log(`[REQUEST] ${req.method} ${req.url}`);
+  next();
+});
+
 app.use('/web', express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // SPA routing for /web
 app.get('/web/*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ── Health Check (for Docker / Coolify) ─────────────────────────
-app.get('/health', (req, res) => res.json({ status: 'ok', service: 'Dukan Bill API', version: '1.0.0' }));
+// ── Health Check ────────────────────────────────────────────────
+const SERVICE_VERSION = '1.2.0';
+
+function healthPayload() {
+  return {
+    status: 'ok',
+    service: 'Dukan Bill API',
+    version: SERVICE_VERSION,
+    timestamp: new Date().toISOString(),
+  };
+}
+
+app.get('/api/health', (req, res) => res.json(healthPayload()));
+
+// Alias used by Docker/Nginx healthchecks
+app.get('/health', (req, res) => res.json(healthPayload()));
 
 // ── Business Storefront (Public, No Auth) ────────────────────────
 const shopTemplate = require('fs').readFileSync(path.join(__dirname, 'views', 'shop.html'), 'utf8');
@@ -37,7 +64,7 @@ app.get('/shop/:slug', async (req, res) => {
     const { slug } = req.params;
     // Fetch business by slug or name match
     const bizResult = await db.query(
-      `SELECT * FROM businesses WHERE slug = $1 OR LOWER(REPLACE(name, ' ', '-')) = $1 LIMIT 1`,
+      `SELECT * FROM businesses WHERE website_slug = $1 OR LOWER(REPLACE(name, ' ', '-')) = $1 LIMIT 1`,
       [slug.toLowerCase()]
     );
     if (bizResult.rows.length === 0) {
@@ -53,7 +80,7 @@ app.get('/shop/:slug', async (req, res) => {
     // Fetch products for this business
     const prodsResult = await db.query(
       `SELECT id, name, selling_price as "sellingPrice", mrp, current_stock as "currentStock", 
-              low_stock_alert_level as "lowStockAlertLevel", codes, tax_rate as "taxRate", category
+              low_stock_level as "lowStockAlertLevel", codes, tax_rate as "taxRate"
        FROM products WHERE business_id = $1 ORDER BY name`,
       [biz.id]
     );
@@ -87,16 +114,16 @@ app.get('/api/shop/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
     const bizResult = await db.query(
-      `SELECT id, name, phone, owner_phone, city, address, gstin, gmb_location_id FROM businesses 
-       WHERE slug = $1 OR LOWER(REPLACE(name, ' ', '-')) = $1 LIMIT 1`,
+      `SELECT id, name, phone, city, address, gstin, gmb_location_id, website_slug
+       FROM businesses 
+       WHERE website_slug = $1 OR LOWER(REPLACE(name, ' ', '-')) = $1 LIMIT 1`,
       [slug.toLowerCase()]
     );
     if (bizResult.rows.length === 0) return res.status(404).json({ error: 'Business not found' });
     const biz = bizResult.rows[0];
 
     const prodsResult = await db.query(
-      `SELECT id, name, selling_price as "sellingPrice", mrp, current_stock as "currentStock", codes, category
-       FROM products WHERE business_id = $1 ORDER BY name`,
+      'SELECT id, name, selling_price as "sellingPrice", mrp, current_stock as "currentStock", low_stock_level as "lowStockAlertLevel", codes, tax_rate as "taxRate" FROM products WHERE business_id = $1',
       [biz.id]
     );
     res.json({ business: biz, products: prodsResult.rows });
@@ -107,18 +134,20 @@ app.get('/api/shop/:slug', async (req, res) => {
 
 
 const JWT_SECRET = process.env.JWT_SECRET || 'erp_bill_super_secret_key';
-const TWO_FACTOR_API_KEY = 'a4f42790-1574-11f1-bcb0-0200cd936042';
+const TWO_FACTOR_API_KEY = process.env.TWO_FACTOR_API_KEY || 'a4f42790-1574-11f1-bcb0-0200cd936042';
 
-// Cloudflare R2 Config
-const s3 = new S3Client({
-  region: 'auto',
-  endpoint: 'https://5c4ce3f441e1aba0ff794665e17df31b.r2.cloudflarestorage.com',
-  credentials: {
-    accessKeyId: 'b0e9f0b5102c1adaf5e64580f3e9b087',
-    secretAccessKey: '01cf49dc12389495d7183fe9b16c9d98020163db51286b4f960e35b81c17d6cd',
+// Local Storage Config for Multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = './uploads/logos';
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
   },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '_' + file.originalname);
+  }
 });
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({ storage });
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -157,12 +186,12 @@ io.on('connection', (socket) => {
 
 // --- AUTH ENDPOINTS ---
 
-app.post('/api/auth/send-otp', async (req, res) => {
+app.post(['/api/send-otp', '/api/auth/send-otp'], async (req, res) => {
   const { phone } = req.body;
-  if (!phone) return res.status(400).json({ error: 'Phone is required' });
-  
+  if (!phone) return res.status(400).json({ error: 'Phone number is required' });
+
   try {
-    // 2Factor.in Send OTP (6-digit AUTOGEN)
+    // 2Factor.in Send OTP (AUTOGEN) using template name configured in 2Factor
     const url = `https://2factor.in/API/V1/${TWO_FACTOR_API_KEY}/SMS/${phone}/AUTOGEN/OTP1`;
     const response = await axios.get(url);
     
@@ -173,7 +202,6 @@ app.post('/api/auth/send-otp', async (req, res) => {
     }
   } catch (err) {
     console.error("2Factor Error:", err.message);
-    // Fallback for development if needed, but here we want real SMS
     res.status(500).json({ error: 'Failed to send SMS', details: err.message });
   }
 });
@@ -215,16 +243,13 @@ app.post('/api/auth/verify-otp', async (req, res) => {
     let user;
     if (result.rows.length === 0) {
       const businessId = 'BUS-' + Date.now();
-      const bName = name || 'My Business';
-      const bType = businessType || 'retail';
+      const slug = name ? name.toLowerCase().replace(/\s+/g, '-') + '-' + Math.floor(Math.random()*1000) : null;
       
-      const config = logoUrl ? JSON.stringify({ logo_url: logoUrl }) : '{}';
-
-      await db.query(
-        'INSERT INTO businesses (id, name, phone, password, business_type, website_config) VALUES ($1, $2, $3, $4, $5, $6)',
-        [businessId, bName, phone, 'otp-auth', bType, config]
+      const insertRes = await db.query(
+        'INSERT INTO businesses (id, name, phone, business_type, category, logo_url, website_slug) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+        [businessId, name || 'My Business', phone, businessType || 'General', category || 'Retail', logoUrl || null, slug]
       );
-      user = { id: businessId, name: bName, phone, business_type: bType };
+      user = insertRes.rows[0];
     } else {
       user = result.rows[0];
     }
@@ -237,7 +262,27 @@ app.post('/api/auth/verify-otp', async (req, res) => {
   }
 });
 
-app.post('/api/auth/google', async (req, res) => {
+// --- NEW: LOGIN WITH PASSWORD ---
+app.post('/api/login', async (req, res) => {
+  const { phone, password } = req.body;
+  if (!phone || !password) return res.status(400).json({ error: 'Phone and Password are required' });
+
+  try {
+    const result = await db.query('SELECT * FROM businesses WHERE phone = $1', [phone]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Account does not exist. Please Sign Up.' });
+
+    const user = result.rows[0];
+    // In production, use bcrypt.compare!
+    if (user.password !== password) return res.status(401).json({ error: 'Incorrect password' });
+
+    const token = jwt.sign({ businessId: user.id, name: user.name, phone: user.phone }, JWT_SECRET);
+    res.json({ token, business: user });
+  } catch (err) {
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+apiRouter.post('/auth/google', async (req, res) => {
   const { email, name } = req.body;
   if (!email) return res.status(400).json({ error: 'Email is required' });
 
@@ -263,7 +308,7 @@ app.post('/api/auth/google', async (req, res) => {
   }
 });
 
-app.put('/api/businesses/onboard', authenticateToken, async (req, res) => {
+apiRouter.put('/businesses/onboard', authenticateToken, async (req, res) => {
   const { name, businessType, websiteSlug } = req.body;
   try {
     const result = await db.query(
@@ -277,7 +322,7 @@ app.put('/api/businesses/onboard', authenticateToken, async (req, res) => {
 });
 
 // --- FULL BUSINESS PROFILE ENDPOINT ---
-app.put('/api/businesses/profile', authenticateToken, async (req, res) => {
+apiRouter.put('/businesses/profile', authenticateToken, async (req, res) => {
   const {
     name, address, phone, email, gstin, category, businessType,
     state, district, city, pincode, invoiceFormat, invoiceTheme, certifications
@@ -314,37 +359,24 @@ app.put('/api/businesses/profile', authenticateToken, async (req, res) => {
   }
 });
 
-app.post('/api/upload-logo', upload.single('logo'), async (req, res) => {
+apiRouter.post('/upload-logo', upload.single('logo'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded' });
   }
 
-  const fileName = `logos/${Date.now()}_${req.file.originalname}`;
-  
   try {
-    const command = new PutObjectCommand({
-      Bucket: 'freebilling',
-      Key: fileName,
-      Body: req.file.buffer,
-      ContentType: req.file.mimetype,
-      ACL: 'public-read', // Ensure bucket allows public read if needed
-    });
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.headers['host'];
+    const publicUrl = `${protocol}://${host}/uploads/logos/${req.file.filename}`;
 
-    await s3.send(command);
-
-    // Using public R2 domain or custom domain if mapped. 
-    // Assuming bucket allows public access via default dev URL or we can construct it.
-    // Replace with your actual public R2 domain if you mapped one.
-    const publicUrl = `https://pub-your-r2-public-url.r2.dev/${fileName}`; 
-
-    res.json({ success: true, url: publicUrl, key: fileName });
+    res.json({ success: true, url: publicUrl, filename: req.file.filename });
   } catch (err) {
-    console.error("R2 Upload Error:", err);
-    res.status(500).json({ error: 'Failed to upload to R2', details: err.message });
+    console.error('Logo Upload Error:', err);
+    res.status(500).json({ error: 'Failed to save logo', details: err.message });
   }
 });
 
-app.get('/api/products', authenticateToken, async (req, res) => {
+apiRouter.get('/products', authenticateToken, async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM products WHERE business_id = $1 ORDER BY created_at DESC', [req.user.businessId]);
     res.json(result.rows);
@@ -353,7 +385,7 @@ app.get('/api/products', authenticateToken, async (req, res) => {
   }
 });
 
-app.post('/api/products', authenticateToken, async (req, res) => {
+apiRouter.post('/products', authenticateToken, async (req, res) => {
   const id = req.body.id;
   const name = req.body.name;
   const mrp = req.body.mrp || 0;
@@ -391,7 +423,7 @@ app.post('/api/products', authenticateToken, async (req, res) => {
 
 // --- KHATA (PARTIES) ENDPOINTS ---
 
-app.get('/api/khata', authenticateToken, async (req, res) => {
+apiRouter.get('/khata', authenticateToken, async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM parties WHERE business_id = $1 ORDER BY name ASC', [req.user.businessId]);
     res.json(result.rows);
@@ -400,7 +432,7 @@ app.get('/api/khata', authenticateToken, async (req, res) => {
   }
 });
 
-app.post('/api/khata', authenticateToken, async (req, res) => {
+apiRouter.post('/khata', authenticateToken, async (req, res) => {
   const { id, name, phone, type, balance } = req.body;
   try {
     const result = await db.query(
@@ -425,7 +457,7 @@ app.post('/api/khata', authenticateToken, async (req, res) => {
 
 // --- INVOICES ENDPOINTS ---
 
-app.get('/api/invoices', authenticateToken, async (req, res) => {
+apiRouter.get('/invoices', authenticateToken, async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM invoices WHERE business_id = $1 ORDER BY created_at DESC', [req.user.businessId]);
     res.json(result.rows);
@@ -434,7 +466,7 @@ app.get('/api/invoices', authenticateToken, async (req, res) => {
   }
 });
 
-app.post('/api/invoices', authenticateToken, async (req, res) => {
+apiRouter.post('/invoices', authenticateToken, async (req, res) => {
   const { id, customer_name, customer_phone, total, payment_mode, invoice_type, lines } = req.body;
   try {
     const result = await db.query(
@@ -460,7 +492,7 @@ app.post('/api/invoices', authenticateToken, async (req, res) => {
 });
 
 // --- PUBLIC INVOICE VIEWER (for QR Code Scanning) ---
-app.get('/api/invoice/:id', async (req, res) => {
+apiRouter.get('/invoice/:id', async (req, res) => {
   try {
     const invResult = await db.query(
       `SELECT i.*, b.name as business_name, b.address as business_address, b.phone as business_phone,
@@ -624,8 +656,12 @@ async function runPatch() {
       ADD COLUMN IF NOT EXISTS invoice_format VARCHAR(20) DEFAULT 'POS',
       ADD COLUMN IF NOT EXISTS invoice_theme VARCHAR(30) DEFAULT 'standard',
       ADD COLUMN IF NOT EXISTS certifications JSONB DEFAULT '[]',
-      ADD COLUMN IF NOT EXISTS signature_url VARCHAR(500)
+      ADD COLUMN IF NOT EXISTS signature_url VARCHAR(500),
+      ADD COLUMN IF NOT EXISTS password VARCHAR(255)
     `);
+
+    // OTP-based auth can create users without passwords
+    await db.query('ALTER TABLE businesses ALTER COLUMN password DROP NOT NULL');
     // Patch Products
     await db.query(`
       ALTER TABLE products 
@@ -642,13 +678,22 @@ async function runPatch() {
       ADD COLUMN IF NOT EXISTS customer_gstin VARCHAR(50),
       ADD COLUMN IF NOT EXISTS customer_email VARCHAR(255)
     `);
+    // Populate missing website_slugs for existing users
+    const usersWithoutSlugs = await db.query('SELECT id, name FROM businesses WHERE website_slug IS NULL');
+    for (const user of usersWithoutSlugs.rows) {
+      const slug = (user.name || 'business').toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Math.floor(Math.random() * 10000);
+      await db.query('UPDATE businesses SET website_slug = $1 WHERE id = $2', [slug, user.id]);
+    }
+
     console.log('✅ Database Auto-Patched!');
   } catch (err) {
     console.error('Auto-Patch Error:', err);
   }
 }
 
-server.listen(PORT, async () => {
+(async () => {
   await runPatch();
-  console.log(`ERP Backend API & WebSockets running on port ${PORT}`);
-});
+  server.listen(PORT, () => {
+    console.log(`ERP Backend API & WebSockets running on port ${PORT}`);
+  });
+})();
