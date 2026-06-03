@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
 import '../enums/enums.dart';
 import 'sync_service.dart';
+import 'websocket_service.dart';
 
 class ApiService {
   // ── Backend API URL ──────────────────────────────────────────────
@@ -24,6 +25,10 @@ class ApiService {
   static Future<void> clearToken() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('jwt_token');
+    
+    // Reset singleton instances to prevent session pollution
+    WebSocketService.instance.disconnect();
+    AppSettings.instance.reset(); 
   }
 
   static Map<String, String> _headers(String? token) {
@@ -35,15 +40,14 @@ class ApiService {
 
   // --- Auth ---
 
-  static Future<String> sendOtp(String phone) async {
+  static Future<Map<String, dynamic>> sendOtp(String phone) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/auth/send-otp'),
-      headers: _headers(null),
+      Uri.parse('$baseUrl/send-otp'),
+      headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'phone': phone}),
     );
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['sessionId'];
+      return jsonDecode(response.body);
     }
     throw Exception('Failed to send OTP: ${response.body}');
   }
@@ -62,19 +66,20 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> verifyOtp(
-      String phone, String otp, String sessionId, 
-      {String? name, String? businessType, String? category, String? logoUrl}) async {
+    String phone, String otp, String sessionId, {
+    String? name, String? businessType, String? category, String? logoUrl
+  }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/auth/verify-otp'),
-      headers: _headers(null),
+      headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-        'phone': phone, 
-        'otp': otp, 
+        'phone': phone,
+        'otp': otp,
         'sessionId': sessionId,
-        if (name != null) 'name': name,
-        if (businessType != null) 'businessType': businessType,
-        if (category != null) 'category': category,
-        if (logoUrl != null) 'logoUrl': logoUrl,
+        'name': name,
+        'businessType': businessType,
+        'category': category,
+        'logoUrl': logoUrl,
       }),
     );
     if (response.statusCode == 200) {
@@ -82,7 +87,7 @@ class ApiService {
       await setToken(data['token']);
       return data;
     }
-    throw Exception('Failed to verify OTP: ${response.body}');
+    throw Exception('Verification failed');
   }
 
   static Future<Map<String, dynamic>> googleLogin(String email, String name) async {
@@ -97,6 +102,42 @@ class ApiService {
       return data;
     }
     throw Exception('Failed to login with Google: ${response.body}');
+  }
+
+  static Future<Map<String, dynamic>> loginWithPassword(String phone, String password) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/login'),
+      headers: _headers(null),
+      body: jsonEncode({'phone': phone, 'password': password}),
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      await setToken(data['token']);
+      return data;
+    }
+    final error = jsonDecode(response.body)['error'] ?? 'Login failed';
+    throw Exception(error);
+  }
+
+  static Future<Map<String, dynamic>> registerWithPassword(String phone, String password, {String? name, String? businessType, String? category}) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/register'),
+      headers: _headers(null),
+      body: jsonEncode({
+        'phone': phone, 
+        'password': password,
+        'name': name,
+        'businessType': businessType,
+        'category': category
+      }),
+    );
+    if (response.statusCode == 201) {
+      final data = jsonDecode(response.body);
+      await setToken(data['token']);
+      return data;
+    }
+    final error = jsonDecode(response.body)['error'] ?? 'Registration failed';
+    throw Exception(error);
   }
 
   static Future<String?> uploadLogo(Uint8List bytes, String filename) async {
@@ -157,6 +198,17 @@ class ApiService {
       return p.copyWith(syncState: EntityState.synced);
     }
     throw Exception('Failed to save product: ${response.body}');
+  }
+
+  static Future<void> deleteProduct(String id) async {
+    final token = await getToken();
+    final response = await http.delete(
+      Uri.parse('$baseUrl/products/$id'),
+      headers: _headers(token),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete product: ${response.body}');
+    }
   }
 
   // --- Khata (Parties) ---
@@ -308,7 +360,6 @@ class ApiService {
       body: jsonEncode({
         'name': settings.businessName,
         'address': settings.businessAddress,
-        'phone': settings.businessPhone,
         'email': settings.businessEmail,
         'gstin': settings.gstin,
         'category': settings.businessCategory,
@@ -320,6 +371,7 @@ class ApiService {
         'invoiceFormat': settings.invoiceFormat,
         'invoiceTheme': settings.invoiceTheme,
         'certifications': settings.certifications,
+        'onlineStoreTheme': settings.onlineStoreTheme,
       }),
     );
     if (response.statusCode != 200) {

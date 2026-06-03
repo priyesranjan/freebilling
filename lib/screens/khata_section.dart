@@ -3,6 +3,7 @@ import 'dart:math';
 import '../models/models.dart';
 import '../enums/enums.dart';
 import '../core/core.dart';
+import '../services/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class KhataSection extends StatefulWidget {
@@ -586,7 +587,12 @@ class _LedgerSheetState extends State<_LedgerSheet> {
                       final idx = widget.parties.indexWhere((p) => p.id == widget.party.id);
                       if (idx != -1) {
                         final newBalance = widget.party.balance + (direction == 'in' ? -amt : amt);
-                        widget.parties[idx] = widget.party.copyWith(balance: newBalance);
+                        final updatedParty = widget.party.copyWith(
+                          balance: newBalance,
+                          syncState: EntityState.pendingUpdate,
+                        );
+                        widget.parties[idx] = updatedParty;
+                        SyncService.instance.enqueueForSync(updatedParty);
                       }
                     });
                     Navigator.pop(ctx);

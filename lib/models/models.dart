@@ -779,6 +779,7 @@ class AppSettings {
     this.enableQuotations = false,
     this.invoiceTheme = 'standard',
     this.certifications = const [],
+    this.onlineStoreTheme = 'modern',
   });
 
   // Item Settings
@@ -826,6 +827,7 @@ class AppSettings {
   String? businessSignature;
   String invoiceFormat;
   String currency;
+  String onlineStoreTheme; // modern, dark, rose
 
   // Reminders
   bool paymentReminderEnabled;
@@ -846,6 +848,24 @@ class AppSettings {
 
   // Singleton-style global instance
   static final AppSettings instance = AppSettings();
+
+  void reset() {
+    businessName = '';
+    businessAddress = '';
+    businessPhone = '';
+    businessEmail = '';
+    businessCategory = '';
+    businessType = '';
+    state = '';
+    district = '';
+    city = '';
+    pincode = '';
+    businessLogo = null;
+    businessSignature = null;
+    certifications = [];
+    invoiceTheme = 'standard';
+    invoiceFormat = 'POS';
+  }
 
   Future<void> save() async {
     final prefs = await SharedPreferences.getInstance();

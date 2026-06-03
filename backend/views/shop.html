@@ -3,247 +3,346 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>{{businessName}} — Shop on Dukan Bill</title>
-  <meta name="description" content="Buy from {{businessName}}. Browse products, check prices, and order via WhatsApp."/>
-  <meta property="og:title" content="{{businessName}}"/>
-  <meta property="og:description" content="Shop online at {{businessName}} — powered by Dukan Bill"/>
-  <meta property="og:type" content="website"/>
+  <title>{{businessName}} — Premium Online Store</title>
+  <meta name="description" content="Explore products from {{businessName}}. Order high-quality items via WhatsApp. Fast & Reliable."/>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --navy: #1a2b5a; --teal: #17b89e; --coral: #e97a63;
-      --bg: #f4f6fa; --card: #ffffff; --text: #1a1a2e; --muted: #6b7280;
+      /* Theme: Modern Indigo (Default) */
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #10b981;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --glass: rgba(255, 255, 255, 0.8);
+      --border: #e2e8f0;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --radius: 16px;
     }
-    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); }
 
-    /* ── Header ── */
-    .header {
-      background: linear-gradient(135deg, var(--navy) 0%, #2d4a8a 100%);
-      color: white; padding: 0; position: sticky; top: 0; z-index: 100;
-      box-shadow: 0 2px 20px rgba(0,0,0,0.15);
+    /* Theme: Elegant Dark */
+    body.theme-dark {
+      --bg: #0f172a; --surface: #1e293b; --text-main: #f8fafc; --text-muted: #94a3b8;
+      --border: #334155; --glass: rgba(30, 41, 59, 0.8);
     }
-    .header-inner { max-width: 1100px; margin: 0 auto; padding: 16px 20px; display: flex; align-items: center; gap: 16px; }
-    .business-avatar {
-      width: 56px; height: 56px; border-radius: 14px;
-      background: var(--teal); display: flex; align-items: center; justify-content: center;
-      font-size: 24px; font-weight: 800; color: white; flex-shrink: 0;
-    }
-    .business-info h1 { font-size: 20px; font-weight: 700; }
-    .business-info .meta { font-size: 13px; opacity: 0.8; margin-top: 2px; }
-    .header-actions { margin-left: auto; display: flex; gap: 10px; }
-    .btn-whatsapp {
-      background: #25D366; color: white; border: none; padding: 10px 18px;
-      border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px;
-      display: flex; align-items: center; gap: 6px; text-decoration: none;
-      transition: transform 0.15s, box-shadow 0.15s;
-    }
-    .btn-whatsapp:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(37,211,102,0.4); }
-    .btn-call {
-      background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3);
-      padding: 10px 16px; border-radius: 10px; font-weight: 600; cursor: pointer;
-      font-size: 14px; display: flex; align-items: center; gap: 6px; text-decoration: none;
-      backdrop-filter: blur(10px); transition: background 0.2s;
-    }
-    .btn-call:hover { background: rgba(255,255,255,0.25); }
 
-    /* ── GMB Badge ── */
-    .gmb-badge {
-      display: inline-flex; align-items: center; gap: 4px;
-      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
-      padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
-      color: white; margin-top: 6px; text-decoration: none; transition: background 0.2s;
+    /* Theme: Rose Gold */
+    body.theme-rose {
+      --primary: #be185d; --primary-dark: #9d174d; --secondary: #db2777;
     }
-    .gmb-badge:hover { background: rgba(255,255,255,0.3); }
-    .gmb-badge svg { width: 14px; height: 14px; fill: white; }
 
-    /* ── Search & Filters ── */
-    .controls { max-width: 1100px; margin: 0 auto; padding: 20px 20px 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body { 
+      font-family: 'Outfit', 'Inter', sans-serif; 
+      background-color: var(--bg); 
+      color: var(--text-main);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ── Navbar ── */
+    .navbar {
+      position: sticky; top: 0; z-index: 1000;
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+    }
+    .nav-content {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
+    .brand-logo {
+      width: 44px; height: 44px; background: var(--primary); color: white;
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 800; box-shadow: var(--shadow);
+    }
+    .brand-name h1 { font-size: 18px; font-weight: 700; color: var(--text-main); }
+    .brand-name span { font-size: 12px; color: var(--text-muted); display: block; margin-top: -2px; }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white; padding: 60px 20px; text-align: center;
+      position: relative; overflow: hidden; margin-bottom: 40px;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: url('https://www.transparenttextures.com/patterns/cubes.png');
+      opacity: 0.1;
+    }
+    .hero-content { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; }
+    .hero h2 { font-size: 42px; font-weight: 800; margin-bottom: 12px; letter-spacing: -1px; }
+    .hero p { font-size: 18px; opacity: 0.9; margin-bottom: 24px; }
+    .hero-stats { display: flex; justify-content: center; gap: 30px; font-size: 14px; }
+    .stat { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .stat span { font-weight: 700; font-size: 20px; }
+
+    /* ── Shop Layout ── */
+    .shop-container { max-width: 1200px; margin: 0 auto; padding: 0 20px 100px; display: grid; grid-template-columns: 260px 1fr; gap: 32px; }
+
+    /* ── Sidebar ── */
+    .sidebar { position: sticky; top: 100px; height: fit-content; }
     .search-box {
-      width: 100%; padding: 14px 20px; border-radius: 14px; border: 2px solid #e5e7eb;
-      font-size: 15px; background: white; outline: none; transition: border-color 0.2s;
-      font-family: inherit;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 18px; width: 100%;
+      font-family: inherit; font-size: 15px; outline: none; margin-bottom: 24px;
+      transition: all 0.2s; box-shadow: var(--shadow-sm);
     }
-    .search-box:focus { border-color: var(--teal); }
-    .categories { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
-    .cat-chip {
-      padding: 7px 16px; border-radius: 20px; border: 1.5px solid #e5e7eb;
-      background: white; cursor: pointer; font-size: 13px; font-weight: 500;
-      transition: all 0.2s; white-space: nowrap;
-    }
-    .cat-chip.active { background: var(--navy); color: white; border-color: var(--navy); }
-    .cat-chip:hover:not(.active) { border-color: var(--teal); color: var(--teal); }
+    .search-box:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
 
-    /* ── Product Grid ── */
-    .products-section { max-width: 1100px; margin: 20px auto; padding: 0 20px 80px; }
-    .section-title { font-size: 16px; font-weight: 600; color: var(--muted); margin-bottom: 16px; }
+    .filter-group h3 { font-size: 14px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+    .cat-list { display: flex; flex-direction: column; gap: 8px; }
+    .cat-item {
+      padding: 10px 16px; border-radius: 12px; background: transparent;
+      border: none; color: var(--text-main); font-family: inherit; font-size: 15px;
+      font-weight: 500; text-align: left; cursor: pointer; transition: all 0.2s;
+    }
+    .cat-item:hover { background: rgba(0,0,0,0.03); color: var(--primary); }
+    .cat-item.active { background: var(--primary); color: white; box-shadow: var(--shadow); }
+
+    /* ── Product Feed ── */
     .product-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px;
     }
     .product-card {
-      background: white; border-radius: 16px; padding: 16px;
-      border: 1.5px solid #e5e7eb; transition: transform 0.2s, box-shadow 0.2s;
-      position: relative; overflow: hidden;
+      background: var(--surface); border-radius: var(--radius); overflow: hidden;
+      border: 1px solid var(--border); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative; display: flex; flex-direction: column;
     }
-    .product-card:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
-    .product-icon {
-      width: 48px; height: 48px; border-radius: 12px;
-      background: linear-gradient(135deg, #e8f4fd, #d1ecf1);
-      display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 12px;
+    .product-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); border-color: var(--primary); }
+    
+    .product-img-wrapper {
+      aspect-ratio: 1; background: #f1f5f9; position: relative;
+      display: flex; align-items: center; justify-content: center; font-size: 64px;
+      transition: background 0.3s;
     }
-    .product-name { font-size: 15px; font-weight: 600; line-height: 1.3; margin-bottom: 4px; }
-    .product-code { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
-    .product-price-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-    .price { font-size: 20px; font-weight: 700; color: var(--navy); }
-    .mrp { font-size: 13px; color: var(--muted); text-decoration: line-through; }
-    .discount-badge {
-      background: #dcfce7; color: #16a34a; font-size: 11px; font-weight: 700;
-      padding: 3px 8px; border-radius: 6px;
+    .product-card:hover .product-img-wrapper { background: #e2e8f0; }
+
+    .discount-tag {
+      position: absolute; top: 12px; left: 12px;
+      background: var(--secondary); color: white; font-size: 11px; font-weight: 800;
+      padding: 4px 10px; border-radius: 20px; z-index: 1;
     }
-    .stock-badge {
+    .stock-tag {
       position: absolute; top: 12px; right: 12px;
-      font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 6px;
+      background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); color: white;
+      font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: 20px;
     }
-    .in-stock { background: #dcfce7; color: #16a34a; }
-    .out-stock { background: #fee2e2; color: #dc2626; }
-    .btn-add {
-      width: 100%; padding: 10px; border-radius: 10px; border: none;
-      background: var(--navy); color: white; font-weight: 600; font-size: 14px;
-      cursor: pointer; transition: background 0.2s, transform 0.1s; font-family: inherit;
-    }
-    .btn-add:hover { background: var(--teal); }
-    .btn-add:active { transform: scale(0.97); }
-    .btn-add.added { background: var(--teal); }
 
-    /* ── Cart Bar ── */
-    .cart-bar {
-      position: fixed; bottom: 0; left: 0; right: 0;
-      background: var(--navy); color: white; padding: 16px 20px;
-      display: none; align-items: center; gap: 12px;
-      box-shadow: 0 -4px 20px rgba(0,0,0,0.15); z-index: 200;
-    }
-    .cart-bar.visible { display: flex; }
-    .cart-info { flex: 1; }
-    .cart-info .items { font-size: 13px; opacity: 0.8; }
-    .cart-info .total { font-size: 20px; font-weight: 700; }
-    .btn-order {
-      background: var(--teal); color: white; border: none; padding: 12px 24px;
-      border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer;
-      white-space: nowrap; font-family: inherit;
-    }
-    .btn-order:hover { background: #15a89e; }
+    .product-body { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+    .product-category { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+    .product-name { font-size: 18px; font-weight: 700; color: var(--text-main); margin-bottom: 8px; line-height: 1.2; }
+    
+    .price-container { display: flex; align-items: baseline; gap: 8px; margin-top: auto; margin-bottom: 16px; }
+    .price-now { font-size: 22px; font-weight: 800; color: var(--primary); }
+    .price-mrp { font-size: 14px; color: var(--text-muted); text-decoration: line-through; }
 
-    /* ── Empty State ── */
-    .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
-    .empty .icon { font-size: 56px; margin-bottom: 16px; }
-    .empty h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .btn-cart {
+      width: 100%; padding: 12px; border-radius: 12px; border: none;
+      background: var(--primary); color: white; font-weight: 700; font-size: 15px;
+      font-family: inherit; cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-cart:hover { background: var(--primary-dark); transform: scale(1.02); }
+    .btn-cart:active { transform: scale(0.98); }
+    .btn-cart.added { background: var(--secondary); }
+
+    /* ── Floating Cart ── */
+    .cart-float {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      width: calc(100% - 40px); max-width: 500px;
+      background: var(--text-main); color: white; padding: 12px 16px;
+      border-radius: 20px; display: none; align-items: center; justify-content: space-between;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4); z-index: 2000;
+      animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes slideUp { from { transform: translateX(-50%) translateY(100px); opacity: 0; } }
+    .cart-float.visible { display: flex; }
+    .cart-details h4 { font-size: 18px; font-weight: 800; }
+    .cart-details p { font-size: 13px; opacity: 0.7; }
+    .btn-checkout {
+      background: var(--secondary); color: white; border: none; padding: 12px 24px;
+      border-radius: 14px; font-weight: 700; cursor: pointer; font-family: inherit;
+    }
 
     /* ── Footer ── */
-    .footer { text-align: center; padding: 20px; font-size: 12px; color: var(--muted); margin-top: 40px; }
-    .footer a { color: var(--teal); text-decoration: none; font-weight: 600; }
+    .site-footer {
+      background: var(--surface); border-top: 1px solid var(--border);
+      padding: 60px 20px 40px; color: var(--text-main);
+    }
+    .footer-grid {
+      max-width: 1200px; margin: 0 auto;
+      display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px;
+    }
+    .footer-brand h2 { font-size: 24px; font-weight: 800; margin-bottom: 12px; }
+    .footer-brand p { color: var(--text-muted); max-width: 400px; }
+    .footer-col h4 { font-size: 16px; font-weight: 700; margin-bottom: 20px; color: var(--text-main); }
+    .footer-links { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .footer-links a { text-decoration: none; color: var(--text-muted); transition: color 0.2s; }
+    .footer-links a:hover { color: var(--primary); }
+    
+    .footer-bottom {
+      max-width: 1200px; margin: 40px auto 0; padding-top: 24px;
+      border-top: 1px solid var(--border); text-align: center;
+      font-size: 14px; color: var(--text-muted);
+    }
 
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .shop-container { grid-template-columns: 1fr; }
+      .sidebar { position: relative; top: 0; }
+      .cat-list { flex-direction: row; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
+      .cat-list::-webkit-scrollbar { display: none; }
+      .hero h2 { font-size: 32px; }
+    }
     @media (max-width: 600px) {
-      .header-inner { flex-wrap: wrap; }
-      .header-actions { width: 100%; justify-content: stretch; }
-      .btn-whatsapp, .btn-call { flex: 1; justify-content: center; }
       .product-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .product-body { padding: 12px; }
+      .product-name { font-size: 15px; }
+      .price-now { font-size: 18px; }
+      .hero { padding: 40px 20px; }
     }
   </style>
 </head>
-<body>
+<body class="theme-modern">
 
-<!-- ── Header ──────────────────────────────────────────────────── -->
-<header class="header">
-  <div class="header-inner">
-    <div class="business-avatar" id="bizAvatar">{{initial}}</div>
-    <div class="business-info">
-      <h1 id="bizName">{{businessName}}</h1>
-      <div class="meta" id="bizMeta">📍 {{city}} &nbsp;·&nbsp; 📞 {{phone}}</div>
-      <a id="gmbLink" href="#" class="gmb-badge" style="display:none;">
-        <svg viewBox="0 0 24 24"><path d="M12.545 11.071V8.7h6.862c.059.37.093.723.093 1.146 0 1.132-.305 2.081-.858 2.846-.553.765-1.341 1.344-2.227 1.637-.886.293-1.84.407-2.775.328-1.57-.132-3.037-.92-4.102-2.189A6.985 6.985 0 017.5 7.5c0-1.933.784-3.683 2.05-4.95A6.985 6.985 0 0114.5.5c1.135 0 2.215.267 3.176.741L15.935 2.98C15.485 2.748 15.006 2.625 14.5 2.625c-2.692 0-4.875 2.183-4.875 4.875s2.183 4.875 4.875 4.875c.506 0 .985-.123 1.435-.355l1.741 1.739c-.961.474-2.041.741-3.176.741-3.866 0-7-3.134-7-7s3.134-7 7-7c1.135 0 2.215.267 3.176.741l-1.741 1.739c-.45-.232-.929-.355-1.435-.355-2.692 0-4.875 2.183-4.875 4.875s2.183 4.875 4.875 4.875z"/></svg>
-        Verified on Google
-      </a>
-    </div>
-    <div class="header-actions">
-      <a href="https://wa.me/91{{rawPhone}}?text=Hi%20I%20want%20to%20order%20from%20{{businessName}}" 
-         class="btn-whatsapp" id="whatsappBtn" target="_blank">
-        💬 WhatsApp
-      </a>
-      <a href="tel:+91{{rawPhone}}" class="btn-call">📞 Call</a>
+<!-- ── Navigation ────────────────────────────────────────────────── -->
+<nav class="navbar">
+  <div class="nav-content">
+    <a href="/" class="nav-brand">
+      <div class="brand-logo">{{initial}}</div>
+      <div class="brand-name">
+        <h1>{{businessName}}</h1>
+        <span>Official Store</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <!-- Future: User Profile / Cart Icon -->
     </div>
   </div>
-</header>
+</nav>
 
-<!-- ── Search & Filters ──────────────────────────────────────────── -->
-<div class="controls">
-  <input type="text" class="search-box" id="searchInput" placeholder="🔍 Search products..." oninput="filterProducts()"/>
-  <div class="categories" id="categoryBar">
-    <button class="cat-chip active" onclick="setCategory('all', this)">All</button>
+<!-- ── Hero ──────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-content">
+    <h2>Welcome to Our Store</h2>
+    <p>Discover premium products curated just for you. Quality guaranteed.</p>
+    <div class="hero-stats">
+      <div class="stat"><span id="statProductCount">0</span>Products</div>
+      <div class="stat"><span>⭐ 4.9</span>Rating</div>
+      <div class="stat"><span>⚡ Fast</span>Delivery</div>
+    </div>
   </div>
+</section>
+
+<!-- ── Main Shop ────────────────────────────────────────────────── -->
+<div class="shop-container">
+  
+  <aside class="sidebar">
+    <input type="text" class="search-box" id="searchInput" placeholder="Search products..." oninput="filterProducts()"/>
+    
+    <div class="filter-group">
+      <h3>Categories</h3>
+      <div class="cat-list" id="categoryBar">
+        <button class="cat-item active" onclick="setCategory('all', this)">All Collections</button>
+        <!-- Categories injected here -->
+      </div>
+    </div>
+  </aside>
+
+  <main class="product-feed">
+    <div class="product-grid" id="productGrid">
+      <!-- Products injected here -->
+    </div>
+    <div id="emptyState" style="display:none; text-align:center; padding:100px 0;">
+      <div style="font-size:64px; margin-bottom:20px;">🔍</div>
+      <h3>No matches found</h3>
+      <p style="color:var(--text-muted)">Try adjusting your search or category filters.</p>
+    </div>
+  </main>
+
 </div>
 
-<!-- ── Product Grid ──────────────────────────────────────────────── -->
-<div class="products-section">
-  <div class="section-title" id="productCount"></div>
-  <div class="product-grid" id="productGrid">
-    <!-- Injected by JS -->
+<!-- ── Floating Cart ─────────────────────────────────────────────── -->
+<div class="cart-float" id="cartBar">
+  <div class="cart-details">
+    <h4 id="cartTotal">₹0</h4>
+    <p id="cartItems">0 items in your bag</p>
   </div>
-  <div class="empty" id="emptyState" style="display:none;">
-    <div class="icon">🛒</div>
-    <h3>No products found</h3>
-    <p>Try a different search or category.</p>
-  </div>
+  <button class="btn-checkout" onclick="sendWhatsAppOrder()">Order via WhatsApp →</button>
 </div>
 
-<!-- ── Cart Bar ──────────────────────────────────────────────────── -->
-<div class="cart-bar" id="cartBar">
-  <div class="cart-info">
-    <div class="items" id="cartItems">0 items</div>
-    <div class="total" id="cartTotal">₹0</div>
+<!-- ── Footer ────────────────────────────────────────────────────── -->
+<footer class="site-footer">
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <h2>{{businessName}}</h2>
+      <p>Premium quality products delivered to your doorstep. We take pride in our service and product excellence.</p>
+      <div style="margin-top:20px; display:flex; gap:16px;">
+        <a href="tel:+91{{rawPhone}}" style="color:var(--primary); font-weight:700; text-decoration:none;">📞 Call Us</a>
+        <a href="https://wa.me/91{{rawPhone}}" style="color:var(--secondary); font-weight:700; text-decoration:none;">💬 WhatsApp</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Quick Links</h4>
+      <ul class="footer-links">
+        <li><a href="#">About Us</a></li>
+        <li><a href="#">Shipping Policy</a></li>
+        <li><a href="#">Contact Support</a></li>
+        <li><a href="#">Terms of Service</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Visit Us</h4>
+      <p style="font-size:14px; color:var(--text-muted); line-height:1.6;">
+        {{businessName}}<br/>
+        {{city}}<br/>
+        India
+      </p>
+    </div>
   </div>
-  <button class="btn-order" onclick="sendWhatsAppOrder()">📲 Order via WhatsApp</button>
-</div>
-
-<!-- ── Footer ──────────────────────────────────────────────────── -->
-<footer class="footer">
-  Powered by <a href="/">Dukan Bill</a> — Free billing for every business
+  <div class="footer-bottom">
+    &copy; 2026 <strong>{{businessName}}</strong>. All rights reserved. 
+    <span style="margin: 0 10px;">|</span> 
+    Powered by <a href="https://freebilling.app" style="color:var(--primary); font-weight:700; text-decoration:none;">Dukan Bill</a>
+  </div>
 </footer>
 
 <script>
-  // ── Data injected by server ────────────────────────────────────
   const BUSINESS = {{businessJson}};
   const PRODUCTS = {{productsJson}};
-
   let cart = {};
   let activeCategory = 'all';
 
-  // ── Init ──────────────────────────────────────────────────────
   function init() {
-    // Build category list
     const cats = [...new Set(PRODUCTS.map(p => p.category || 'General'))];
     const bar = document.getElementById('categoryBar');
     cats.forEach(cat => {
       const btn = document.createElement('button');
-      btn.className = 'cat-chip';
+      btn.className = 'cat-item';
       btn.textContent = cat;
       btn.onclick = () => setCategory(cat, btn);
       bar.appendChild(btn);
     });
-
-    if (BUSINESS.gmb_location_id) {
-        const gmbLink = document.getElementById('gmbLink');
-        gmbLink.style.display = 'inline-flex';
-        // Construct a generic Google Maps search for the business name
-        gmbLink.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(BUSINESS.businessName)}`;
-    }
-
+    
+    document.getElementById('statProductCount').textContent = PRODUCTS.length;
     renderProducts(PRODUCTS);
   }
 
   function setCategory(cat, el) {
     activeCategory = cat;
-    document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.cat-item').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
     filterProducts();
   }
@@ -261,43 +360,42 @@
   function renderProducts(list) {
     const grid = document.getElementById('productGrid');
     const empty = document.getElementById('emptyState');
-    const count = document.getElementById('productCount');
-    count.textContent = list.length + ' products';
-
-    if (list.length === 0) {
-      grid.innerHTML = ''; empty.style.display = 'block'; return;
-    }
+    if (list.length === 0) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
     empty.style.display = 'none';
 
     grid.innerHTML = list.map(p => {
       const inCart = cart[p.id] || 0;
-      const discount = p.mrp > p.sellingPrice && p.mrp > 0
-        ? Math.round((p.mrp - p.sellingPrice) / p.mrp * 100) : 0;
+      const discount = p.mrp > p.sellingPrice ? Math.round((p.mrp - p.sellingPrice) / p.mrp * 100) : 0;
       const inStock = !p.currentStock || p.currentStock > 0;
       return `
-        <div class="product-card" id="card-${p.id}">
-          <span class="stock-badge ${inStock ? 'in-stock' : 'out-stock'}">${inStock ? 'In Stock' : 'Out of Stock'}</span>
-          <div class="product-icon">🛍️</div>
-          <div class="product-name">${p.name}</div>
-          ${p.codes && p.codes[0] ? `<div class="product-code">SKU: ${p.codes[0]}</div>` : ''}
-          <div class="product-price-row">
-            <span class="price">₹${p.sellingPrice.toFixed(0)}</span>
-            ${p.mrp > p.sellingPrice ? `<span class="mrp">₹${p.mrp.toFixed(0)}</span>` : ''}
-            ${discount > 0 ? `<span class="discount-badge">${discount}% OFF</span>` : ''}
+        <div class="product-card">
+          ${discount > 0 ? `<div class="discount-tag">${discount}% OFF</div>` : ''}
+          ${!inStock ? `<div class="stock-tag">Out of Stock</div>` : ''}
+          <div class="product-img-wrapper">📦</div>
+          <div class="product-body">
+            <span class="product-category">${p.category || 'General'}</span>
+            <h3 class="product-name">${p.name}</h3>
+            <div class="price-container">
+              <span class="price-now">₹${parseFloat(p.sellingPrice).toFixed(0)}</span>
+              ${p.mrp > p.sellingPrice ? `<span class="price-mrp">₹${parseFloat(p.mrp).toFixed(0)}</span>` : ''}
+            </div>
+            <button class="btn-cart ${inCart > 0 ? 'added' : ''}" 
+                    onclick="addToCart('${p.id}')" ${!inStock ? 'disabled' : ''}>
+              ${inCart > 0 ? `🛒 Added (${inCart})` : 'Add to Bag'}
+            </button>
           </div>
-          <button class="btn-add ${inCart > 0 ? 'added' : ''}" id="btn-${p.id}" 
-            onclick="addToCart('${p.id}', '${p.name}', ${p.sellingPrice})" ${!inStock ? 'disabled' : ''}>
-            ${inCart > 0 ? `✅ Added (${inCart})` : '+ Add to Cart'}
-          </button>
         </div>`;
     }).join('');
   }
 
-  function addToCart(id, name, price) {
+  function addToCart(id) {
     cart[id] = (cart[id] || 0) + 1;
-    // Update button
-    const btn = document.getElementById('btn-' + id);
-    if (btn) { btn.textContent = `✅ Added (${cart[id]})`; btn.classList.add('added'); }
+    renderProducts(PRODUCTS.filter(p => {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      const matchSearch = p.name.toLowerCase().includes(q);
+      const matchCat = activeCategory === 'all' || (p.category || 'General') === activeCategory;
+      return matchSearch && matchCat;
+    }));
     updateCartBar();
   }
 
@@ -308,8 +406,8 @@
       const p = PRODUCTS.find(x => x.id === id);
       return s + (p ? p.sellingPrice * cart[id] : 0);
     }, 0);
-    document.getElementById('cartItems').textContent = totalItems + ' item' + (totalItems !== 1 ? 's' : '');
-    document.getElementById('cartTotal').textContent = '₹' + totalPrice.toFixed(0);
+    document.getElementById('cartItems').textContent = totalItems + ' item' + (totalItems !== 1 ? 's' : '') + ' in your bag';
+    document.getElementById('cartTotal').textContent = '₹' + totalPrice.toLocaleString('en-IN');
     document.getElementById('cartBar').classList.toggle('visible', totalItems > 0);
   }
 
@@ -322,7 +420,7 @@
     const total = Object.keys(cart).reduce((s, id) => {
       const p = PRODUCTS.find(x => x.id === id); return s + (p ? p.sellingPrice * cart[id] : 0);
     }, 0);
-    msg += `\n*Total: ₹${total.toFixed(0)}*\nPlease confirm my order. Thank you!`;
+    msg += `\n*Total: ₹${total.toLocaleString('en-IN')}*\nPlease confirm my order. Thank you!`;
     const phone = BUSINESS.phone ? BUSINESS.phone.replace(/\D/g, '') : '';
     window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`, '_blank');
   }

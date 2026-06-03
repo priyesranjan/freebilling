@@ -10,6 +10,7 @@ import 'marketing_hub.dart';
 import 'settings/upgrade_screen.dart';
 import 'auth_screen.dart';
 import '../services/api_service.dart';
+import '../services/services.dart';
 
 class MenuSection extends StatefulWidget {
   final List<InvoiceRecord> invoices;
@@ -139,10 +140,15 @@ class _MenuSectionState extends State<MenuSection> {
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
+              
+              // 1. Clear local storage/token
               await ApiService.clearToken();
-              // Do not clear AppSettings so the profile remains if they log back in,
-              // but if they log in as someone else, the API will overwrite it later.
+              
+              // 2. Disconnect Real-time services
+              WebSocketService.instance.disconnect();
+              
               if (context.mounted) {
+                // 3. Navigate to Auth Screen
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (_) => const AuthScreen()),
                   (route) => false,

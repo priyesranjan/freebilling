@@ -12,10 +12,12 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:async';
 import 'dart:typed_data';
+import '../widgets/premium_widgets.dart';
 
 enum InvoiceFilter { all, paid, unpaid }
 
 class InvoicesSection extends StatefulWidget {
+  final bool isLoading;
   final List<InvoiceRecord> invoices;
   final void Function(InvoiceRecord)? onCreateInvoice;
   final List<Product>? products;
@@ -24,6 +26,7 @@ class InvoicesSection extends StatefulWidget {
 
   const InvoicesSection({
     super.key,
+    this.isLoading = false,
     required this.invoices,
     this.onCreateInvoice,
     this.products,
@@ -155,24 +158,26 @@ class _InvoicesSectionState extends State<InvoicesSection> {
               ),
             ),
           Expanded(
-            child: bills.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.receipt_long, size: 64, color: Colors.grey.shade300)
-                            .animate(onPlay: (controller) => controller.repeat(reverse: true))
-                            .moveY(begin: -5, end: 5, duration: 1000.ms, curve: Curves.easeInOut),
-                        const SizedBox(height: 16),
-                        Text(
-                          _filter == InvoiceFilter.all ? 'No bills yet.\nTap "Create Bill" to get started!' : 'No ${_filter.name} bills found.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.grey.shade600),
-                        ).animate().fadeIn(duration: 500.ms),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
+            child: widget.isLoading
+                ? ListView.builder(itemCount: 8, itemBuilder: (context, index) => const SkeletonListTile())
+                : bills.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.receipt_long, size: 64, color: Colors.grey.shade300)
+                                .animate(onPlay: (controller) => controller.repeat(reverse: true))
+                                .moveY(begin: -5, end: 5, duration: 1000.ms, curve: Curves.easeInOut),
+                            const SizedBox(height: 16),
+                            Text(
+                              _filter == InvoiceFilter.all ? 'No bills yet.\nTap "Create Bill" to get started!' : 'No ${_filter.name} bills found.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.grey.shade600),
+                            ).animate().fadeIn(duration: 500.ms),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
                     padding: const EdgeInsets.fromLTRB(0, 8, 0, 80),
                     itemCount: bills.take(_currentPage * _pageSize).length + (bills.length > _currentPage * _pageSize ? 1 : 0),
                     itemBuilder: (context, index) {

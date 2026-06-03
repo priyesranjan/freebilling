@@ -4,12 +4,14 @@ import 'package:fl_chart/fl_chart.dart';
 import '../models/models.dart';
 import '../core/core.dart';
 import '../enums/enums.dart';
+import '../widgets/premium_widgets.dart';
 import 'reports_screen.dart';
 import 'website_preview_screen.dart';
 import 'all_transactions_screen.dart';
 import 'live_support_screen.dart';
 
 class HomeSection extends StatelessWidget {
+  final bool isLoading;
   final List<BusinessRecord> businesses;
   final List<Product> products;
   final List<InvoiceRecord> invoices;
@@ -21,6 +23,7 @@ class HomeSection extends StatelessWidget {
 
   const HomeSection({
     super.key,
+    this.isLoading = false,
     required this.businesses,
     required this.products,
     required this.invoices,
@@ -43,10 +46,10 @@ class HomeSection extends StatelessWidget {
           _buildQuickLinksCard(context),
 
           // Financial Health Cards
-          _buildFinancialCards(context),
+          isLoading ? _buildFinancialSkeleton(context) : _buildFinancialCards(context),
 
           // Sales Graph
-          _buildSalesGraph(context),
+          isLoading ? _buildGraphSkeleton(context) : _buildSalesGraph(context),
 
           // Top Selling Products
           _buildTopProducts(context),
@@ -58,7 +61,10 @@ class HomeSection extends StatelessWidget {
           ),
 
           // Recent Transactions List
-          ..._buildRecentTransactions(context),
+          if (isLoading)
+            ...List.generate(3, (index) => const SkeletonListTile())
+          else
+            ..._buildRecentTransactions(context),
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
@@ -490,6 +496,26 @@ class HomeSection extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildFinancialSkeleton(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Row(
+        children: [
+          Expanded(child: SkeletonLoader(height: 80, width: double.infinity)),
+          const SizedBox(width: 12),
+          Expanded(child: SkeletonLoader(height: 80, width: double.infinity)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGraphSkeleton(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(10),
+      child: const SkeletonLoader(height: 200, width: double.infinity, borderRadius: 16),
     );
   }
 }

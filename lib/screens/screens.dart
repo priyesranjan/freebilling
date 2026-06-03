@@ -327,11 +327,16 @@ class _PlatformShellState extends State<PlatformShell> {
     });
   }
 
-  void _deleteProduct(String id) {
-    setState(() {
-      _products.removeWhere((p) => p.id == id);
-      // In a real app we'd mark it deleted and sync
-    });
+  Future<void> _deleteProduct(String id) async {
+    try {
+      await ApiService.deleteProduct(id);
+      setState(() {
+        _products.removeWhere((p) => p.id == id);
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Delete failed: $e')));
+    }
   }
 
   void _storeInvoice(InvoiceRecord invoice) {
@@ -422,6 +427,7 @@ class _PlatformShellState extends State<PlatformShell> {
     switch (_section) {
       case AppSection.home:
         return HomeSection(
+          isLoading: _isLoading,
           businesses: _businesses,
           products: _products,
           invoices: _invoices,
@@ -436,6 +442,7 @@ class _PlatformShellState extends State<PlatformShell> {
         );
       case AppSection.items:
         return ItemsSection(
+          isLoading: _isLoading,
           products: _products,
           onAddProduct: _addProduct,
           onUpdateProduct: _updateProduct,
@@ -443,6 +450,7 @@ class _PlatformShellState extends State<PlatformShell> {
         );
       case AppSection.invoices:
         return InvoicesSection(
+          isLoading: _isLoading,
           invoices: _invoices,
           onCreateInvoice: _storeInvoice,
           products: _products,
@@ -453,7 +461,10 @@ class _PlatformShellState extends State<PlatformShell> {
         return KhataSection(
           parties: _parties,
           invoices: _invoices,
-          onPartyAdded: (p) => setState(() => _parties.add(p)),
+          onPartyAdded: (p) {
+            setState(() => _parties.add(p));
+            SyncService.instance.enqueueForSync(p);
+          },
         );
       case AppSection.menu:
         return MenuSection(
@@ -726,6 +737,11 @@ class _PlatformShellState extends State<PlatformShell> {
         ),
         title: _buildAppBarTitle(),
         actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded, color: BrandPalette.teal),
+            onPressed: _loadDataFromCloud,
+            tooltip: 'Sync Now',
+          ),
           IconButton(
             icon: const Icon(Icons.search, color: Color(0xFF64748B)),
             onPressed: () => Navigator.push(
@@ -2017,8 +2033,9 @@ class _OwnerSectionState extends State<OwnerSection> {
             await ApiService.clearToken();
             WebSocketService.instance.disconnect();
             if (!mounted) return;
-            Navigator.of(context).pushReplacement(
+            Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(builder: (context) => const AuthScreen()),
+              (route) => false,
             );
           },
         )

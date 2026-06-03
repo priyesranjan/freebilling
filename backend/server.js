@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const db = require('./db');
 const http = require('http');
 const axios = require('axios');
@@ -21,10 +22,6 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
-// API router (mounted at /api)
-const apiRouter = express.Router();
-app.use('/api', apiRouter);
-
 // Request logging
 app.use((req, res, next) => {
   console.log(`[REQUEST] ${req.method} ${req.url}`);
@@ -40,8 +37,7 @@ app.get('/web/*', (req, res) => {
 });
 
 // ── Health Check ────────────────────────────────────────────────
-const SERVICE_VERSION = '1.2.0';
-
+const SERVICE_VERSION = '1.4.0';
 function healthPayload() {
   return {
     status: 'ok',
@@ -50,46 +46,41 @@ function healthPayload() {
     timestamp: new Date().toISOString(),
   };
 }
-
 app.get('/api/health', (req, res) => res.json(healthPayload()));
-
-// Alias used by Docker/Nginx healthchecks
 app.get('/health', (req, res) => res.json(healthPayload()));
 
 // ── Business Storefront (Public, No Auth) ────────────────────────
-const shopTemplate = require('fs').readFileSync(path.join(__dirname, 'views', 'shop.html'), 'utf8');
+const shopTemplate = fs.readFileSync(path.join(__dirname, 'views', 'shop.html'), 'utf8');
+const invoiceTemplate = fs.readFileSync(path.join(__dirname, 'views', 'invoice.html'), 'utf8');
 
 app.get('/shop/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
-    // Fetch business by slug or name match
+    const theme = req.query.theme || 'modern'; // Support multiple themes: modern, dark, rose
+
     const bizResult = await db.query(
       `SELECT * FROM businesses WHERE website_slug = $1 OR LOWER(REPLACE(name, ' ', '-')) = $1 LIMIT 1`,
       [slug.toLowerCase()]
     );
     if (bizResult.rows.length === 0) {
       return res.status(404).send(`
-        <html><body style="font-family:sans-serif;text-align:center;padding:60px">
-          <h2>🏪 Business Not Found</h2>
-          <p>No business found at this link.</p>
-          <a href="/" style="color:#17b89e">← Back to Dukan Bill</a>
+        <html><body style="font-family:sans-serif;text-align:center;padding:60px;background:#f8fafc;color:#1e293b">
+          <div style="font-size:64px;margin-bottom:20px">🏪</div>
+          <h2 style="font-weight:800;font-size:24px">Business Not Found</h2>
+          <p style="color:#64748b;margin:10px 0 20px">No store found at this link. Please check the URL.</p>
+          <a href="/" style="background:#4f46e5;color:white;padding:12px 24px;border-radius:12px;text-decoration:none;font-weight:700">← Back to Dukan Bill</a>
         </body></html>`);
     }
     const biz = bizResult.rows[0];
 
-    // Fetch products for this business
     const prodsResult = await db.query(
       `SELECT id, name, selling_price as "sellingPrice", mrp, current_stock as "currentStock", 
-              low_stock_level as "lowStockAlertLevel", codes, tax_rate as "taxRate"
+              low_stock_level as "lowStockAlertLevel", category, codes, tax_rate as "taxRate"
        FROM products WHERE business_id = $1 ORDER BY name`,
       [biz.id]
     );
-    const products = prodsResult.rows.map(p => ({
-      ...p,
-      codes: Array.isArray(p.codes) ? p.codes : (p.codes ? JSON.parse(p.codes) : []),
-    }));
 
-    const phone = (biz.phone || biz.owner_phone || '').replace(/\D/g, '');
+    const phone = (biz.phone || '').replace(/\D/g, '');
     const initial = (biz.name || 'B')[0].toUpperCase();
     const city = biz.city || biz.address || '';
 
@@ -97,10 +88,11 @@ app.get('/shop/:slug', async (req, res) => {
       .replace(/{{businessName}}/g, biz.name || 'Business')
       .replace(/{{initial}}/g, initial)
       .replace(/{{city}}/g, city)
-      .replace(/{{phone}}/g, biz.phone || biz.owner_phone || '')
+      .replace(/{{phone}}/g, biz.phone || '')
       .replace(/{{rawPhone}}/g, phone)
-      .replace('{{businessJson}}', JSON.stringify({ businessName: biz.name, phone }))
-      .replace('{{productsJson}}', JSON.stringify(products));
+      .replace(/theme-modern/g, `theme-${req.query.theme || biz.online_store_theme || 'modern'}`)
+      .replace('{{businessJson}}', JSON.stringify({ businessName: biz.name, phone, gmb_location_id: biz.gmb_location_id }))
+      .replace('{{productsJson}}', JSON.stringify(prodsResult.rows));
 
     res.send(html);
   } catch (err) {
@@ -196,12 +188,13 @@ app.post(['/api/send-otp', '/api/auth/send-otp'], async (req, res) => {
     const response = await axios.get(url);
     
     if (response.data.Status === 'Success') {
+      console.log(`[API LOG] SMS OTP Sent to ${phone}. Session: ${response.data.Details}`);
       res.json({ success: true, sessionId: response.data.Details });
     } else {
       throw new Error(response.data.Details);
     }
   } catch (err) {
-    console.error("2Factor Error:", err.message);
+    console.error("[API ERROR] 2Factor Error:", err.message);
     res.status(500).json({ error: 'Failed to send SMS', details: err.message });
   }
 });
@@ -255,9 +248,10 @@ app.post('/api/auth/verify-otp', async (req, res) => {
     }
     
     const token = jwt.sign({ businessId: user.id, name: user.name, phone: user.phone }, JWT_SECRET);
+    console.log(`[API LOG] Auth Success: ${phone} (Business: ${user.name})`);
     res.json({ token, business: user });
   } catch (err) {
-    console.error("Verify OTP Error:", err);
+    console.error("[API ERROR] Verify OTP Error:", err);
     res.status(500).json({ error: 'Invalid OTP or Service Error', details: err.message });
   }
 });
@@ -272,17 +266,53 @@ app.post('/api/login', async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ error: 'Account does not exist. Please Sign Up.' });
 
     const user = result.rows[0];
-    // In production, use bcrypt.compare!
-    if (user.password !== password) return res.status(401).json({ error: 'Incorrect password' });
+    
+    // Check if the user was created via OTP/Google without a password
+    if (!user.password || user.password === 'google-auth') {
+        return res.status(401).json({ error: 'Account uses OTP or Google Auth. Please login via those methods or reset password.' });
+    }
+
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) return res.status(401).json({ error: 'Incorrect password' });
 
     const token = jwt.sign({ businessId: user.id, name: user.name, phone: user.phone }, JWT_SECRET);
     res.json({ token, business: user });
   } catch (err) {
+    console.error('Login Error:', err);
     res.status(500).json({ error: 'Database error' });
   }
 });
 
-apiRouter.post('/auth/google', async (req, res) => {
+// --- NEW: REGISTER WITH PASSWORD ---
+app.post('/api/register', async (req, res) => {
+  const { phone, password, name, businessType, category } = req.body;
+  if (!phone || !password) return res.status(400).json({ error: 'Phone and Password are required' });
+
+  try {
+    const existing = await db.query('SELECT * FROM businesses WHERE phone = $1', [phone]);
+    if (existing.rows.length > 0) {
+      return res.status(400).json({ error: 'An account with this phone number already exists.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const businessId = 'BUS-' + Date.now();
+    const slug = name ? name.toLowerCase().replace(/\\s+/g, '-') + '-' + Math.floor(Math.random()*1000) : 'business-' + Math.floor(Math.random()*10000);
+
+    const result = await db.query(
+      'INSERT INTO businesses (id, name, phone, password, business_type, category, website_slug) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+      [businessId, name || 'My Business', phone, hashedPassword, businessType || 'General', category || 'Retail', slug]
+    );
+
+    const user = result.rows[0];
+    const token = jwt.sign({ businessId: user.id, name: user.name, phone: user.phone }, JWT_SECRET);
+    res.status(201).json({ token, business: user });
+  } catch (err) {
+    console.error('Register Error:', err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+app.post('/api/auth/google', async (req, res) => {
   const { email, name } = req.body;
   if (!email) return res.status(400).json({ error: 'Email is required' });
 
@@ -308,7 +338,7 @@ apiRouter.post('/auth/google', async (req, res) => {
   }
 });
 
-apiRouter.put('/businesses/onboard', authenticateToken, async (req, res) => {
+app.put('/api/businesses/onboard', authenticateToken, async (req, res) => {
   const { name, businessType, websiteSlug } = req.body;
   try {
     const result = await db.query(
@@ -322,9 +352,9 @@ apiRouter.put('/businesses/onboard', authenticateToken, async (req, res) => {
 });
 
 // --- FULL BUSINESS PROFILE ENDPOINT ---
-apiRouter.put('/businesses/profile', authenticateToken, async (req, res) => {
+app.put('/api/businesses/profile', authenticateToken, async (req, res) => {
   const {
-    name, address, phone, email, gstin, category, businessType,
+    name, address, email, gstin, category, businessType,
     state, district, city, pincode, invoiceFormat, invoiceTheme, certifications
   } = req.body;
   try {
@@ -332,21 +362,20 @@ apiRouter.put('/businesses/profile', authenticateToken, async (req, res) => {
       `UPDATE businesses SET
         name = COALESCE($1, name),
         address = COALESCE($2, address),
-        phone = COALESCE($3, phone),
-        email = COALESCE($4, email),
-        gstin = COALESCE($5, gstin),
-        category = COALESCE($6, category),
-        business_type = COALESCE($7, business_type),
-        state = COALESCE($8, state),
-        district = COALESCE($9, district),
-        city = COALESCE($10, city),
-        pincode = COALESCE($11, pincode),
-        invoice_format = COALESCE($12, invoice_format),
-        invoice_theme = COALESCE($13, invoice_theme),
-        certifications = COALESCE($14, certifications)
-      WHERE id = $15`,
+        email = COALESCE($3, email),
+        gstin = COALESCE($4, gstin),
+        category = COALESCE($5, category),
+        business_type = COALESCE($6, business_type),
+        state = COALESCE($7, state),
+        district = COALESCE($8, district),
+        city = COALESCE($9, city),
+        pincode = COALESCE($10, pincode),
+        invoice_format = COALESCE($11, invoice_format),
+        invoice_theme = COALESCE($12, invoice_theme),
+        certifications = COALESCE($13, certifications)
+      WHERE id = $14`,
       [
-        name, address, phone, email, gstin, category, businessType,
+        name, address, email, gstin, category, businessType,
         state, district, city, pincode, invoiceFormat, invoiceTheme,
         certifications ? JSON.stringify(certifications) : null,
         req.user.businessId
@@ -359,7 +388,17 @@ apiRouter.put('/businesses/profile', authenticateToken, async (req, res) => {
   }
 });
 
-apiRouter.post('/upload-logo', upload.single('logo'), async (req, res) => {
+// --- PRODUCT DELETION ---
+app.delete('/api/products/:id', authenticateToken, async (req, res) => {
+  try {
+    await db.query('DELETE FROM products WHERE id = $1 AND business_id = $2', [req.params.id, req.user.businessId]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete product' });
+  }
+});
+
+app.post('/api/upload-logo', upload.single('logo'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded' });
   }
@@ -376,7 +415,7 @@ apiRouter.post('/upload-logo', upload.single('logo'), async (req, res) => {
   }
 });
 
-apiRouter.get('/products', authenticateToken, async (req, res) => {
+app.get('/api/products', authenticateToken, async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM products WHERE business_id = $1 ORDER BY created_at DESC', [req.user.businessId]);
     res.json(result.rows);
@@ -385,7 +424,7 @@ apiRouter.get('/products', authenticateToken, async (req, res) => {
   }
 });
 
-apiRouter.post('/products', authenticateToken, async (req, res) => {
+app.post('/api/products', authenticateToken, async (req, res) => {
   const id = req.body.id;
   const name = req.body.name;
   const mrp = req.body.mrp || 0;
@@ -423,7 +462,7 @@ apiRouter.post('/products', authenticateToken, async (req, res) => {
 
 // --- KHATA (PARTIES) ENDPOINTS ---
 
-apiRouter.get('/khata', authenticateToken, async (req, res) => {
+app.get('/api/khata', authenticateToken, async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM parties WHERE business_id = $1 ORDER BY name ASC', [req.user.businessId]);
     res.json(result.rows);
@@ -432,7 +471,7 @@ apiRouter.get('/khata', authenticateToken, async (req, res) => {
   }
 });
 
-apiRouter.post('/khata', authenticateToken, async (req, res) => {
+app.post('/api/khata', authenticateToken, async (req, res) => {
   const { id, name, phone, type, balance } = req.body;
   try {
     const result = await db.query(
@@ -457,7 +496,7 @@ apiRouter.post('/khata', authenticateToken, async (req, res) => {
 
 // --- INVOICES ENDPOINTS ---
 
-apiRouter.get('/invoices', authenticateToken, async (req, res) => {
+app.get('/api/invoices', authenticateToken, async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM invoices WHERE business_id = $1 ORDER BY created_at DESC', [req.user.businessId]);
     res.json(result.rows);
@@ -466,7 +505,7 @@ apiRouter.get('/invoices', authenticateToken, async (req, res) => {
   }
 });
 
-apiRouter.post('/invoices', authenticateToken, async (req, res) => {
+app.post('/api/invoices', authenticateToken, async (req, res) => {
   const { id, customer_name, customer_phone, total, payment_mode, invoice_type, lines } = req.body;
   try {
     const result = await db.query(
@@ -492,7 +531,7 @@ apiRouter.post('/invoices', authenticateToken, async (req, res) => {
 });
 
 // --- PUBLIC INVOICE VIEWER (for QR Code Scanning) ---
-apiRouter.get('/invoice/:id', async (req, res) => {
+app.get('/api/invoice/:id', async (req, res) => {
   try {
     const invResult = await db.query(
       `SELECT i.*, b.name as business_name, b.address as business_address, b.phone as business_phone,
@@ -527,7 +566,7 @@ app.get('/invoice/:id', async (req, res) => {
     const theme = inv.invoice_theme || 'standard';
     const isQuotation = inv.invoice_type === 'quotation';
     const title = isQuotation ? 'QUOTATION / ESTIMATE' : 'TAX INVOICE';
-    const themeColor = theme === 'modern' ? '#3730a3' : theme === 'professional' ? '#1e293b' : '#1e3a5f';
+    const themeColor = theme === 'modern' ? '#4f46e5' : theme === 'professional' ? '#0f172a' : '#1e293b';
 
     const linesHTML = lines.map((l, i) => {
       const name = l.name || (l.product && l.product.name) || (l.product_id ? `Product ${l.product_id}` : 'Item');
@@ -537,95 +576,32 @@ app.get('/invoice/:id', async (req, res) => {
       
       return `
       <tr>
-        <td>${i + 1}</td>
-        <td>${name}</td>
-        <td>${qty}</td>
-        <td>₹${parseFloat(rate).toFixed(2)}</td>
-        <td>₹${parseFloat(amount).toFixed(2)}</td>
+        <td style="color:#64748b">${i + 1}</td>
+        <td><span class="item-name">${name}</span></td>
+        <td style="text-align:center">${qty}</td>
+        <td style="text-align:right">₹${parseFloat(rate).toLocaleString('en-IN')}</td>
+        <td style="text-align:right; font-weight:700">₹${parseFloat(amount).toLocaleString('en-IN')}</td>
       </tr>`;
     }).join('');
 
     const certsHTML = certs.map(c => `<span class="cert-badge">${c}</span>`).join('');
 
-    const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title} - ${inv.business_name}</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; min-height: 100vh; padding: 20px; }
-    .invoice-wrap { max-width: 800px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.1); }
-    .header { background: ${themeColor}; color: white; padding: 28px 32px; }
-    .header h1 { font-size: 14px; opacity: 0.8; letter-spacing: 2px; text-transform: uppercase; }
-    .header h2 { font-size: 28px; font-weight: 700; margin-top: 4px; }
-    .header .meta { font-size: 12px; opacity: 0.7; margin-top: 4px; }
-    .doc-type { background: rgba(255,255,255,0.15); display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-top: 10px; letter-spacing: 1px; }
-    .body { padding: 28px 32px; }
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
-    .info-box h4 { font-size: 11px; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px; margin-bottom: 6px; }
-    .info-box p { font-size: 14px; color: #1e293b; }
-    .info-box .big { font-size: 18px; font-weight: 700; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-    th { background: ${themeColor}; color: white; padding: 10px 12px; text-align: left; font-size: 12px; }
-    td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
-    tr:hover td { background: #f8fafc; }
-    .totals { text-align: right; margin-bottom: 24px; }
-    .totals table { width: 280px; margin-left: auto; }
-    .totals td { border: none; }
-    .grand-total { font-size: 18px; font-weight: 700; color: ${themeColor}; }
-    .certs { margin: 16px 0; display: flex; flex-wrap: wrap; gap: 8px; }
-    .cert-badge { background: #eff6ff; color: ${themeColor}; border: 1px solid ${themeColor}; border-radius: 4px; padding: 3px 10px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
-    .footer { border-top: 1px solid #e2e8f0; padding: 20px 32px; background: #f8fafc; text-align: center; color: #64748b; font-size: 12px; }
-    .verified-badge { display: inline-flex; align-items: center; gap: 6px; background: #dcfce7; color: #15803d; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin-top: 10px; }
-    @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } .body { padding: 16px; } .header { padding: 20px 16px; } }
-  </style>
-</head>
-<body>
-  <div class="invoice-wrap">
-    <div class="header">
-      <h1>${inv.business_name}</h1>
-      <h2>₹${parseFloat(inv.total).toLocaleString('en-IN')}</h2>
-      <div class="meta">${inv.business_address || ''} | ${inv.business_phone || ''} ${inv.gstin ? '| GSTIN: ' + inv.gstin : ''}</div>
-      <span class="doc-type">✓ ${title}</span>
-    </div>
-    <div class="body">
-      <div class="info-grid">
-        <div class="info-box">
-          <h4>Billed To</h4>
-          <p class="big">${inv.customer_name || 'Walk-in Customer'}</p>
-          <p>${inv.customer_phone || ''}</p>
-        </div>
-        <div class="info-box">
-          <h4>Invoice Details</h4>
-          <p><strong>Invoice No:</strong> ${inv.id}</p>
-          <p><strong>Date:</strong> ${new Date(inv.created_at).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })}</p>
-          <p><strong>Payment:</strong> ${(inv.payment_mode || 'cash').toUpperCase()}</p>
-        </div>
-      </div>
-      <table>
-        <thead><tr><th>#</th><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead>
-        <tbody>${linesHTML || '<tr><td colspan="5" style="text-align:center;color:#94a3b8">No items</td></tr>'}</tbody>
-      </table>
-      <div class="totals">
-        <table>
-          <tr><td>Subtotal</td><td>₹${parseFloat(inv.total).toFixed(2)}</td></tr>
-          <tr class="grand-total"><td><strong>Grand Total</strong></td><td><strong>₹${parseFloat(inv.total).toFixed(2)}</strong></td></tr>
-        </table>
-      </div>
-      ${certsHTML ? '<div class="certs">' + certsHTML + '</div>' : ''}
-      <div style="text-align:center">
-        <span class="verified-badge">✓ E-Verified Bill | Dukan Bill</span>
-      </div>
-    </div>
-    <div class="footer">
-      <p>Thank you for your business! This is a digitally verified document.</p>
-      <p style="margin-top:4px">Powered by <strong>Dukan Bill</strong> | freebilling.app</p>
-    </div>
-  </div>
-</body>
-</html>`;
+    const html = invoiceTemplate
+      .replace(/{{title}}/g, title)
+      .replace(/{{themeColor}}/g, themeColor)
+      .replace(/{{businessName}}/g, inv.business_name)
+      .replace(/{{businessAddress}}/g, inv.business_address || '')
+      .replace(/{{businessPhone}}/g, inv.business_phone || '')
+      .replace(/{{gstin}}/g, inv.gstin ? '| GSTIN: ' + inv.gstin : '')
+      .replace(/{{customerName}}/g, inv.customer_name || 'Walk-in Customer')
+      .replace(/{{customerPhone}}/g, inv.customer_phone || '')
+      .replace(/{{invoiceId}}/g, inv.id)
+      .replace(/{{date}}/g, new Date(inv.created_at).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }))
+      .replace(/{{paymentMode}}/g, (inv.payment_mode || 'cash').toUpperCase())
+      .replace(/{{linesHTML}}/g, linesHTML || '<tr><td colspan="5" style="text-align:center;color:#94a3b8">No items</td></tr>')
+      .replace(/{{total}}/g, parseFloat(inv.total).toLocaleString('en-IN'))
+      .replace(/{{certsHTML}}/g, certsHTML ? '<div class="certs">' + certsHTML + '</div>' : '');
+
     res.send(html);
   } catch (err) {
     console.error('Invoice View Error:', err);
@@ -655,6 +631,7 @@ async function runPatch() {
       ADD COLUMN IF NOT EXISTS pincode VARCHAR(20),
       ADD COLUMN IF NOT EXISTS invoice_format VARCHAR(20) DEFAULT 'POS',
       ADD COLUMN IF NOT EXISTS invoice_theme VARCHAR(30) DEFAULT 'standard',
+      ADD COLUMN IF NOT EXISTS online_store_theme VARCHAR(30) DEFAULT 'modern',
       ADD COLUMN IF NOT EXISTS certifications JSONB DEFAULT '[]',
       ADD COLUMN IF NOT EXISTS signature_url VARCHAR(500),
       ADD COLUMN IF NOT EXISTS password VARCHAR(255)

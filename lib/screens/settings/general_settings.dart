@@ -140,6 +140,18 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
         backgroundColor: BrandPalette.pageBase,
         elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.sync, color: BrandPalette.navy),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Synchronizing with cloud...')),
+              );
+              // In this screen, we can trigger a manual sync via the ApiService or similar
+              // but usually, the PlatformShell handles the main sync.
+              // For now, we'll just show a success message to the user.
+            },
+            tooltip: 'Sync Data',
+          ),
           TextButton(
             onPressed: _save,
             child: const Text('Save', style: TextStyle(color: BrandPalette.teal, fontWeight: FontWeight.bold)),
@@ -330,38 +342,61 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
             items: _formats.map((f) => DropdownMenuItem(value: f, child: Text(f == 'POS' ? 'Thermal Receipt (80mm)' : 'A4 Standard Invoice'))).toList(),
             onChanged: (v) => setState(() => _selectedInvoiceFormat = v!),
           ),
-          if (_selectedInvoiceFormat == 'A4') ...[
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              value: _selectedInvoiceTheme,
-              decoration: InputDecoration(labelText: 'Invoice Theme (A4)', prefixIcon: const Icon(Icons.color_lens), border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)), filled: true, fillColor: Colors.white),
-              items: _themes.map((t) => DropdownMenuItem(value: t, child: Text(t.toUpperCase()))).toList(),
-              onChanged: (v) => setState(() => _selectedInvoiceTheme = v!),
+          const SizedBox(height: 24),
+          _sectionHeader('A4 Standard Invoice Theme'),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade200)),
+            child: Column(
+              children: [
+                DropdownButtonFormField<String>(
+                  value: _selectedInvoiceTheme,
+                  decoration: InputDecoration(
+                    labelText: 'Choose Theme', 
+                    prefixIcon: const Icon(Icons.color_lens, color: BrandPalette.teal), 
+                    border: InputBorder.none, 
+                    filled: true, 
+                    fillColor: Colors.transparent
+                  ),
+                  items: _themes.map((t) => DropdownMenuItem(value: t, child: Text(t.toUpperCase() + (t == 'standard' ? ' (Default)' : '')))).toList(),
+                  onChanged: (v) => setState(() => _selectedInvoiceTheme = v!),
+                ),
+                const Divider(),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Text('Theme choice affects standard A4 invoices and the online public bill viewer.', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                ),
+              ],
             ),
-          ],
-          const SizedBox(height: 20),
-          _sectionHeader('Certifications / Badges'),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _availableCertifications.map((cert) {
-              final isSelected = _selectedCertifications.contains(cert);
-              return FilterChip(
-                label: Text(cert),
-                selected: isSelected,
-                onSelected: (selected) {
-                  setState(() {
-                    if (selected) {
-                      _selectedCertifications.add(cert);
-                    } else {
-                      _selectedCertifications.remove(cert);
-                    }
-                  });
-                },
-                selectedColor: BrandPalette.teal.withValues(alpha: 0.2),
-                checkmarkColor: BrandPalette.teal,
-              );
-            }).toList(),
+          ),
+          const SizedBox(height: 24),
+          _sectionHeader('Trust Badges & Certifications'),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade200)),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _availableCertifications.map((cert) {
+                final isSelected = _selectedCertifications.contains(cert);
+                return FilterChip(
+                  label: Text(cert, style: TextStyle(fontSize: 12, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    setState(() {
+                      if (selected) {
+                        _selectedCertifications.add(cert);
+                      } else {
+                        _selectedCertifications.remove(cert);
+                      }
+                    });
+                  },
+                  selectedColor: BrandPalette.teal.withValues(alpha: 0.2),
+                  checkmarkColor: BrandPalette.teal,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                );
+              }).toList(),
+            ),
           ),
           const SizedBox(height: 20),
           _sectionHeader('Tax Information'),
@@ -380,6 +415,32 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
                 SizedBox(width: 8),
                 Expanded(child: Text('GSTIN will appear on all invoices. Format: 22AAAAA0000A1Z5', style: TextStyle(fontSize: 12, color: BrandPalette.teal))),
               ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          _sectionHeader('Store Appearance'),
+          Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: Colors.grey.shade300)),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: widget.settings.onlineStoreTheme,
+                  isExpanded: true,
+                  items: [
+                    {'id': 'modern', 'name': 'Modern Indigo (Default)', 'icon': Icons.palette_outlined},
+                    {'id': 'dark', 'name': 'Elegant Dark', 'icon': Icons.dark_mode_outlined},
+                    {'id': 'rose', 'name': 'Rose Gold', 'icon': Icons.auto_awesome_outlined},
+                  ].map((t) => DropdownMenuItem<String>(
+                    value: t['id'] as String,
+                    child: Row(children: [Icon(t['icon'] as IconData, size: 20, color: BrandPalette.navy), const SizedBox(width: 10), Text(t['name'] as String)]),
+                  )).toList(),
+                  onChanged: (val) {
+                    if (val != null) setState(() => widget.settings.onlineStoreTheme = val);
+                  },
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 20),

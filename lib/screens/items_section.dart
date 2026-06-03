@@ -4,10 +4,12 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../models/models.dart';
 import '../core/core.dart';
 import '../services/sync_service.dart';
+import '../widgets/premium_widgets.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'bulk_import_wizard.dart';
 
 class ItemsSection extends StatefulWidget {
+  final bool isLoading;
   final List<Product> products;
   final String? Function({
     required String name, 
@@ -23,6 +25,7 @@ class ItemsSection extends StatefulWidget {
 
   const ItemsSection({
     super.key, 
+    this.isLoading = false,
     required this.products, 
     this.onAddProduct,
     this.onUpdateProduct,
@@ -155,18 +158,20 @@ class _ItemsSectionState extends State<ItemsSection> {
           ),
         ),
       ),
-      body: items.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.inventory_2, size: 56, color: Colors.grey.shade300),
-                  const SizedBox(height: 12),
-                  Text('No items found.', style: TextStyle(color: Colors.grey.shade600)),
-                ],
-              ),
-            )
-          : ListView.builder(
+      body: widget.isLoading
+          ? ListView.builder(itemCount: 8, itemBuilder: (context, index) => const SkeletonListTile())
+          : items.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.inventory_2, size: 56, color: Colors.grey.shade300),
+                      const SizedBox(height: 12),
+                      Text('No items found.', style: TextStyle(color: Colors.grey.shade600)),
+                    ],
+                  ),
+                )
+              : ListView.builder(
               padding: const EdgeInsets.fromLTRB(10, 8, 10, 80),
               itemCount: items.length,
               itemBuilder: (context, index) {
