@@ -277,34 +277,18 @@ class _PlatformShellState extends State<PlatformShell> {
   String? _addProduct({
     required String name,
     required double sellingPrice,
-    required double mrp,
-    required List<String> codes,
-    required double initialStock,
-    required double lowStockAlertLevel,
-    required TaxRate taxRate,
+    String? imageUrl,
   }) {
-    for (final String code in codes) {
-      final bool alreadyExists = _products.any(
-        (Product product) => product.codes.any(
-          (String productCode) =>
-              productCode.toLowerCase() == code.toLowerCase(),
-        ),
-      );
-
-      if (alreadyExists) {
-        return 'Code $code is already assigned to another product.';
-      }
-    }
-
     final product = Product(
       id: 'P-${DateTime.now().millisecondsSinceEpoch}', 
       name: name, 
       sellingPrice: sellingPrice, 
-      mrp: mrp,
-      codes: codes,
-      initialStock: initialStock,
-      lowStockAlertLevel: lowStockAlertLevel,
-      taxRate: taxRate,
+      mrp: 0.0,
+      codes: [],
+      initialStock: 0.0,
+      lowStockAlertLevel: 0.0,
+      taxRate: TaxRate.exempt,
+      imageUrl: imageUrl,
       syncState: EntityState.pendingInsert,
     );
 
@@ -803,29 +787,29 @@ class _PlatformShellState extends State<PlatformShell> {
           },
           destinations: const <NavigationDestination>[
             NavigationDestination(
-              icon: Icon(Icons.home_outlined, size: 22),
-              selectedIcon: Icon(Icons.home_rounded, color: Color(0xFF1A6FE3)),
-              label: 'Home',
+              icon: Icon(Icons.home_outlined, size: 28),
+              selectedIcon: Icon(Icons.home_rounded, size: 32, color: Color(0xFF1A6FE3)),
+              label: 'होम (Home)',
             ),
             NavigationDestination(
-              icon: Icon(Icons.inventory_2_outlined, size: 22),
-              selectedIcon: Icon(Icons.inventory_2_rounded, color: Color(0xFF1A6FE3)),
-              label: 'Items',
+              icon: Icon(Icons.inventory_2_outlined, size: 28),
+              selectedIcon: Icon(Icons.inventory_2_rounded, size: 32, color: Color(0xFF1A6FE3)),
+              label: 'आइटम (Items)',
             ),
             NavigationDestination(
-              icon: Icon(Icons.receipt_long_outlined, size: 22),
-              selectedIcon: Icon(Icons.receipt_long_rounded, color: Color(0xFF1A6FE3)),
-              label: 'Bills',
+              icon: Icon(Icons.receipt_long_outlined, size: 28),
+              selectedIcon: Icon(Icons.receipt_long_rounded, size: 32, color: Color(0xFF1A6FE3)),
+              label: 'बिल (Bills)',
             ),
             NavigationDestination(
-              icon: Icon(Icons.group_outlined, size: 22),
-              selectedIcon: Icon(Icons.group_rounded, color: Color(0xFF1A6FE3)),
-              label: 'Parties',
+              icon: Icon(Icons.group_outlined, size: 28),
+              selectedIcon: Icon(Icons.group_rounded, size: 32, color: Color(0xFF1A6FE3)),
+              label: 'खाता (Parties)',
             ),
             NavigationDestination(
-              icon: Icon(Icons.grid_view_rounded, size: 22),
-              selectedIcon: Icon(Icons.grid_view_rounded, color: Color(0xFF1A6FE3)),
-              label: 'More',
+              icon: Icon(Icons.grid_view_rounded, size: 28),
+              selectedIcon: Icon(Icons.grid_view_rounded, size: 32, color: Color(0xFF1A6FE3)),
+              label: 'मेनू (More)',
             ),
           ],
         ),

@@ -375,7 +375,7 @@ class _LedgerSheetState extends State<_LedgerSheet> {
                 children: [
                   Text('₹${widget.party.balance.abs().toStringAsFixed(0)}',
                     style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 20)),
-                  Text(isToGet ? 'You will get' : 'You will give',
+                  Text(isToGet ? 'आपको मिलेंगे (You get)' : 'आपको देने हैं (You give)',
                     style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600)),
                 ],
               ),
@@ -390,18 +390,18 @@ class _LedgerSheetState extends State<_LedgerSheet> {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () => _recordPayment(context, 'in'),
-                  icon: const Icon(Icons.add, size: 16),
-                  label: const Text('Payment In'),
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0DAB76), foregroundColor: Colors.white, elevation: 0),
+                  icon: Image.asset('assets/images/btn_money_in_1780532174634.png', width: 40, height: 40),
+                  label: const Text('पैसे मिले\n(Got)', textAlign: TextAlign.center, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0DAB76), foregroundColor: Colors.white, elevation: 0, padding: const EdgeInsets.symmetric(vertical: 14)),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () => _recordPayment(context, 'out'),
-                  icon: const Icon(Icons.remove, size: 16),
-                  label: const Text('Payment Out'),
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE05252), foregroundColor: Colors.white, elevation: 0),
+                  icon: Image.asset('assets/images/btn_money_out_1780532186186.png', width: 40, height: 40),
+                  label: const Text('पैसे दिए\n(Gave)', textAlign: TextAlign.center, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE05252), foregroundColor: Colors.white, elevation: 0, padding: const EdgeInsets.symmetric(vertical: 14)),
                 ),
               ),
             ],
@@ -520,21 +520,23 @@ class _LedgerSheetState extends State<_LedgerSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(direction == 'in' ? 'Record Payment In' : 'Record Payment Out', 
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(direction == 'in' ? 'पैसे मिले (Got Money) 💵' : 'पैसे दिए (Gave Money) 💸', 
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87)),
               const SizedBox(height: 16),
               TextField(
                 controller: amtCtrl, 
-                keyboardType: TextInputType.number,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 autofocus: true,
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w900),
                 decoration: InputDecoration(
-                  labelText: 'Amount',
+                  labelText: 'Amount (राशि)',
+                  labelStyle: const TextStyle(fontSize: 16),
                   prefixText: '₹ ',
-                  prefixStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  prefixStyle: const TextStyle(fontSize: 48, fontWeight: FontWeight.w900),
                   filled: true,
                   fillColor: Colors.grey.shade50,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                 )
               ),
               const SizedBox(height: 16),
@@ -600,7 +602,7 @@ class _LedgerSheetState extends State<_LedgerSheet> {
                       SnackBar(content: Text('₹${amt.toStringAsFixed(0)} recorded!'), backgroundColor: const Color(0xFF0DAB76)),
                     );
                   },
-                  child: const Text('Save Payment', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: Text(direction == 'in' ? 'Save (सेव करें)' : 'Save (सेव करें)', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],

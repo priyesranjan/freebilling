@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../models/models.dart';
 import '../core/core.dart';
@@ -14,11 +16,7 @@ class ItemsSection extends StatefulWidget {
   final String? Function({
     required String name, 
     required double sellingPrice, 
-    required double mrp, 
-    required List<String> codes,
-    required double initialStock,
-    required double lowStockAlertLevel,
-    required TaxRate taxRate,
+    String? imageUrl,
   })? onAddProduct;
   final void Function(Product)? onUpdateProduct;
   final void Function(String)? onDeleteProduct;
@@ -201,70 +199,31 @@ class _ItemsSectionState extends State<ItemsSection> {
                       child: Row(
                         children: [
                           Container(
-                            width: 48,
-                            height: 48,
+                            width: 64,
+                            height: 64,
                             decoration: BoxDecoration(
-                              color: BrandPalette.navy.withValues(alpha: 0.06),
-                              borderRadius: BorderRadius.circular(10),
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey.shade200),
+                              image: product.imageUrl != null
+                                  ? DecorationImage(image: FileImage(File(product.imageUrl!)), fit: BoxFit.cover)
+                                  : null,
                             ),
-                            child: const Icon(Icons.inventory_2, color: BrandPalette.navy),
+                            child: product.imageUrl == null
+                                ? const Icon(Icons.image, color: Colors.grey, size: 28)
+                                : null,
                           ),
-                          const SizedBox(width: 14),
+                          const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(product.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                                const SizedBox(height: 2),
-                                Row(
-                                  children: [
-                                    Text('₹${product.sellingPrice.toStringAsFixed(2)}', style: const TextStyle(color: BrandPalette.navy, fontSize: 12, fontWeight: FontWeight.bold)),
-                                    const SizedBox(width: 4),
-                                    if (product.mrp > product.sellingPrice) ...[
-                                      Text('₹${product.mrp.toStringAsFixed(0)}', style: TextStyle(color: Colors.grey.shade500, fontSize: 10, decoration: TextDecoration.lineThrough)),
-                                      const SizedBox(width: 4),
-                                      Text('${product.offPercentage.toInt()}% OFF', style: const TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold)),
-                                    ],
-                                    const Spacer(),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                                      decoration: BoxDecoration(
-                                        color: BrandPalette.mint.withValues(alpha: 0.5),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(product.taxRate.percentage == 0 ? 'Exempt' : 'GST ${product.taxRate.percentage.toInt()}%',
-                                        style: const TextStyle(fontSize: 9, color: BrandPalette.teal, fontWeight: FontWeight.bold)),
-                                    ),
-                                  ],
-                                ),
+                                Text(product.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87)),
+                                const SizedBox(height: 4),
+                                Text('₹${product.sellingPrice.toStringAsFixed(0)}', style: const TextStyle(color: Color(0xFF0DAB76), fontSize: 18, fontWeight: FontWeight.bold)),
                               ],
                             ),
                           ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                isOutOfStock ? 'Out of Stock' : '${product.currentStock.toStringAsFixed(0)} units',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
-                                  color: isOutOfStock ? Colors.red : isLowStock ? BrandPalette.coral : BrandPalette.teal,
-                                ),
-                              ),
-                              if (isLowStock && !isOutOfStock)
-                                Container(
-                                  margin: const EdgeInsets.only(top: 3),
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: BrandPalette.coral.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: const Text('Low Stock',
-                                    style: TextStyle(color: BrandPalette.coral, fontSize: 9, fontWeight: FontWeight.bold)),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(width: 4),
                           Icon(Icons.chevron_right, color: Colors.grey.shade400),
                         ],
                       ),
@@ -287,152 +246,106 @@ class _ItemsSectionState extends State<ItemsSection> {
 
   void _showAddItemSheet(BuildContext context) {
     final nameCtrl = TextEditingController();
-    final mrpCtrl = TextEditingController();
     final sellingPriceCtrl = TextEditingController();
-    final initialStockCtrl = TextEditingController();
-    final codeCtrl = TextEditingController();
-    final alertCtrl = TextEditingController();
-    TaxRate selectedTax = TaxRate.exempt;
+    String? selectedImagePath;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) => Padding(
-        padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
+        padding: EdgeInsets.fromLTRB(24, 32, 24, MediaQuery.of(ctx).viewInsets.bottom + 32),
         child: StatefulBuilder(
-          builder: (ctx2, setModalState) => SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text('Add New Item', style: Theme.of(context).textTheme.titleLarge),
-                    const Spacer(),
-                    IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.close)),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Item Name *', border: OutlineInputBorder(), prefixIcon: Icon(Icons.inventory_2))),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: mrpCtrl, 
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'MRP', border: OutlineInputBorder(), prefixText: '₹ '),
-                        onChanged: (val) => setModalState(() {}),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextField(
-                        controller: sellingPriceCtrl, 
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Selling Price *', border: OutlineInputBorder(), prefixText: '₹ '),
-                        onChanged: (val) => setModalState(() {}),
-                      ),
-                    ),
-                  ],
-                ),
-                if (double.tryParse(mrpCtrl.text) != null && double.tryParse(sellingPriceCtrl.text) != null) ...[
-                  const SizedBox(height: 8),
-                  Builder(builder: (context) {
-                    final mrp = double.tryParse(mrpCtrl.text) ?? 0;
-                    final sp = double.tryParse(sellingPriceCtrl.text) ?? 0;
-                    if (mrp > sp && sp > 0) {
-                      final off = ((mrp - sp) / mrp) * 100;
-                      return Text('Savings: ₹${(mrp - sp).toStringAsFixed(0)} (${off.toInt()}% OFF)', 
-                        style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12));
-                    }
-                    return const SizedBox();
-                  }),
-                ],
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(controller: initialStockCtrl, keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Opening Stock', border: OutlineInputBorder(), suffixText: 'units')),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextField(controller: alertCtrl, keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Low Stock Alert', border: OutlineInputBorder(), suffixText: 'units')),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                TextField(controller: codeCtrl, decoration: const InputDecoration(
-                  labelText: 'Barcode / SKU Code',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.qr_code),
-                  hintText: 'Optional',
-                )),
-                const SizedBox(height: 12),
-                const Text('GST Tax Rate', style: TextStyle(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children: TaxRate.values.map((rate) {
-                    final label = rate.percentage == 0 ? 'Exempt' : '${rate.percentage.toInt()}%';
-                    final isSelected = selectedTax == rate;
-                    return GestureDetector(
-                      onTap: () => setModalState(() => selectedTax = rate),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 150),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: isSelected ? BrandPalette.teal : Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: isSelected ? BrandPalette.teal : Colors.grey.shade300),
-                        ),
-                        child: Text(label, style: TextStyle(color: isSelected ? Colors.white : Colors.grey.shade700, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
-                      ),
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add Item'),
-                    style: FilledButton.styleFrom(backgroundColor: BrandPalette.navy, padding: const EdgeInsets.symmetric(vertical: 14)),
-                    onPressed: () {
-                      if (nameCtrl.text.trim().isEmpty || sellingPriceCtrl.text.trim().isEmpty) return;
-                      
-                      final codes = codeCtrl.text.trim().isEmpty ? <String>[] : [codeCtrl.text.trim()];
-                      final mrp = double.tryParse(mrpCtrl.text) ?? 0.0;
-                      final sp = double.tryParse(sellingPriceCtrl.text) ?? 0.0;
-                      final stock = double.tryParse(initialStockCtrl.text) ?? 0.0;
-                      final alert = double.tryParse(alertCtrl.text) ?? 0.0;
-
-                      final error = widget.onAddProduct?.call(
-                        name: nameCtrl.text.trim(),
-                        sellingPrice: sp,
-                        mrp: mrp,
-                        codes: codes,
-                        initialStock: stock,
-                        lowStockAlertLevel: alert,
-                        taxRate: selectedTax,
-                      );
-
-                      if (error != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: Colors.red));
-                        return;
-                      }
-                      Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('${nameCtrl.text.trim()} added!'), backgroundColor: BrandPalette.teal),
-                      );
-                    },
+          builder: (ctx2, setModalState) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              GestureDetector(
+                onTap: () async {
+                  final picker = ImagePicker();
+                  final xfile = await picker.pickImage(source: ImageSource.camera);
+                  if (xfile != null) {
+                    setModalState(() => selectedImagePath = xfile.path);
+                  }
+                },
+                child: Container(
+                  width: 140,
+                  height: 140,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: Colors.grey.shade300, width: 2),
+                    image: selectedImagePath != null 
+                        ? DecorationImage(image: FileImage(File(selectedImagePath!)), fit: BoxFit.cover)
+                        : null,
                   ),
+                  child: selectedImagePath == null 
+                      ? const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.camera_alt, size: 48, color: Colors.grey),
+                            SizedBox(height: 8),
+                            Text('Take Photo', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                          ],
+                        )
+                      : null,
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 32),
+              TextField(
+                controller: sellingPriceCtrl, 
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w900),
+                decoration: InputDecoration(
+                  labelText: 'Price (₹)',
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                )
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: nameCtrl, 
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                decoration: InputDecoration(
+                  hintText: 'Item Name (Optional)',
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                )
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF0DAB76),
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  onPressed: () {
+                    final sp = double.tryParse(sellingPriceCtrl.text) ?? 0.0;
+                    if (sp <= 0) return;
+                    
+                    final name = nameCtrl.text.trim().isEmpty ? 'Item ₹$sp' : nameCtrl.text.trim();
+
+                    final error = widget.onAddProduct?.call(
+                      name: name,
+                      sellingPrice: sp,
+                      imageUrl: selectedImagePath,
+                    );
+
+                    if (error != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: Colors.red));
+                      return;
+                    }
+                    Navigator.pop(ctx);
+                  },
+                  child: const Text('Save (सेव करें)', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
           ),
         ),
       ),

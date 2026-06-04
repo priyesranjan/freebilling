@@ -271,6 +271,7 @@ class Product implements SyncableEntity {
     this.initialStock = 0.0,
     // GST
     this.taxRate = TaxRate.exempt,
+    this.imageUrl,
   });
 
   @override
@@ -288,6 +289,7 @@ class Product implements SyncableEntity {
   final double lowStockAlertLevel;
   final double initialStock;
   final TaxRate taxRate;
+  final String? imageUrl;
 
   double get price => sellingPrice;
 
@@ -313,6 +315,7 @@ class Product implements SyncableEntity {
     double? lowStockAlertLevel,
     double? initialStock,
     TaxRate? taxRate,
+    String? imageUrl,
   }) {
     return Product(
       id: id ?? this.id,
@@ -326,6 +329,7 @@ class Product implements SyncableEntity {
       lowStockAlertLevel: lowStockAlertLevel ?? this.lowStockAlertLevel,
       initialStock: initialStock ?? this.initialStock,
       taxRate: taxRate ?? this.taxRate,
+      imageUrl: imageUrl ?? this.imageUrl,
     );
   }
 
@@ -348,6 +352,7 @@ class Product implements SyncableEntity {
         (e) => e.name == json['taxRate'],
         orElse: () => TaxRate.exempt,
       ),
+      imageUrl: json['imageUrl'] as String?,
     );
   }
 
@@ -380,6 +385,7 @@ class Product implements SyncableEntity {
     'current_stock': currentStock,
     'taxRate': taxRate.name,
     'tax_rate': taxRate.name,
+    'imageUrl': imageUrl,
   }; 
 }
 

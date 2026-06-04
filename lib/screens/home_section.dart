@@ -42,8 +42,8 @@ class HomeSection extends StatelessWidget {
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.only(bottom: 100), // Space for FAB
         children: [
-          // Quick Links Card
-          _buildQuickLinksCard(context),
+          // Giant Action Grid
+          _buildGiantActionGrid(context),
 
           // Financial Health Cards
           isLoading ? _buildFinancialSkeleton(context) : _buildFinancialCards(context),
@@ -67,167 +67,111 @@ class HomeSection extends StatelessWidget {
             ..._buildRecentTransactions(context),
         ],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: onAddSale,
-        backgroundColor: const Color(0xFFEF4444),
-        icon: Container(
-          padding: const EdgeInsets.all(2),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.white, width: 1.5),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(Icons.currency_rupee, color: Colors.white, size: 14),
-        ),
-        label: const Text('Add New Sale', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
     );
   }
 
-  Widget _buildQuickLinksCard(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(10, 8, 10, 16),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildGiantActionGrid(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
+      child: GridView.count(
+        crossAxisCount: 2,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 16,
+        childAspectRatio: 0.85,
         children: [
-          Text('Quick Links', style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 13, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _quickLinkIcon(context, 'Sales Report', Icons.bar_chart_rounded, const Color(0xFF10B981), () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => ReportsScreen(invoices: invoices, expenses: expenses, products: products)));
-              }),
-              _quickLinkIcon(context, 'Add Expense', Icons.account_balance_wallet_rounded, const Color(0xFFEF4444), () => onViewExpenses?.call()),
-              _quickLinkIcon(context, 'My Website', Icons.language_rounded, const Color(0xFF3B82F6), () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const WebsitePreviewScreen()));
-              }),
-              _quickLinkIcon(context, 'Show All', Icons.apps_rounded, const Color(0xFF8B5CF6), () => _showAllBottomSheet(context)),
-            ],
+          _giantButton(
+            context,
+            'नया बिल',
+            'New Sale',
+            'assets/images/btn_sale_1780532113144.png',
+            const Color(0xFF10B981), // Green
+            onAddSale,
+          ),
+          _giantButton(
+            context,
+            'खर्च',
+            'Add Expense',
+            'assets/images/btn_expense_1780532127345.png',
+            const Color(0xFFEF4444), // Red
+            () => onViewExpenses?.call(),
+          ),
+          _giantButton(
+            context,
+            'ग्राहक / खाता',
+            'Customers',
+            'assets/images/btn_customers_1780532138943.png',
+            const Color(0xFF3B82F6), // Blue
+            () => onSwitchTab?.call(AppSection.khata),
+          ),
+          _giantButton(
+            context,
+            'रिपोर्ट',
+            'Reports',
+            'assets/images/btn_reports_1780532163229.png',
+            const Color(0xFF8B5CF6), // Purple
+            () => Navigator.push(context, MaterialPageRoute(builder: (_) => ReportsScreen(invoices: invoices, expenses: expenses, products: products))),
           ),
         ],
       ),
     );
   }
 
-  Widget _quickLinkIcon(BuildContext context, String label, IconData icon, Color color, VoidCallback onTap) {
+  Widget _giantButton(BuildContext context, String hindiLabel, String englishLabel, String imagePath, Color color, VoidCallback? onTap) {
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withOpacity(0.3), width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.15),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
             ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Positioned(
-                  bottom: 0,
-                  child: Container(
-                    width: 48,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      color: color,
-                      borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(12), bottomRight: Radius.circular(12)),
-                    ),
-                  ),
-                ),
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: Icon(icon, size: 20, color: const Color(0xFF334155)),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(label, style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF334155), fontWeight: FontWeight.w500)),
-        ],
-      ),
-    );
-  }
-
-  void _showAllBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 30),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
-            const SizedBox(height: 20),
-            Text('All Tools', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A))),
-            const SizedBox(height: 24),
-            GridView.count(
-              crossAxisCount: 4,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 20,
-              children: [
-                _bskIcon(context, 'All Txns', Icons.list_alt, Colors.blue, () {
-                  Navigator.pop(context);
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => AllTransactionsScreen(invoices: invoices, expenses: expenses)));
-                }),
-                _bskIcon(context, 'Today Sales', Icons.today, Colors.green, () {
-                  Navigator.pop(context);
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => ReportsScreen(invoices: invoices, expenses: expenses, products: products)));
-                }),
-                _bskIcon(context, 'Profile', Icons.person, Colors.orange, () {
-                  Navigator.pop(context);
-                  onSwitchTab?.call(AppSection.menu);
-                }),
-                _bskIcon(context, 'Google Biz', Icons.storefront, Colors.deepPurple, () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Google Business sync coming soon!')));
-                }),
-                _bskIcon(context, 'Live Support', Icons.headset_mic, Colors.red, () {
-                  Navigator.pop(context);
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const LiveSupportScreen()));
-                }),
-              ],
-            )
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _bskIcon(BuildContext context, String label, IconData icon, MaterialColor color, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CircleAvatar(backgroundColor: color.shade50, radius: 24, child: Icon(icon, color: color.shade600)),
-          const SizedBox(height: 8),
-          Text(label, textAlign: TextAlign.center, style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF475569))),
-        ],
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Image.asset(
+                imagePath,
+                width: 54, // Massive Image
+                height: 54,
+                fit: BoxFit.contain,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              hindiLabel,
+              style: GoogleFonts.notoSans(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFF1E293B),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              englishLabel,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF64748B),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
