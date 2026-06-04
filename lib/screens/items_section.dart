@@ -605,11 +605,7 @@ class _ItemsSectionState extends State<ItemsSection> {
               widget.onAddProduct?.call(
                 name: p.name,
                 sellingPrice: p.sellingPrice,
-                mrp: p.mrp,
-                codes: p.codes,
-                initialStock: 0,
-                lowStockAlertLevel: 0,
-                taxRate: TaxRate.exempt,
+                imageUrl: p.imageUrl,
               );
             }
             ScaffoldMessenger.of(context).showSnackBar(

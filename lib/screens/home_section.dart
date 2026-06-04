@@ -67,7 +67,6 @@ class HomeSection extends StatelessWidget {
             ..._buildRecentTransactions(context),
         ],
       ),
-      ),
     );
   }
 
