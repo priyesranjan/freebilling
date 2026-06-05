@@ -201,7 +201,7 @@ class _PlatformShellState extends State<PlatformShell> {
   int _sequence = 1000;
 
   bool _isLoading = true;
-  List<BusinessRecord> _businesses = mockBusinesses;
+  List<BusinessRecord> _businesses = [];
   List<Product> _products = [];
   List<InvoiceRecord> _invoices = [];
   List<PartyRecord> _parties = [];
@@ -210,6 +210,7 @@ class _PlatformShellState extends State<PlatformShell> {
   @override
   void initState() {
     super.initState();
+    _businesses = [AppSettings.instance.toBusinessRecord()];
     SyncService.instance.initialize();
     _loadDataFromCloud();
     

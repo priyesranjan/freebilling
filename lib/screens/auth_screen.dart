@@ -195,8 +195,9 @@ class _AuthScreenState extends State<AuthScreen> with CodeAutoFill {
     }
   }
 
-  void _handleAuthSuccess(Map<String, dynamic> data) {
+  void _handleAuthSuccess(Map<String, dynamic> data) async {
     final business = data['business'];
+    final user = data['user'];
     if (!mounted) return;
 
     final String? bizName = business['name'];
@@ -204,6 +205,16 @@ class _AuthScreenState extends State<AuthScreen> with CodeAutoFill {
                            bizName.isNotEmpty && 
                            bizName != 'My Business' && 
                            bizName != 'Business';
+
+    // Save profile data persistently
+    AppSettings.instance.businessName = bizName ?? '';
+    if (user != null && user['phone'] != null) AppSettings.instance.businessPhone = user['phone'];
+    if (business['business_type'] != null) AppSettings.instance.businessType = business['business_type'];
+    if (business['category'] != null) AppSettings.instance.businessCategory = business['category'];
+    if (business['logo_url'] != null) AppSettings.instance.businessLogo = business['logo_url'];
+    await AppSettings.instance.save();
+
+    if (!mounted) return;
 
     if (hasNameSet) {
       Navigator.of(context).pushReplacement(
