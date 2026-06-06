@@ -4,11 +4,9 @@ import 'package:fl_chart/fl_chart.dart';
 import '../models/models.dart';
 import '../core/core.dart';
 import '../enums/enums.dart';
+import '../services/services.dart';
 import '../widgets/premium_widgets.dart';
 import 'reports_screen.dart';
-import 'website_preview_screen.dart';
-import 'all_transactions_screen.dart';
-import 'live_support_screen.dart';
 
 class HomeSection extends StatelessWidget {
   final bool isLoading;
@@ -83,34 +81,34 @@ class HomeSection extends StatelessWidget {
         children: [
           _giantButton(
             context,
-            'नया बिल',
-            'New Sale',
+            TranslationService.tr('new_sale'),
+            '',
             'assets/images/btn_sale_1780532113144.png',
-            const Color(0xFF10B981), // Green
+            const Color(0xFF10B981),
             onAddSale,
           ),
           _giantButton(
             context,
-            'खर्च',
-            'Add Expense',
+            TranslationService.tr('add_expense'),
+            '',
             'assets/images/btn_expense_1780532127345.png',
-            const Color(0xFFEF4444), // Red
+            const Color(0xFFEF4444),
             () => onViewExpenses?.call(),
           ),
           _giantButton(
             context,
-            'ग्राहक / खाता',
-            'Customers',
+            TranslationService.tr('customers'),
+            '',
             'assets/images/btn_customers_1780532138943.png',
-            const Color(0xFF3B82F6), // Blue
+            const Color(0xFF3B82F6),
             () => onSwitchTab?.call(AppSection.khata),
           ),
           _giantButton(
             context,
-            'रिपोर्ट',
-            'Reports',
+            TranslationService.tr('reports'),
+            '',
             'assets/images/btn_reports_1780532163229.png',
-            const Color(0xFF8B5CF6), // Purple
+            const Color(0xFF8B5CF6),
             () => Navigator.push(context, MaterialPageRoute(builder: (_) => ReportsScreen(invoices: invoices, expenses: expenses, products: products))),
           ),
         ],
@@ -160,15 +158,17 @@ class HomeSection extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 4),
-            Text(
-              englishLabel,
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF64748B),
+            if (englishLabel.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                englishLabel,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF64748B),
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),

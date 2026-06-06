@@ -28,6 +28,7 @@ export 'items_section.dart';
 export 'invoices_section.dart';
 export 'khata_section.dart';
 export 'menu_section.dart';
+export 'language_selection_screen.dart';
 
 final List<BusinessRecord> mockBusinesses = <BusinessRecord>[
   BusinessRecord(
@@ -572,259 +573,264 @@ class _PlatformShellState extends State<PlatformShell> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
+    return ListenableBuilder(
+      listenable: TranslationService.instance,
+      builder: (context, _) {
+        if (_isLoading) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
 
-    final bool isWide = MediaQuery.of(context).size.width >= 980;
+        final bool isWide = MediaQuery.of(context).size.width >= 980;
 
-    const List<NavigationRailDestination> railDestinations =
-        <NavigationRailDestination>[
+        final List<NavigationRailDestination> railDestinations =
+            <NavigationRailDestination>[
           NavigationRailDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: Text('Home'),
+            icon: const Icon(Icons.dashboard_outlined),
+            selectedIcon: const Icon(Icons.home),
+            label: Text(TranslationService.tr('home')),
           ),
           NavigationRailDestination(
-            icon: Icon(Icons.inventory_2_outlined),
-            selectedIcon: Icon(Icons.inventory_2),
-            label: Text('Items'),
+            icon: const Icon(Icons.inventory_2_outlined),
+            selectedIcon: const Icon(Icons.inventory_2),
+            label: Text(TranslationService.tr('items')),
           ),
           NavigationRailDestination(
-            icon: Icon(Icons.receipt_long_outlined),
-            selectedIcon: Icon(Icons.receipt_long),
-            label: Text('Invoices'),
+            icon: const Icon(Icons.receipt_long_outlined),
+            selectedIcon: const Icon(Icons.receipt_long),
+            label: Text(TranslationService.tr('bills')),
           ),
           NavigationRailDestination(
-            icon: Icon(Icons.contacts_outlined),
-            selectedIcon: Icon(Icons.contacts),
-            label: Text('Khata'),
+            icon: const Icon(Icons.contacts_outlined),
+            selectedIcon: const Icon(Icons.contacts),
+            label: Text(TranslationService.tr('khata')),
           ),
           NavigationRailDestination(
-            icon: Icon(Icons.menu),
-            selectedIcon: Icon(Icons.menu_open),
-            label: Text('Menu'),
+            icon: const Icon(Icons.menu),
+            selectedIcon: const Icon(Icons.menu_open),
+            label: Text(TranslationService.tr('menu')),
           ),
         ];
 
-    if (isWide) {
-      return Scaffold(
-        body: BrandedBackdrop(
-          child: Row(
-            children: <Widget>[
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 18, 12, 18),
-                  child: Container(
-                    width: 130,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: <Color>[BrandPalette.navy, Color(0xFF1D4D66)],
+        if (isWide) {
+          return Scaffold(
+            body: BrandedBackdrop(
+              child: Row(
+                children: <Widget>[
+                  SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 18, 12, 18),
+                      child: Container(
+                        width: 130,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: <Color>[BrandPalette.navy, Color(0xFF1D4D66)],
+                          ),
+                          borderRadius: BorderRadius.circular(28),
+                          boxShadow: <BoxShadow>[
+                            BoxShadow(
+                              color: BrandPalette.navy.withValues(alpha: 0.22),
+                              blurRadius: 26,
+                              offset: const Offset(0, 14),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: <Widget>[
+                            const SizedBox(height: 20),
+                            Container(
+                              width: 56,
+                              height: 56,
+                              decoration: BoxDecoration(
+                                color: BrandPalette.sun.withValues(alpha: 0.25),
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                              child: const Icon(
+                                Icons.receipt_long_rounded,
+                                color: Colors.white,
+                                size: 30,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Dukan',
+                              style: GoogleFonts.spaceGrotesk(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
+                              ),
+                            ),
+                            Text(
+                              'Bill',
+                              style: GoogleFonts.dmSans(
+                                color: Colors.white.withValues(alpha: 0.68),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            const SyncIndicator(),
+                            const SizedBox(height: 14),
+                            Expanded(
+                              child: NavigationRail(
+                                backgroundColor: Colors.transparent,
+                                selectedIndex: _section.index,
+                                labelType: NavigationRailLabelType.all,
+                                groupAlignment: -0.8,
+                                unselectedLabelTextStyle: const TextStyle(color: Colors.white70),
+                                selectedLabelTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                unselectedIconTheme: const IconThemeData(color: Colors.white70),
+                                selectedIconTheme: const IconThemeData(color: Colors.white),
+                                indicatorColor: Colors.white.withValues(alpha: 0.2),
+                                onDestinationSelected: (int index) {
+                                  setState(() {
+                                    _section = AppSection.values[index];
+                                  });
+                                },
+                                destinations: railDestinations,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      borderRadius: BorderRadius.circular(28),
-                      boxShadow: <BoxShadow>[
-                        BoxShadow(
-                          color: BrandPalette.navy.withValues(alpha: 0.22),
-                          blurRadius: 26,
-                          offset: const Offset(0, 14),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: <Widget>[
-                        const SizedBox(height: 20),
-                        Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: BrandPalette.sun.withValues(alpha: 0.25),
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          child: const Icon(
-                            Icons.receipt_long_rounded,
-                            color: Colors.white,
-                            size: 30,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Dukan',
-                          style: GoogleFonts.spaceGrotesk(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Text(
-                          'Bill',
-                          style: GoogleFonts.dmSans(
-                            color: Colors.white.withValues(alpha: 0.68),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        const SyncIndicator(),
-                        const SizedBox(height: 14),
-                        Expanded(
-                          child: NavigationRail(
-                            backgroundColor: Colors.transparent,
-                            selectedIndex: _section.index,
-                            labelType: NavigationRailLabelType.all,
-                            groupAlignment: -0.8,
-                            unselectedLabelTextStyle: const TextStyle(color: Colors.white70),
-                            selectedLabelTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                            unselectedIconTheme: const IconThemeData(color: Colors.white70),
-                            selectedIconTheme: const IconThemeData(color: Colors.white),
-                            indicatorColor: Colors.white.withValues(alpha: 0.2),
-                            onDestinationSelected: (int index) {
-                              setState(() {
-                                _section = AppSection.values[index];
-                              });
-                            },
-                            destinations: railDestinations,
-                          ),
-                        ),
-                      ],
                     ),
                   ),
-                ),
-              ),
-              Expanded(
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(10, 26, 24, 20),
-                    child: _animatedSectionBody(),
+                  Expanded(
+                    child: SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(10, 26, 24, 20),
+                        child: _animatedSectionBody(),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
-        ),
-      );
-    }
+            ),
+          );
+        }
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        titleSpacing: 0,
-        toolbarHeight: 62,
-        leading: GestureDetector(
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => GeneralSettingsScreen(settings: AppSettings.instance),
+        return Scaffold(
+          backgroundColor: const Color(0xFFF1F5F9),
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
+            titleSpacing: 0,
+            toolbarHeight: 62,
+            leading: GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => GeneralSettingsScreen(settings: AppSettings.instance),
+                ),
+              ).then((_) => setState(() {})),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 8, 6, 8),
+                child: _buildBusinessAvatar(),
+              ),
             ),
-          ).then((_) => setState(() {})),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 8, 6, 8),
-            child: _buildBusinessAvatar(),
-          ),
-        ),
-        title: _buildAppBarTitle(),
-        actions: <Widget>[
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: BrandPalette.teal),
-            onPressed: _loadDataFromCloud,
-            tooltip: 'Sync Now',
-          ),
-          IconButton(
-            icon: const Icon(Icons.search, color: Color(0xFF64748B)),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => GlobalSearchScreen(
-                businesses: _businesses,
-                products: _products,
-                invoices: _invoices,
-                parties: _parties,
-                expenses: _expenses,
-              )),
-            ),
-          ),
-          Stack(
-            alignment: Alignment.center,
-            children: [
+            title: _buildAppBarTitle(),
+            actions: <Widget>[
               IconButton(
-                icon: const Icon(Icons.notifications_none, color: Color(0xFF64748B)),
-                onPressed: () {},
+                icon: const Icon(Icons.refresh_rounded, color: BrandPalette.teal),
+                onPressed: _loadDataFromCloud,
+                tooltip: 'Sync Now',
               ),
-              Positioned(
-                right: 12,
-                top: 14,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(color: Color(0xFFEF4444), shape: BoxShape.circle),
+              IconButton(
+                icon: const Icon(Icons.search, color: Color(0xFF64748B)),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => GlobalSearchScreen(
+                    businesses: _businesses,
+                    products: _products,
+                    invoices: _invoices,
+                    parties: _parties,
+                    expenses: _expenses,
+                  )),
                 ),
               ),
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_none, color: Color(0xFF64748B)),
+                    onPressed: () {},
+                  ),
+                  Positioned(
+                    right: 12,
+                    top: 14,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(color: Color(0xFFEF4444), shape: BoxShape.circle),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 4),
             ],
           ),
-          const SizedBox(width: 4),
-        ],
-      ),
-      body: SafeArea(
-        child: _animatedSectionBody(),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -2))
-          ]
-        ),
-        child: NavigationBar(
-          selectedIndex: _section.index,
-          backgroundColor: Colors.white,
-          surfaceTintColor: Colors.transparent,
-          elevation: 0,
-          height: 64,
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          indicatorColor: Colors.transparent,
+          body: SafeArea(
+            child: _animatedSectionBody(),
+          ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+          bottomNavigationBar: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -2))
+              ]
+            ),
+            child: NavigationBar(
+              selectedIndex: _section.index,
+              backgroundColor: Colors.white,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              height: 64,
+              labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+              indicatorColor: Colors.transparent,
 
-          onDestinationSelected: (int index) {
-            setState(() {
-              _section = AppSection.values[index];
-            });
-          },
-          destinations: const <NavigationDestination>[
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined, size: 28),
-              selectedIcon: Icon(Icons.home_rounded, size: 32, color: Color(0xFF1A6FE3)),
-              label: 'होम (Home)',
+              onDestinationSelected: (int index) {
+                setState(() {
+                  _section = AppSection.values[index];
+                });
+              },
+              destinations: <NavigationDestination>[
+                NavigationDestination(
+                  icon: const Icon(Icons.home_outlined, size: 28),
+                  selectedIcon: const Icon(Icons.home_rounded, size: 32, color: Color(0xFF1A6FE3)),
+                  label: TranslationService.tr('home'),
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.inventory_2_outlined, size: 28),
+                  selectedIcon: const Icon(Icons.inventory_2_rounded, size: 32, color: Color(0xFF1A6FE3)),
+                  label: TranslationService.tr('items'),
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.receipt_long_outlined, size: 28),
+                  selectedIcon: const Icon(Icons.receipt_long_rounded, size: 32, color: Color(0xFF1A6FE3)),
+                  label: TranslationService.tr('bills'),
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.group_outlined, size: 28),
+                  selectedIcon: const Icon(Icons.group_rounded, size: 32, color: Color(0xFF1A6FE3)),
+                  label: TranslationService.tr('khata'),
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.grid_view_rounded, size: 28),
+                  selectedIcon: const Icon(Icons.grid_view_rounded, size: 32, color: Color(0xFF1A6FE3)),
+                  label: TranslationService.tr('menu'),
+                ),
+              ],
             ),
-            NavigationDestination(
-              icon: Icon(Icons.inventory_2_outlined, size: 28),
-              selectedIcon: Icon(Icons.inventory_2_rounded, size: 32, color: Color(0xFF1A6FE3)),
-              label: 'आइटम (Items)',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.receipt_long_outlined, size: 28),
-              selectedIcon: Icon(Icons.receipt_long_rounded, size: 32, color: Color(0xFF1A6FE3)),
-              label: 'बिल (Bills)',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.group_outlined, size: 28),
-              selectedIcon: Icon(Icons.group_rounded, size: 32, color: Color(0xFF1A6FE3)),
-              label: 'खाता (Parties)',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.grid_view_rounded, size: 28),
-              selectedIcon: Icon(Icons.grid_view_rounded, size: 32, color: Color(0xFF1A6FE3)),
-              label: 'मेनू (More)',
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

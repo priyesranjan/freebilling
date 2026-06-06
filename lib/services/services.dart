@@ -14,6 +14,7 @@ export 'razorpay_service.dart';
 export 'sms_service.dart';
 export 'whatsapp_service.dart';
 export 'websocket_service.dart';
+export 'translation_service.dart';
 
 abstract class OwnerAuthService {
   Future<OtpRequestResult> requestOtp({required String phoneNumber});

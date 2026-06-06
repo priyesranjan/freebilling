@@ -12,6 +12,7 @@ void main() async {
   await Hive.initFlutter();
   await Hive.openBox<String>('sync_queue');
   await AppSettings.instance.load();
+  await TranslationService.instance.init();
   runApp(const MyApp());
 }
 
