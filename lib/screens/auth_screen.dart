@@ -197,7 +197,7 @@ class _AuthScreenState extends State<AuthScreen> with CodeAutoFill {
         bizName != 'Business';
 
     AppSettings.instance.businessName = bizName ?? '';
-    if (user != null && user['phone'] != null) AppSettings.instance.businessPhone = user['phone'];
+    AppSettings.instance.businessPhone = business['phone'] ?? (user != null ? user['phone'] ?? '' : '');
     if (business['business_type'] != null) AppSettings.instance.businessType = business['business_type'];
     if (business['category'] != null) AppSettings.instance.businessCategory = business['category'];
     if (business['logo_url'] != null) AppSettings.instance.businessLogo = business['logo_url'];

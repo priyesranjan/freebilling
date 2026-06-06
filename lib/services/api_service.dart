@@ -172,12 +172,20 @@ class ApiService {
     if (response.statusCode == 200) {
       final List data = jsonDecode(response.body);
       return data.map((json) {
+        final rawCodes = json['codes'];
+        List<String> parsedCodes = [];
+        if (rawCodes != null) {
+          final codesList = rawCodes is String ? jsonDecode(rawCodes) : rawCodes;
+          if (codesList is List) {
+            parsedCodes = List<String>.from(codesList);
+          }
+        }
         return Product(
           id: json['id'],
           name: json['name'],
           mrp: double.tryParse(json['mrp']?.toString() ?? '0') ?? 0.0,
           sellingPrice: double.tryParse(json['selling_price']?.toString() ?? json['price']?.toString() ?? '0') ?? 0.0,
-          codes: json['codes'] != null ? List<String>.from(json['codes']) : [],
+          codes: parsedCodes,
           taxRate: TaxRate.values.firstWhere((e) => e.name == json['tax_rate'], orElse: () => TaxRate.exempt),
           lowStockAlertLevel: double.tryParse(json['low_stock_level']?.toString() ?? '0') ?? 0.0,
           initialStock: double.tryParse(json['current_stock']?.toString() ?? '0') ?? 0.0,
