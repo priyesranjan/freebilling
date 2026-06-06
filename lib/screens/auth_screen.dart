@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pinput/pinput.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sms_autofill/sms_autofill.dart';
 import '../core/core.dart';
 import '../models/models.dart';
 import '../services/services.dart';
@@ -17,7 +18,7 @@ class AuthScreen extends StatefulWidget {
   State<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen> {
+class _AuthScreenState extends State<AuthScreen> with CodeAutoFill {
   _AuthMode _mode = _AuthMode.otpPhone;
   bool _isLoading = false;
   String? _sessionId;
@@ -34,6 +35,43 @@ class _AuthScreenState extends State<AuthScreen> {
   void initState() {
     super.initState();
     _phoneController.addListener(_onPhoneChanged);
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (mounted && _mode == _AuthMode.otpPhone && _phoneController.text.isEmpty) {
+        _askForPhoneHint();
+      }
+    });
+  }
+
+  Future<void> _askForPhoneHint() async {
+    try {
+      final String? autoPhone = await SmsAutoFill().hint;
+      if (autoPhone != null && mounted) {
+        String phone = autoPhone.trim();
+        phone = phone.replaceAll(RegExp(r'\D'), ''); // Keep only digits
+        if (phone.length > 10) {
+          phone = phone.substring(phone.length - 10);
+        }
+        setState(() {
+          _phoneController.text = phone;
+        });
+        // Auto trigger sending OTP
+        _sendOtp();
+      }
+    } catch (e) {
+      debugPrint("Error getting phone hint: $e");
+    }
+  }
+
+  @override
+  void codeUpdated() {
+    final incomingCode = code;
+    debugPrint("SmsAutoFill codeUpdated: $incomingCode");
+    if (incomingCode != null && incomingCode.length == 6) {
+      setState(() {
+        _otpController.text = incomingCode;
+      });
+      _verifyOtp(); // Auto verify!
+    }
   }
 
   void _onPhoneChanged() {
@@ -53,6 +91,12 @@ class _AuthScreenState extends State<AuthScreen> {
     _otpController.dispose();
     _passwordController.dispose();
     _nameController.dispose();
+    try {
+      SmsAutoFill().unregisterListener();
+      cancel();
+    } catch (e) {
+      debugPrint("Error disposing SmsAutoFill: $e");
+    }
     super.dispose();
   }
 
@@ -63,6 +107,14 @@ class _AuthScreenState extends State<AuthScreen> {
       return;
     }
     setState(() => _isLoading = true);
+
+    try {
+      await SmsAutoFill().listenForCode();
+      debugPrint("SmsAutoFill started listening for SMS OTP");
+    } catch (e) {
+      debugPrint("Error starting SmsAutoFill listener: $e");
+    }
+
     try {
       final res = await ApiService.sendOtp(phone);
       if (!mounted) return;
@@ -333,6 +385,11 @@ class _AuthScreenState extends State<AuthScreen> {
     keyboardType: TextInputType.phone,
     maxLength: 10,
     textAlign: TextAlign.center,
+    onTap: () {
+      if (_phoneController.text.isEmpty && _mode == _AuthMode.otpPhone) {
+        _askForPhoneHint();
+      }
+    },
     style: GoogleFonts.spaceGrotesk(fontSize: 26, fontWeight: FontWeight.bold, letterSpacing: 2),
     decoration: InputDecoration(
       counterText: '',
