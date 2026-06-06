@@ -229,9 +229,19 @@ class _PlatformShellState extends State<PlatformShell> {
   Future<void> _loadDataFromCloud() async {
     setState(() => _isLoading = true);
     try {
-      // Temporarily bypass token check since we don't have login flow fully wired yet for the demo
-      // final token = await ApiService.getToken();
-      
+      final profile = await ApiService.getProfile();
+      final String? bizName = profile['name'];
+      if (bizName != null && bizName.isNotEmpty) {
+        AppSettings.instance.businessName = bizName;
+        if (profile['phone'] != null) AppSettings.instance.businessPhone = profile['phone'];
+        if (profile['business_type'] != null) AppSettings.instance.businessType = profile['business_type'];
+        if (profile['category'] != null) AppSettings.instance.businessCategory = profile['category'];
+        if (profile['logo_url'] != null) AppSettings.instance.businessLogo = profile['logo_url'];
+        await AppSettings.instance.save();
+      }
+
+      _businesses = [AppSettings.instance.toBusinessRecord()];
+
       _products = await ApiService.getProducts();
       _parties = await ApiService.getParties();
       _invoices = await ApiService.getInvoices();

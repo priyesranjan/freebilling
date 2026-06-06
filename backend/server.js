@@ -415,6 +415,18 @@ app.post('/api/upload-logo', upload.single('logo'), async (req, res) => {
   }
 });
 
+// --- Profile ---
+app.get('/api/profile', authenticateToken, async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM businesses WHERE id = $1', [req.user.businessId]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Business not found' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Fetch Profile Error:', err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
 app.get('/api/products', authenticateToken, async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM products WHERE business_id = $1 ORDER BY created_at DESC', [req.user.businessId]);

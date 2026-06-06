@@ -154,6 +154,16 @@ class ApiService {
     throw Exception('Failed to upload logo: ${response.body}');
   }
 
+  // --- Profile ---
+  static Future<Map<String, dynamic>> getProfile() async {
+    final token = await getToken();
+    final response = await http.get(Uri.parse('$baseUrl/profile'), headers: _headers(token));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+    throw Exception('Failed to fetch profile: ${response.body}');
+  }
+
   // --- Products ---
 
   static Future<List<Product>> getProducts() async {
