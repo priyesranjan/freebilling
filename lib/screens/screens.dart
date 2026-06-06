@@ -238,6 +238,32 @@ class _PlatformShellState extends State<PlatformShell> {
         if (profile['business_type'] != null) AppSettings.instance.businessType = profile['business_type'];
         if (profile['category'] != null) AppSettings.instance.businessCategory = profile['category'];
         if (profile['logo_url'] != null) AppSettings.instance.businessLogo = profile['logo_url'];
+        if (profile['signature_url'] != null) AppSettings.instance.businessSignature = profile['signature_url'];
+        if (profile['address'] != null) AppSettings.instance.businessAddress = profile['address'];
+        if (profile['email'] != null) AppSettings.instance.businessEmail = profile['email'];
+        if (profile['gstin'] != null) AppSettings.instance.gstin = profile['gstin'];
+        if (profile['state'] != null) AppSettings.instance.state = profile['state'];
+        if (profile['district'] != null) AppSettings.instance.district = profile['district'];
+        if (profile['city'] != null) AppSettings.instance.city = profile['city'];
+        if (profile['pincode'] != null) AppSettings.instance.pincode = profile['pincode'];
+        if (profile['invoice_format'] != null) AppSettings.instance.invoiceFormat = profile['invoice_format'];
+        if (profile['invoice_theme'] != null) AppSettings.instance.invoiceTheme = profile['invoice_theme'];
+        if (profile['online_store_theme'] != null) AppSettings.instance.onlineStoreTheme = profile['online_store_theme'];
+        if (profile['certifications'] != null) {
+          final certs = profile['certifications'];
+          if (certs is List) {
+            AppSettings.instance.certifications = List<String>.from(certs);
+          } else if (certs is String) {
+            try {
+              final parsed = jsonDecode(certs);
+              if (parsed is List) {
+                AppSettings.instance.certifications = List<String>.from(parsed);
+              }
+            } catch (e) {
+              debugPrint('Error parsing certifications json: $e');
+            }
+          }
+        }
         await AppSettings.instance.save();
       }
 
@@ -518,9 +544,11 @@ class _PlatformShellState extends State<PlatformShell> {
         ],
         image: logo != null
             ? DecorationImage(
-                image: dart_io.File(logo).existsSync()
-                    ? FileImage(dart_io.File(logo)) as ImageProvider
-                    : const AssetImage('assets/placeholder.png'),
+                image: (logo.startsWith('http://') || logo.startsWith('https://'))
+                    ? NetworkImage(logo) as ImageProvider
+                    : (dart_io.File(logo).existsSync()
+                        ? FileImage(dart_io.File(logo)) as ImageProvider
+                        : const AssetImage('assets/placeholder.png')),
                 fit: BoxFit.cover,
               )
             : null,

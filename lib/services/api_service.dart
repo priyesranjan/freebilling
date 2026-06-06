@@ -390,6 +390,8 @@ class ApiService {
         'invoiceTheme': settings.invoiceTheme,
         'certifications': settings.certifications,
         'onlineStoreTheme': settings.onlineStoreTheme,
+        'logoUrl': settings.businessLogo,
+        'signatureUrl': settings.businessSignature,
       }),
     );
     if (response.statusCode != 200) {

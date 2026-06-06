@@ -175,7 +175,9 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
                   child: _localLogoPath != null 
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(16),
-                        child: Image.file(File(_localLogoPath!), fit: BoxFit.cover),
+                        child: (_localLogoPath!.startsWith('http://') || _localLogoPath!.startsWith('https://'))
+                            ? Image.network(_localLogoPath!, fit: BoxFit.cover)
+                            : Image.file(File(_localLogoPath!), fit: BoxFit.cover),
                       )
                     : const Icon(Icons.business, size: 36, color: BrandPalette.navy),
                 ),
@@ -322,7 +324,9 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
               child: _localSignaturePath != null
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.file(File(_localSignaturePath!), fit: BoxFit.contain),
+                      child: (_localSignaturePath!.startsWith('http://') || _localSignaturePath!.startsWith('https://'))
+                          ? Image.network(_localSignaturePath!, fit: BoxFit.contain)
+                          : Image.file(File(_localSignaturePath!), fit: BoxFit.contain),
                     )
                   : const Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -491,6 +495,67 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
   }
 
   Future<void> _save() async {
+    bool isUploadingLogo = _localLogoPath != null &&
+        !_localLogoPath!.startsWith('http://') &&
+        !_localLogoPath!.startsWith('https://');
+    bool isUploadingSignature = _localSignaturePath != null &&
+        !_localSignaturePath!.startsWith('http://') &&
+        !_localSignaturePath!.startsWith('https://');
+
+    if (isUploadingLogo || isUploadingSignature) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Uploading business details and files to cloud...'),
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
+    }
+
+    String? logoUrl = _localLogoPath;
+    String? signatureUrl = _localSignaturePath;
+
+    try {
+      if (isUploadingLogo) {
+        final file = File(_localLogoPath!);
+        if (await file.exists()) {
+          final bytes = await file.readAsBytes();
+          final filename = _localLogoPath!.split(Platform.pathSeparator).last;
+          final url = await ApiService.uploadLogo(bytes, filename);
+          if (url != null) {
+            logoUrl = url;
+            setState(() {
+              _localLogoPath = url;
+            });
+          }
+        }
+      }
+
+      if (isUploadingSignature) {
+        final file = File(_localSignaturePath!);
+        if (await file.exists()) {
+          final bytes = await file.readAsBytes();
+          final filename = _localSignaturePath!.split(Platform.pathSeparator).last;
+          final url = await ApiService.uploadLogo(bytes, filename);
+          if (url != null) {
+            signatureUrl = url;
+            setState(() {
+              _localSignaturePath = url;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error uploading files: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to upload files to cloud: $e'), backgroundColor: BrandPalette.coral),
+        );
+      }
+      return;
+    }
+
     widget.settings.businessName = _nameCtrl.text.trim();
     widget.settings.businessAddress = _addressCtrl.text.trim();
     widget.settings.businessPhone = _phoneCtrl.text.trim();
@@ -507,8 +572,8 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
     widget.settings.invoiceFormat = _selectedInvoiceFormat;
     widget.settings.invoiceTheme = _selectedInvoiceTheme;
     widget.settings.certifications = _selectedCertifications;
-    widget.settings.businessLogo = _localLogoPath;
-    widget.settings.businessSignature = _localSignaturePath;
+    widget.settings.businessLogo = logoUrl;
+    widget.settings.businessSignature = signatureUrl;
     
     // Save locally
     await widget.settings.save();

@@ -355,7 +355,8 @@ app.put('/api/businesses/onboard', authenticateToken, async (req, res) => {
 app.put('/api/businesses/profile', authenticateToken, async (req, res) => {
   const {
     name, address, email, gstin, category, businessType,
-    state, district, city, pincode, invoiceFormat, invoiceTheme, certifications
+    state, district, city, pincode, invoiceFormat, invoiceTheme, certifications,
+    logoUrl, signatureUrl
   } = req.body;
   try {
     await db.query(
@@ -372,12 +373,15 @@ app.put('/api/businesses/profile', authenticateToken, async (req, res) => {
         pincode = COALESCE($10, pincode),
         invoice_format = COALESCE($11, invoice_format),
         invoice_theme = COALESCE($12, invoice_theme),
-        certifications = COALESCE($13, certifications)
-      WHERE id = $14`,
+        certifications = COALESCE($13, certifications),
+        logo_url = COALESCE($14, logo_url),
+        signature_url = COALESCE($15, signature_url)
+      WHERE id = $16`,
       [
         name, address, email, gstin, category, businessType,
         state, district, city, pincode, invoiceFormat, invoiceTheme,
         certifications ? JSON.stringify(certifications) : null,
+        logoUrl, signatureUrl,
         req.user.businessId
       ]
     );

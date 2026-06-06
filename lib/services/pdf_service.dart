@@ -4,6 +4,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:intl/intl.dart';
 import '../models/models.dart';
 import 'dart:io';
+import 'package:http/http.dart' as http;
 
 class PdfInvoiceService {
   static Future<Uint8List> generateInvoice(InvoiceRecord invoice, BusinessRecord business) async {
@@ -11,9 +12,26 @@ class PdfInvoiceService {
     
     final settings = AppSettings.instance;
     if (settings.businessSignature != null) {
-      final file = File(settings.businessSignature!);
-      if (file.existsSync()) {
-        signatureImage = pw.MemoryImage(file.readAsBytesSync());
+      final signaturePath = settings.businessSignature!;
+      if (signaturePath.startsWith('http://') || signaturePath.startsWith('https://')) {
+        try {
+          final response = await http.get(Uri.parse(signaturePath));
+          if (response.statusCode == 200) {
+            signatureImage = pw.MemoryImage(response.bodyBytes);
+          } else {
+            signatureImage = null;
+          }
+        } catch (e) {
+          print('Failed to download remote signature: $e');
+          signatureImage = null;
+        }
+      } else {
+        final file = File(signaturePath);
+        if (file.existsSync()) {
+          signatureImage = pw.MemoryImage(file.readAsBytesSync());
+        } else {
+          signatureImage = null;
+        }
       }
     } else {
       signatureImage = null;
