@@ -228,7 +228,9 @@
       </div>
     </a>
     <div class="nav-actions">
-      <!-- Future: User Profile / Cart Icon -->
+      <button onclick="openServiceModal()" style="background:var(--secondary);color:white;border:none;padding:10px 16px;border-radius:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(16,185,129,0.2);">
+        🛎️ Book Service / Request
+      </button>
     </div>
   </div>
 </nav>
@@ -275,12 +277,50 @@
 </div>
 
 <!-- ── Floating Cart ─────────────────────────────────────────────── -->
-<div class="cart-float" id="cartBar">
+<div class="cart-float" id="cartBar" style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;">
   <div class="cart-details">
     <h4 id="cartTotal">₹0</h4>
     <p id="cartItems">0 items in your bag</p>
   </div>
-  <button class="btn-checkout" onclick="sendWhatsAppOrder()">Order via WhatsApp →</button>
+  <div style="display:flex;gap:8px;">
+    <button class="btn-checkout" onclick="sendWhatsAppOrder()" style="background:#25D366;margin:0;padding:12px 16px;font-size:14px;">💬 WhatsApp →</button>
+    <button class="btn-checkout" onclick="openOrderModal()" style="background:var(--primary);margin:0;padding:12px 16px;font-size:14px;">🚀 Place Online →</button>
+  </div>
+</div>
+
+<!-- ── Service Request & Direct Order Modal ──────────────────────────────── -->
+<div id="serviceModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.7);backdrop-filter:blur(4px);z-index:999999;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--surface);color:var(--text-main);padding:28px;border-radius:24px;width:100%;max-width:440px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.3);border:1px solid var(--border);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h3 id="modalTitle" style="font-size:20px;font-weight:800;">🛎️ Book Service / Inquiry</h3>
+      <button onclick="closeServiceModal()" style="background:transparent;border:none;font-size:26px;cursor:pointer;color:var(--text-muted);">×</button>
+    </div>
+    <p id="modalSub" style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">Send a booking request directly to <strong>{{businessName}}</strong>.</p>
+    
+    <div style="margin-bottom:14px;">
+      <label style="display:block;font-size:11px;font-weight:800;margin-bottom:6px;color:var(--text-muted);">YOUR NAME *</label>
+      <input id="srvName" placeholder="e.g. Amit Sharma" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;background:var(--bg);color:var(--text-main);font-size:14px;outline:none;"/>
+    </div>
+    
+    <div style="margin-bottom:14px;">
+      <label style="display:block;font-size:11px;font-weight:800;margin-bottom:6px;color:var(--text-muted);">MOBILE NUMBER *</label>
+      <input id="srvPhone" type="tel" placeholder="e.g. 9876543210" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;background:var(--bg);color:var(--text-main);font-size:14px;outline:none;"/>
+    </div>
+
+    <div style="margin-bottom:22px;">
+      <label id="noteLabel" style="display:block;font-size:11px;font-weight:800;margin-bottom:6px;color:var(--text-muted);">SERVICE NEEDED OR ADDRESS *</label>
+      <textarea id="srvNote" placeholder="Describe your service request or delivery address..." style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;background:var(--bg);color:var(--text-main);font-size:14px;outline:none;height:85px;resize:none;font-family:inherit;"></textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button onclick="submitOrderAction('wa')" style="flex:1;background:#25D366;color:white;border:none;padding:14px;border-radius:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-size:14px;">
+        💬 WhatsApp
+      </button>
+      <button onclick="submitOrderAction('api')" style="flex:1;background:var(--primary);color:white;border:none;padding:14px;border-radius:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-size:14px;box-shadow:0 4px 14px rgba(79,70,229,0.3);">
+        🚀 Confirm Order
+      </button>
+    </div>
+  </div>
 </div>
 
 <!-- ── Footer ────────────────────────────────────────────────────── -->
@@ -288,7 +328,7 @@
   <div class="footer-grid">
     <div class="footer-brand">
       <h2>{{businessName}}</h2>
-      <p>Premium quality products delivered to your doorstep. We take pride in our service and product excellence.</p>
+      <p>Premium quality products and reliable service. We take pride in delivering customer satisfaction.</p>
       <div style="margin-top:20px; display:flex; gap:16px;">
         <a href="tel:+91{{rawPhone}}" style="color:var(--primary); font-weight:700; text-decoration:none;">📞 Call Us</a>
         <a href="https://wa.me/91{{rawPhone}}" style="color:var(--secondary); font-weight:700; text-decoration:none;">💬 WhatsApp</a>
@@ -315,7 +355,7 @@
   <div class="footer-bottom">
     &copy; 2026 <strong>{{businessName}}</strong>. All rights reserved. 
     <span style="margin: 0 10px;">|</span> 
-    Powered by <a href="https://freebilling.app" style="color:var(--primary); font-weight:700; text-decoration:none;">Dukan Bill</a>
+    Powered by <a href="https://meradukan.in" style="color:var(--primary); font-weight:700; text-decoration:none;">meradukan.in</a>
   </div>
 </footer>
 
@@ -324,6 +364,7 @@
   const PRODUCTS = {{productsJson}};
   let cart = {};
   let activeCategory = 'all';
+  let modalMode = 'SERVICE'; // SERVICE or ORDER
 
   function init() {
     const cats = [...new Set(PRODUCTS.map(p => p.category || 'General'))];
@@ -349,12 +390,11 @@
 
   function filterProducts() {
     const q = document.getElementById('searchInput').value.toLowerCase();
-    let filtered = PRODUCTS.filter(p => {
+    renderProducts(PRODUCTS.filter(p => {
       const matchSearch = p.name.toLowerCase().includes(q) || (p.codes || []).join(' ').toLowerCase().includes(q);
       const matchCat = activeCategory === 'all' || (p.category || 'General') === activeCategory;
       return matchSearch && matchCat;
-    });
-    renderProducts(filtered);
+    }));
   }
 
   function renderProducts(list) {
@@ -390,12 +430,7 @@
 
   function addToCart(id) {
     cart[id] = (cart[id] || 0) + 1;
-    renderProducts(PRODUCTS.filter(p => {
-      const q = document.getElementById('searchInput').value.toLowerCase();
-      const matchSearch = p.name.toLowerCase().includes(q);
-      const matchCat = activeCategory === 'all' || (p.category || 'General') === activeCategory;
-      return matchSearch && matchCat;
-    }));
+    filterProducts();
     updateCartBar();
   }
 
@@ -423,6 +458,85 @@
     msg += `\n*Total: ₹${total.toLocaleString('en-IN')}*\nPlease confirm my order. Thank you!`;
     const phone = BUSINESS.phone ? BUSINESS.phone.replace(/\D/g, '') : '';
     window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+  }
+
+  function openServiceModal() {
+    modalMode = 'SERVICE';
+    document.getElementById('modalTitle').textContent = '🛎️ Book Service / Inquiry';
+    document.getElementById('modalSub').innerHTML = `Send a booking request directly to <strong>${BUSINESS.businessName}</strong>.`;
+    document.getElementById('noteLabel').textContent = 'SERVICE NEEDED OR PREFERRED TIME *';
+    document.getElementById('srvNote').placeholder = 'e.g. AC Repair, Home Consultation, Haircut appointment...';
+    document.getElementById('serviceModal').style.display = 'flex';
+  }
+
+  function openOrderModal() {
+    modalMode = 'ORDER';
+    document.getElementById('modalTitle').textContent = '📦 Confirm Online Order';
+    document.getElementById('modalSub').innerHTML = `Enter your delivery address to place direct order with <strong>${BUSINESS.businessName}</strong>.`;
+    document.getElementById('noteLabel').textContent = 'FULL DELIVERY ADDRESS & PINCODE *';
+    document.getElementById('srvNote').placeholder = 'House No, Street, Landmark, City...';
+    document.getElementById('serviceModal').style.display = 'flex';
+  }
+
+  function closeServiceModal() {
+    document.getElementById('serviceModal').style.display = 'none';
+  }
+
+  async function submitOrderAction(mode) {
+    const name = document.getElementById('srvName').value.trim();
+    const phone = document.getElementById('srvPhone').value.trim();
+    const note = document.getElementById('srvNote').value.trim();
+    if (!name || !phone || !note) return alert('Please enter your Name, Mobile Number, and Details.');
+
+    const ids = Object.keys(cart);
+    const orderItems = ids.map(id => {
+      const p = PRODUCTS.find(x => x.id === id);
+      return p ? { name: p.name, quantity: cart[id], rate: p.sellingPrice, total: p.sellingPrice * cart[id] } : null;
+    }).filter(x => x !== null);
+
+    const total = orderItems.reduce((s, x) => s + x.total, 0);
+
+    if (mode === 'wa') {
+      let msg = '';
+      if (modalMode === 'ORDER') {
+        msg = `📦 *New Online Order for ${BUSINESS.businessName}*\n\n• *Customer:* ${name}\n• *Phone:* ${phone}\n• *Address:* ${note}\n\n*Order Summary:*\n`;
+        orderItems.forEach(x => msg += `• ${x.name} × ${x.quantity} = ₹${x.total.toFixed(0)}\n`);
+        msg += `\n*Total Amount: ₹${total.toLocaleString('en-IN')}*\nPlease confirm my delivery!`;
+      } else {
+        msg = `🛎️ *Service Booking Request for ${BUSINESS.businessName}*\n\n• *Customer:* ${name}\n• *Phone:* ${phone}\n• *Service Requested:* ${note}\n\nPlease confirm my appointment/inquiry!`;
+      }
+      const bizPhone = BUSINESS.phone ? BUSINESS.phone.replace(/\D/g, '') : '';
+      window.open(`https://wa.me/91${bizPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+      closeServiceModal();
+    } else {
+      try {
+        const slug = window.location.pathname.replace(/^\/shop\//, '').replace(/^\//, '');
+        const res = await fetch(`/api/shop/${slug}/orders`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerName: name,
+            customerPhone: phone,
+            items: modalMode === 'ORDER' ? orderItems : [{ name: 'Service Booking: ' + note, quantity: 1, rate: 0, total: 0 }],
+            totalAmount: modalMode === 'ORDER' ? total : 0,
+            note: note,
+            orderType: modalMode === 'ORDER' ? 'ONLINE_ORDER' : 'SERVICE_BOOKING'
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('🎉 ' + (modalMode === 'ORDER' ? 'Order Placed Successfully!' : 'Service Request Sent!') + '\n\nThe shopkeeper has received your request in their Dukan Bill app and will call you shortly.');
+          cart = {};
+          updateCartBar();
+          closeServiceModal();
+        } else {
+          alert('Error: ' + (data.error || 'Submission failed'));
+        }
+      } catch (e) {
+        alert('Could not connect to server. Redirecting to WhatsApp booking...');
+        submitOrderAction('wa');
+      }
+    }
   }
 
   init();

@@ -160,4 +160,8 @@ class TranslationService extends ChangeNotifier {
     final lang = instance._currentLanguage;
     return _dict[key]?[lang] ?? _dict[key]?['en'] ?? key;
   }
+
+  static String trEn(String key) {
+    return _dict[key]?['en'] ?? key;
+  }
 }

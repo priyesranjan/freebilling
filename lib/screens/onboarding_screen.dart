@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../core/core.dart';
 import '../models/models.dart';
 import 'screens.dart';
+import 'language_selection_screen.dart';
 import '../services/api_service.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -23,17 +24,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool _isCheckingSlug = false;
   bool? _isSlugAvailable;
 
-  String _selectedType = 'Retail Shop';
+  String _selectedType = 'Groceries & Kirana (किराना)';
   final List<String> _businessTypes = [
-    'Retail Shop',
-    'Wholesale',
-    'Distributor',
-    'Pharmacy',
-    'Restaurant',
-    'Services / Freelancer',
-    'Manufacturing',
-    'Electronics / Mobile',
-    'Other'
+    'Groceries & Kirana (किराना)',
+    'General Store (जनरल स्टोर)',
+    'Clothes & Fashion (कपड़े)',
+    'Hardware & Tools (हार्डवेयर)',
+    'Restaurant & Cafe (रेस्टोरेंट)',
+    'Pharmacy & Medical (मेडिकल)',
+    'Electronics & Mobile (इलेक्ट्रॉनिक्स)',
+    'Salon & Spa (सैलून)',
+    'Services & Repairs (सर्विस)',
+    'Wholesale & Distributor (थोक)',
+    'Other Business (अन्य)'
   ];
 
   @override
@@ -107,7 +110,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const PlatformShell()),
+        MaterialPageRoute(builder: (context) => const LanguageSelectionScreen()),
       );
     } catch (e) {
       if (!mounted) return;
@@ -185,7 +188,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     controller: _slugController,
                     onChanged: _checkSlugAvailability,
                     decoration: InputDecoration(
-                      prefixText: 'erpbill.com/',
+                      prefixText: 'meradukan.in/',
                       prefixStyle: const TextStyle(color: BrandPalette.teal, fontWeight: FontWeight.bold),
                       suffixIcon: _isCheckingSlug 
                         ? const Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator(strokeWidth: 2))
@@ -228,7 +231,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           const SizedBox(height: 24),
           _buildFeatureRow(Icons.qr_code_scanner, 'Smart Inventory', 'Track MRP, Selling Price, and stock levels automatically.'),
           const SizedBox(height: 24),
-          _buildFeatureRow(Icons.share, 'Online Presence', 'Your website is ready at erpbill.com/${_slugController.text}'),
+          _buildFeatureRow(Icons.share, 'Online Presence', 'Your website is ready at meradukan.in/${_slugController.text}'),
           const Spacer(),
           Container(
             padding: const EdgeInsets.all(16),

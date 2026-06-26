@@ -53,9 +53,12 @@ app.get('/health', (req, res) => res.json(healthPayload()));
 const shopTemplate = fs.readFileSync(path.join(__dirname, 'views', 'shop.html'), 'utf8');
 const invoiceTemplate = fs.readFileSync(path.join(__dirname, 'views', 'invoice.html'), 'utf8');
 
-app.get('/shop/:slug', async (req, res) => {
+app.get(['/:slug', '/shop/:slug'], async (req, res, next) => {
   try {
     const { slug } = req.params;
+    if (['api', 'uploads', 'web', 'health', 'favicon.ico'].includes(slug) || slug.includes('.')) {
+      return next();
+    }
     const theme = req.query.theme || 'modern'; // Support multiple themes: modern, dark, rose
 
     const bizResult = await db.query(
@@ -121,6 +124,39 @@ app.get('/api/shop/:slug', async (req, res) => {
     res.json({ business: biz, products: prodsResult.rows });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Public Store Online Order / Service Booking API ────────────────────────
+app.post('/api/shop/:slug/orders', async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const { customerName, customerPhone, items, totalAmount, note, orderType } = req.body;
+    
+    const bizResult = await db.query(
+      `SELECT id FROM businesses WHERE website_slug = $1 OR LOWER(REPLACE(name, ' ', '-')) = $1 LIMIT 1`,
+      [slug.toLowerCase()]
+    );
+    if (bizResult.rows.length === 0) return res.status(404).json({ error: 'Store not found' });
+    const bizId = bizResult.rows[0].id;
+
+    const ordId = 'ORD-' + Date.now();
+    const orderLines = (items && items.length > 0) ? items : [{ name: note || 'Service Request', quantity: 1, rate: totalAmount || 0, total: totalAmount || 0 }];
+
+    const result = await db.query(
+      `INSERT INTO invoices (id, business_id, customer_name, customer_phone, total, payment_mode, invoice_type, lines, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW()) RETURNING *`,
+      [ordId, bizId, customerName || 'Online Customer', customerPhone || '', totalAmount || 0, 'online', orderType || 'online_order', JSON.stringify(orderLines)]
+    );
+
+    if (io) {
+      io.to(bizId).emit('sync_event', { type: 'InvoiceRecord', action: 'insert', data: result.rows[0] });
+    }
+
+    res.json({ success: true, message: 'Order submitted successfully!', orderId: ordId });
+  } catch (e) {
+    console.error('Order API error:', e);
+    res.status(500).json({ error: 'Failed to submit order' });
   }
 });
 

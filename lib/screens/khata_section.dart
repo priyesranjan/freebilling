@@ -385,26 +385,31 @@ class _LedgerSheetState extends State<_LedgerSheet> {
         // Action buttons
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () => _recordPayment(context, 'in'),
-                  icon: Image.asset('assets/images/btn_money_in_1780532174634.png', width: 40, height: 40),
-                  label: const Text('पैसे मिले\n(Got)', textAlign: TextAlign.center, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0DAB76), foregroundColor: Colors.white, elevation: 0, padding: const EdgeInsets.symmetric(vertical: 14)),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () => _recordPayment(context, 'out'),
-                  icon: Image.asset('assets/images/btn_money_out_1780532186186.png', width: 40, height: 40),
-                  label: const Text('पैसे दिए\n(Gave)', textAlign: TextAlign.center, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE05252), foregroundColor: Colors.white, elevation: 0, padding: const EdgeInsets.symmetric(vertical: 14)),
-                ),
-              ),
-            ],
+          child: Builder(
+            builder: (context) {
+              final bool isEn = TranslationService.instance.currentLanguage == 'en';
+              return Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _recordPayment(context, 'in'),
+                      icon: Image.asset('assets/images/btn_money_in_1780532174634.png', width: 40, height: 40),
+                      label: Text(isEn ? TranslationService.tr('money_in') : '${TranslationService.tr('money_in')}\n(${TranslationService.trEn('money_in')})', textAlign: TextAlign.center, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0DAB76), foregroundColor: Colors.white, elevation: 0, padding: const EdgeInsets.symmetric(vertical: 14)),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _recordPayment(context, 'out'),
+                      icon: Image.asset('assets/images/btn_money_out_1780532186186.png', width: 40, height: 40),
+                      label: Text(isEn ? TranslationService.tr('money_out') : '${TranslationService.tr('money_out')}\n(${TranslationService.trEn('money_out')})', textAlign: TextAlign.center, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE05252), foregroundColor: Colors.white, elevation: 0, padding: const EdgeInsets.symmetric(vertical: 14)),
+                    ),
+                  ),
+                ],
+              );
+            }
           ),
         ),
         const Divider(height: 24),

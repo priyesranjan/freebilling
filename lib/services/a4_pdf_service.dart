@@ -100,30 +100,44 @@ class A4PdfService {
   }
 
   static pw.Widget _buildHeader(String name, String address, String phone, String gstin, DocumentType type) {
-    return pw.Row(
+    final settings = AppSettings.instance;
+    return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
-      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       children: [
-        pw.Column(
+        if (settings.showSpiritualHeader && settings.spiritualHeaderText.isNotEmpty) ...[
+          pw.Container(
+            width: double.infinity,
+            alignment: pw.Alignment.center,
+            margin: const pw.EdgeInsets.only(bottom: 10),
+            child: pw.Text(settings.spiritualHeaderText, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
+          ),
+        ],
+        pw.Row(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            pw.Text(name.toUpperCase(), style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
-            pw.SizedBox(height: 4),
-            pw.Text(address, style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
-            pw.Text('Phone: $phone', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
-            if (gstin.isNotEmpty)
-              pw.Text('GSTIN: $gstin', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
-          ],
-        ),
-        pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.end,
-          children: [
-            pw.Text(type == DocumentType.quotation ? 'QUOTATION / ESTIMATE' : 'TAX INVOICE', style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold, color: PdfColors.grey600)),
-            pw.SizedBox(height: 8),
-            pw.Container(
-              padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: pw.BoxDecoration(color: PdfColors.blue50, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4))),
-              child: pw.Text('ORIGINAL FOR RECIPIENT', style: pw.TextStyle(fontSize: 8, color: PdfColors.blue900, fontWeight: pw.FontWeight.bold)),
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(name.toUpperCase(), style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
+                pw.SizedBox(height: 4),
+                pw.Text(address, style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+                pw.Text('Phone: $phone', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+                if (gstin.isNotEmpty)
+                  pw.Text('GSTIN: $gstin', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+              ],
+            ),
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: [
+                pw.Text(type == DocumentType.quotation ? 'QUOTATION / ESTIMATE' : 'TAX INVOICE', style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold, color: PdfColors.grey600)),
+                pw.SizedBox(height: 8),
+                pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: pw.BoxDecoration(color: PdfColors.blue50, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4))),
+                  child: pw.Text('ORIGINAL FOR RECIPIENT', style: pw.TextStyle(fontSize: 8, color: PdfColors.blue900, fontWeight: pw.FontWeight.bold)),
+                ),
+              ],
             ),
           ],
         ),
@@ -252,14 +266,18 @@ class A4PdfService {
   }
 
   static pw.Widget _buildFooter() {
+    final settings = AppSettings.instance;
+    if (settings.termsAndConditions.isEmpty) return pw.SizedBox();
+    final lines = settings.termsAndConditions.split('\n');
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.center,
       children: [
         pw.Divider(color: PdfColors.grey300),
         pw.SizedBox(height: 8),
-        pw.Text('Thank you for your business!', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
-        pw.SizedBox(height: 4),
-        pw.Text('Subject to local jurisdiction. Goods once sold will not be taken back.', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+        ...lines.map((l) => pw.Padding(
+          padding: const pw.EdgeInsets.only(bottom: 2),
+          child: pw.Text(l, style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
+        )),
       ],
     );
   }

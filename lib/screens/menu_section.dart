@@ -7,8 +7,10 @@ import 'expenses_screen.dart';
 import 'reports_screen.dart';
 import 'cash_bank_screen.dart';
 import 'marketing_hub.dart';
+import 'website_preview_screen.dart';
 import 'settings/upgrade_screen.dart';
 import 'auth_screen.dart';
+import 'language_selection_screen.dart';
 import '../services/api_service.dart';
 import '../services/services.dart';
 
@@ -36,6 +38,23 @@ class MenuSection extends StatefulWidget {
 
 class _MenuSectionState extends State<MenuSection> {
   final Set<String> _expanded = {};
+
+  String _slugify(String text) => text.isEmpty ? 'my-shop' : text.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '-');
+
+  String _getLanguageNativeName(String code) {
+    switch (code) {
+      case 'hi': return 'हिंदी';
+      case 'pa': return 'ਪੰਜਾਬੀ';
+      case 'bho': return 'भोजपुरी';
+      case 'mr': return 'मराठी';
+      case 'gu': return 'ગુજરાતી';
+      case 'bn': return 'বাংলা';
+      case 'ta': return 'தமிழ்';
+      case 'te': return 'తెలుగు';
+      case 'kn': return 'ಕನ್ನಡ';
+      default: return 'English';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +87,9 @@ class _MenuSectionState extends State<MenuSection> {
 
           // ── Marketing & Growth ──────────────────────────────────────
           _sectionCard('Marketing & Growth', [
+            _navTile(context, Icons.language, 'Dedicated Website (ऑनलाइन दुकान)', 'meradukan.in/${settings.websiteSlug.isNotEmpty ? settings.websiteSlug : _slugify(settings.businessName)}',
+              () => _push(context, const WebsitePreviewScreen()), isNew: true),
+            _divider(),
             _navTile(context, Icons.campaign_outlined, 'AI Marketing Hub', 'Auto-Replies & Promo Images', 
               () => _push(context, const MarketingHubScreen())),
           ]),
@@ -89,6 +111,9 @@ class _MenuSectionState extends State<MenuSection> {
 
           // ── Settings & Support ─────────────────────────────────────
           _sectionCard('System & Help', [
+            _navTile(context, Icons.language, 'Change Language (भाषा बदलें)', _getLanguageNativeName(TranslationService.instance.currentLanguage),
+              () => _push(context, const LanguageSelectionScreen())),
+            _divider(),
             _navTile(context, Icons.star_border_rounded, 'Upgrade Plan', 'Get Premium Features',
               () => _push(context, const UpgradeScreen()), isNew: true),
             _divider(),

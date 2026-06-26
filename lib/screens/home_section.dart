@@ -69,6 +69,7 @@ class HomeSection extends StatelessWidget {
   }
 
   Widget _buildGiantActionGrid(BuildContext context) {
+    final bool isEn = TranslationService.instance.currentLanguage == 'en';
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
       child: GridView.count(
@@ -82,7 +83,7 @@ class HomeSection extends StatelessWidget {
           _giantButton(
             context,
             TranslationService.tr('new_sale'),
-            '',
+            isEn ? '' : TranslationService.trEn('new_sale'),
             'assets/images/btn_sale_1780532113144.png',
             const Color(0xFF10B981),
             onAddSale,
@@ -90,7 +91,7 @@ class HomeSection extends StatelessWidget {
           _giantButton(
             context,
             TranslationService.tr('add_expense'),
-            '',
+            isEn ? '' : TranslationService.trEn('add_expense'),
             'assets/images/btn_expense_1780532127345.png',
             const Color(0xFFEF4444),
             () => onViewExpenses?.call(),
@@ -98,7 +99,7 @@ class HomeSection extends StatelessWidget {
           _giantButton(
             context,
             TranslationService.tr('customers'),
-            '',
+            isEn ? '' : TranslationService.trEn('customers'),
             'assets/images/btn_customers_1780532138943.png',
             const Color(0xFF3B82F6),
             () => onSwitchTab?.call(AppSection.khata),
@@ -106,7 +107,7 @@ class HomeSection extends StatelessWidget {
           _giantButton(
             context,
             TranslationService.tr('reports'),
-            '',
+            isEn ? '' : TranslationService.trEn('reports'),
             'assets/images/btn_reports_1780532163229.png',
             const Color(0xFF8B5CF6),
             () => Navigator.push(context, MaterialPageRoute(builder: (_) => ReportsScreen(invoices: invoices, expenses: expenses, products: products))),

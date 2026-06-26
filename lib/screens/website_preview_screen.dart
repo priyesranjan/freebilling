@@ -10,6 +10,7 @@ class WebsitePreviewScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final settings = AppSettings.instance;
     final businessName = settings.businessName.isEmpty ? 'My Business' : settings.businessName;
+    final slug = settings.websiteSlug.isNotEmpty ? settings.websiteSlug : businessName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '-');
 
     return Scaffold(
       appBar: AppBar(
@@ -47,7 +48,7 @@ class WebsitePreviewScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Share your catalog link with customers on WhatsApp so they can browse your products and place orders directly.',
+                'Share your dedicated website link with customers on WhatsApp so they can browse your products and place orders directly.',
                 style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade600, height: 1.5),
                 textAlign: TextAlign.center,
               ),
@@ -65,7 +66,7 @@ class WebsitePreviewScreen extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'mydukan.link/${businessName.toLowerCase().replaceAll(' ', '')}',
+                        'meradukan.in/$slug',
                         style: GoogleFonts.inter(fontWeight: FontWeight.w500, color: BrandPalette.navy),
                         overflow: TextOverflow.ellipsis,
                       ),

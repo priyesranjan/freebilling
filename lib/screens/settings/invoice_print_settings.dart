@@ -12,13 +12,22 @@ class InvoicePrintSettingsScreen extends StatefulWidget {
 
 class _InvoicePrintSettingsScreenState extends State<InvoicePrintSettingsScreen> {
   late TextEditingController _termsCtrl;
+  late TextEditingController _spiritualHeaderCtrl;
+  late bool _showSpiritualHeader;
+
   @override
   void initState() {
     super.initState();
     _termsCtrl = TextEditingController(text: widget.settings.termsAndConditions);
+    _spiritualHeaderCtrl = TextEditingController(text: widget.settings.spiritualHeaderText);
+    _showSpiritualHeader = widget.settings.showSpiritualHeader;
   }
   @override
-  void dispose() { _termsCtrl.dispose(); super.dispose(); }
+  void dispose() { 
+    _termsCtrl.dispose(); 
+    _spiritualHeaderCtrl.dispose();
+    super.dispose(); 
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,9 +60,54 @@ class _InvoicePrintSettingsScreenState extends State<InvoicePrintSettingsScreen>
           _card([
             _toggle('Show Business Logo', widget.settings.showLogo, (v) => setState(() => widget.settings.showLogo = v)),
             _toggle('Show Signature Line', widget.settings.showSignature, (v) => setState(() => widget.settings.showSignature = v)),
+            _toggle('Show Spiritual Header', _showSpiritualHeader, (v) => setState(() => _showSpiritualHeader = v)),
           ]),
+          if (_showSpiritualHeader) ...[
+            const SizedBox(height: 16),
+            _sectionHeader('Spiritual Header Text'),
+            _card([
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextField(
+                      controller: _spiritualHeaderCtrl,
+                      decoration: const InputDecoration(
+                        hintText: 'e.g. !! SHREE GANESHYA NAMAH !!',
+                        border: InputBorder.none,
+                      ),
+                    ),
+                    const Divider(),
+                    const SizedBox(height: 4),
+                    const Text('Popular Presets:', style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        '!! SHREE GANESHYA NAMAH !!',
+                        '!! JAI SHREE RAM !!',
+                        '!! BISMILLAH !!',
+                        '!! WAHEGURU !!',
+                      ].map((preset) => ActionChip(
+                        label: Text(preset, style: const TextStyle(fontSize: 10)),
+                        padding: EdgeInsets.zero,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        onPressed: () {
+                          setState(() {
+                            _spiritualHeaderCtrl.text = preset;
+                          });
+                        },
+                      )).toList(),
+                    ),
+                  ],
+                ),
+              ),
+            ]),
+          ],
           const SizedBox(height: 16),
-          _sectionHeader('Terms & Conditions'),
+          _sectionHeader('Custom Footer / Terms & Conditions'),
           TextField(
             controller: _termsCtrl,
             maxLines: 4,
@@ -102,11 +156,16 @@ class _InvoicePrintSettingsScreenState extends State<InvoicePrintSettingsScreen>
     activeColor: BrandPalette.teal,
   );
 
-  void _save() {
-    widget.settings.termsAndConditions = _termsCtrl.text;
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Print settings saved!'), backgroundColor: BrandPalette.teal),
-    );
+  Future<void> _save() async {
+    widget.settings.termsAndConditions = _termsCtrl.text.trim();
+    widget.settings.showSpiritualHeader = _showSpiritualHeader;
+    widget.settings.spiritualHeaderText = _spiritualHeaderCtrl.text.trim();
+    await widget.settings.save();
+    if (mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Print settings saved!'), backgroundColor: BrandPalette.teal),
+      );
+    }
   }
 }

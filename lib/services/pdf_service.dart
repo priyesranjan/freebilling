@@ -94,8 +94,10 @@ class PdfInvoiceService {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.center,
       children: [
-        pw.Text('!! SHREE GANESHYA NAMAH !!', style: const pw.TextStyle(fontSize: 8)),
-        pw.SizedBox(height: 4),
+        if (settings.showSpiritualHeader && settings.spiritualHeaderText.isNotEmpty) ...[
+          pw.Text(settings.spiritualHeaderText, style: const pw.TextStyle(fontSize: 8)),
+          pw.SizedBox(height: 4),
+        ],
         pw.Text(bName.toUpperCase(), style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
         pw.Text(business.category?.toUpperCase() ?? 'FASHION & RETAIL', style: const pw.TextStyle(fontSize: 9)),
         pw.Text(bAddress, style: const pw.TextStyle(fontSize: 9)),
@@ -249,16 +251,12 @@ class PdfInvoiceService {
   }
 
   static pw.Widget _buildTermsAndConditions() {
+    final settings = AppSettings.instance;
+    if (settings.termsAndConditions.isEmpty) return pw.SizedBox();
+    final lines = settings.termsAndConditions.split('\n');
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.Text('*NO CASH REFUND. *EXCHANGE WITHIN SEVEN DAYS', style: const pw.TextStyle(fontSize: 8)),
-        pw.Text(' IN GOOD CONDITION WITH BILL AND TAGS.', style: const pw.TextStyle(fontSize: 8)),
-        pw.Text('*The goods exchange will be in the same store', style: const pw.TextStyle(fontSize: 8)),
-        pw.Text(' from where the goods will be purchased.', style: const pw.TextStyle(fontSize: 8)),
-        pw.Text('*NO GUARANTEE OF FABRIC, JARI & COLOUR.', style: const pw.TextStyle(fontSize: 8)),
-        pw.Text('*SUBJECT TO LOCAL JURISDICTION.', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold)),
-      ]
+      children: lines.map((l) => pw.Text(l, style: const pw.TextStyle(fontSize: 8))).toList(),
     );
   }
 

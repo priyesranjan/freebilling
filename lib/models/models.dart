@@ -759,6 +759,8 @@ class AppSettings {
     this.termsAndConditions = 'Thank you for your business!',
     this.invoicePrefix = 'INV',
     this.invoiceNextNumber = 1,
+    this.showSpiritualHeader = true,
+    this.spiritualHeaderText = '!! SHREE GANESHYA NAMAH !!',
     // Tax Settings
     this.gstin = '',
     this.businessGstinEnabled = false,
@@ -786,6 +788,7 @@ class AppSettings {
     this.invoiceTheme = 'standard',
     this.certifications = const [],
     this.onlineStoreTheme = 'modern',
+    this.websiteSlug = '',
   });
 
   // Item Settings
@@ -813,6 +816,8 @@ class AppSettings {
   String termsAndConditions;
   String invoicePrefix;
   int invoiceNextNumber;
+  bool showSpiritualHeader;
+  String spiritualHeaderText;
 
   // Tax Settings
   String gstin;
@@ -834,6 +839,7 @@ class AppSettings {
   String invoiceFormat;
   String currency;
   String onlineStoreTheme; // modern, dark, rose
+  String websiteSlug;
 
   // Reminders
   bool paymentReminderEnabled;
@@ -866,11 +872,14 @@ class AppSettings {
     district = '';
     city = '';
     pincode = '';
+    websiteSlug = '';
     businessLogo = null;
     businessSignature = null;
     certifications = [];
     invoiceTheme = 'standard';
     invoiceFormat = 'POS';
+    showSpiritualHeader = true;
+    spiritualHeaderText = '!! SHREE GANESHYA NAMAH !!';
   }
 
   Future<void> save() async {
@@ -894,8 +903,11 @@ class AppSettings {
     await prefs.setString('district', district);
     await prefs.setString('city', city);
     await prefs.setString('pincode', pincode);
+    await prefs.setString('websiteSlug', websiteSlug);
     if (businessLogo != null) await prefs.setString('businessLogo', businessLogo!);
     if (businessSignature != null) await prefs.setString('businessSignature', businessSignature!);
+    await prefs.setBool('showSpiritualHeader', showSpiritualHeader);
+    await prefs.setString('spiritualHeaderText', spiritualHeaderText);
   }
 
   BusinessRecord toBusinessRecord() {
@@ -907,6 +919,7 @@ class AppSettings {
       status: BusinessStatus.onboarded,
       validTill: DateTime.now().add(const Duration(days: 365)),
       category: businessCategory,
+      websiteSlug: websiteSlug,
     );
   }
 
@@ -931,8 +944,11 @@ class AppSettings {
     district = prefs.getString('district') ?? '';
     city = prefs.getString('city') ?? '';
     pincode = prefs.getString('pincode') ?? '';
+    websiteSlug = prefs.getString('websiteSlug') ?? '';
     businessLogo = prefs.getString('businessLogo');
     businessSignature = prefs.getString('businessSignature');
+    showSpiritualHeader = prefs.getBool('showSpiritualHeader') ?? true;
+    spiritualHeaderText = prefs.getString('spiritualHeaderText') ?? '!! SHREE GANESHYA NAMAH !!';
   }
 }
 
