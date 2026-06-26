@@ -189,6 +189,7 @@ class BusinessRecord implements SyncableEntity {
 enum DocumentType {
   invoice,
   quotation,
+  onlineOrder,
 }
 
 // --- NEW GST ENUM ---

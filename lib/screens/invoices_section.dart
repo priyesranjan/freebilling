@@ -45,7 +45,7 @@ class _InvoicesSectionState extends State<InvoicesSection> {
   static const int _pageSize = 20;
 
   List<InvoiceRecord> get filtered {
-    var list = widget.invoices.toList();
+    var list = widget.invoices.where((i) => i.type == _docType).toList();
     switch (_filter) {
       case InvoiceFilter.all:
         return list;
@@ -108,14 +108,15 @@ class _InvoicesSectionState extends State<InvoicesSection> {
       ),
       body: Column(
         children: [
-          if (AppSettings.instance.enableQuotations)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: SegmentedButton<DocumentType>(
-                segments: const [
-                  ButtonSegment(value: DocumentType.invoice, label: Text('Bills/Invoices'), icon: Icon(Icons.receipt_long)),
-                  ButtonSegment(value: DocumentType.quotation, label: Text('Quotations'), icon: Icon(Icons.description_outlined)),
-                ],
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: SegmentedButton<DocumentType>(
+              segments: [
+                const ButtonSegment(value: DocumentType.invoice, label: Text('Bills'), icon: Icon(Icons.receipt_long)),
+                if (AppSettings.instance.enableQuotations)
+                  const ButtonSegment(value: DocumentType.quotation, label: Text('Quotes'), icon: Icon(Icons.description_outlined)),
+                const ButtonSegment(value: DocumentType.onlineOrder, label: Text('🌐 Web Orders'), icon: Icon(Icons.shopping_bag_outlined)),
+              ],
                 selected: {_docType},
                 onSelectionChanged: (Set<DocumentType> newSelection) {
                   HapticFeedback.lightImpact();
@@ -439,7 +440,7 @@ class _InvoicesSectionState extends State<InvoicesSection> {
                       ),
                     ),
                   ],
-                  if (inv.type == DocumentType.quotation) ...[
+                  if (inv.type == DocumentType.quotation || inv.type == DocumentType.onlineOrder) ...[
                     const SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,
@@ -447,12 +448,11 @@ class _InvoicesSectionState extends State<InvoicesSection> {
                         onPressed: () {
                           Navigator.pop(context); // close sheet
                           if (widget.onCreateInvoice != null) {
-                            // Call the creation flow with the quotation to be converted
                             widget.onCreateInvoice!(inv);
                           }
                         },
-                        icon: const Icon(Icons.transform),
-                        label: const Text('Convert to Bill'),
+                        icon: const Icon(Icons.check_circle_outline),
+                        label: Text(inv.type == DocumentType.onlineOrder ? '✅ Accept & Convert to Bill (ऑर्डर पक्का करें)' : 'Convert to Bill'),
                         style: FilledButton.styleFrom(
                           backgroundColor: BrandPalette.teal,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
