@@ -56,9 +56,9 @@ class _InvoicesSectionState extends State<InvoicesSection> {
     }
   }
 
-  double get totalAmount => widget.invoices.where((i) => i.type != DocumentType.quotation).fold(0, (s, i) => s + i.total);
+  double get totalAmount => widget.invoices.where((i) => i.type == DocumentType.invoice).fold(0, (s, i) => s + i.total);
   double get todayAmount => widget.invoices
-      .where((i) => isSameDate(i.createdAt, DateTime.now()) && i.type != DocumentType.quotation)
+      .where((i) => isSameDate(i.createdAt, DateTime.now()) && i.type == DocumentType.invoice)
       .fold(0, (s, i) => s + i.total);
 
   @override
@@ -447,9 +447,7 @@ class _InvoicesSectionState extends State<InvoicesSection> {
                       child: FilledButton.icon(
                         onPressed: () {
                           Navigator.pop(context); // close sheet
-                          if (widget.onCreateInvoice != null) {
-                            widget.onCreateInvoice!(inv);
-                          }
+                          _showCreateBillSheet(context, inv);
                         },
                         icon: const Icon(Icons.check_circle_outline),
                         label: Text(inv.type == DocumentType.onlineOrder ? '✅ Accept & Convert to Bill (ऑर्डर पक्का करें)' : 'Convert to Bill'),
@@ -459,6 +457,29 @@ class _InvoicesSectionState extends State<InvoicesSection> {
                         ),
                       ),
                     ),
+                    if (inv.type == DocumentType.onlineOrder) ...[
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            setState(() {
+                              widget.invoices.removeWhere((item) => item.id == inv.id);
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('❌ Order Rejected & Removed'), backgroundColor: BrandPalette.coral),
+                            );
+                          },
+                          icon: const Icon(Icons.cancel_outlined, color: BrandPalette.coral),
+                          label: const Text('Reject Order (ऑर्डर रद्द करें)', style: TextStyle(color: BrandPalette.coral, fontWeight: FontWeight.bold)),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: BrandPalette.coral),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ],
               ),
@@ -599,7 +620,7 @@ class _InvoicesSectionState extends State<InvoicesSection> {
     DocumentType creatingType = initialQuotation == null ? _docType : DocumentType.invoice; // Converting always makes an invoice
     bool isQuotation = creatingType == DocumentType.quotation;
 
-    if (widget.products == null || widget.products!.isEmpty) {
+    if ((widget.products == null || widget.products!.isEmpty) && cartItems.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Add items first before creating a bill!'), backgroundColor: BrandPalette.coral),
       );
@@ -970,6 +991,11 @@ class _InvoicesSectionState extends State<InvoicesSection> {
                                   discountAmount: disc,
                                 );
                                 widget.onCreateInvoice?.call(invoice);
+                                if (initialQuotation != null) {
+                                  setState(() {
+                                    widget.invoices.removeWhere((item) => item.id == initialQuotation.id);
+                                  });
+                                }
                                 Navigator.pop(ctx);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(content: Text('Bill created successfully!'), backgroundColor: BrandPalette.teal),

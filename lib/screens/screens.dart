@@ -366,7 +366,7 @@ class _PlatformShellState extends State<PlatformShell> {
       _invoices.insert(0, invoice);
       
       // Khata (Ledger) Auto-Update Logic & Stock Deduction
-      if (invoice.type != DocumentType.quotation) {
+      if (invoice.type != DocumentType.quotation && invoice.type != DocumentType.onlineOrder) {
         if (invoice.customerPhone.isNotEmpty) {
           final existingPartyIdx = _parties.indexWhere((p) => p.phone == invoice.customerPhone);
           PartyRecord party;

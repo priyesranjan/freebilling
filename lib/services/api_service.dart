@@ -307,10 +307,12 @@ class ApiService {
             (e) => e.name == json['payment_mode'],
             orElse: () => PaymentMode.cash,
           ),
-          type: DocumentType.values.firstWhere(
-            (e) => e.name == (json['invoice_type'] ?? 'invoice'),
-            orElse: () => DocumentType.invoice,
-          ),
+          type: () {
+            final t = (json['invoice_type'] ?? json['type'] ?? '').toString();
+            if (t == 'onlineOrder' || t == 'online_order') return DocumentType.onlineOrder;
+            if (t == 'quotation') return DocumentType.quotation;
+            return DocumentType.invoice;
+          }(),
           createdAt: DateTime.parse(json['created_at']),
           lines: parsedLines,
           channels: {},
