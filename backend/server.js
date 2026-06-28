@@ -78,7 +78,7 @@ app.get(['/:slug', '/shop/:slug'], async (req, res, next) => {
 
     const prodsResult = await db.query(
       `SELECT id, name, selling_price as "sellingPrice", mrp, current_stock as "currentStock", 
-              low_stock_level as "lowStockAlertLevel", category, codes, tax_rate as "taxRate"
+              low_stock_level as "lowStockAlertLevel", COALESCE(category, 'General') as category, codes, tax_rate as "taxRate"
        FROM products WHERE business_id = $1 ORDER BY name`,
       [biz.id]
     );
@@ -696,7 +696,9 @@ async function runPatch() {
       ALTER TABLE products 
       ADD COLUMN IF NOT EXISTS mrp DECIMAL(10, 2) DEFAULT 0,
       ADD COLUMN IF NOT EXISTS selling_price DECIMAL(10, 2) DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS discount_percent DECIMAL(5, 2) DEFAULT 0
+      ADD COLUMN IF NOT EXISTS discount_percent DECIMAL(5, 2) DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS category VARCHAR(100) DEFAULT 'General',
+      ADD COLUMN IF NOT EXISTS image_url TEXT
     `);
     // Patch Invoices with new fields
     await db.query(`
