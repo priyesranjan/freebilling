@@ -10,7 +10,7 @@ import 'websocket_service.dart';
 class ApiService {
   // ── Backend API URL ──────────────────────────────────────────────
   // All backend routes are prefixed with /api (e.g. /api/auth/send-otp)
-  static const String baseUrl = 'http://nu1p4y93k9miuofk9jn5z4za.91.108.111.194.sslip.io/api'; 
+  static const String baseUrl = 'https://meradukan.in/api';
 
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
