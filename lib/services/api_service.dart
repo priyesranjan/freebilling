@@ -308,8 +308,8 @@ class ApiService {
             orElse: () => PaymentMode.cash,
           ),
           type: () {
-            final t = (json['invoice_type'] ?? json['type'] ?? '').toString();
-            if (t == 'onlineOrder' || t == 'online_order') return DocumentType.onlineOrder;
+            final t = (json['invoice_type'] ?? json['type'] ?? '').toString().toLowerCase();
+            if (t.contains('online') || t.contains('order') || t.contains('booking')) return DocumentType.onlineOrder;
             if (t == 'quotation') return DocumentType.quotation;
             return DocumentType.invoice;
           }(),

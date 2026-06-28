@@ -146,7 +146,7 @@ app.post('/api/shop/:slug/orders', async (req, res) => {
     const result = await db.query(
       `INSERT INTO invoices (id, business_id, customer_name, customer_phone, total, payment_mode, invoice_type, lines, created_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW()) RETURNING *`,
-      [ordId, bizId, customerName || 'Online Customer', customerPhone || '', totalAmount || 0, 'online', orderType || 'online_order', JSON.stringify(orderLines)]
+      [ordId, bizId, customerName || 'Online Customer', customerPhone || '', totalAmount || 0, 'online', (orderType || 'online_order').toLowerCase(), JSON.stringify(orderLines)]
     );
 
     if (io) {

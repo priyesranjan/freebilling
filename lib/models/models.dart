@@ -509,8 +509,8 @@ class InvoiceRecord implements SyncableEntity {
       channels: (json['channels'] as List? ?? []).map((c) => DeliveryChannel.values.firstWhere((e) => e.name == c)).toSet(),
       publicLink: json['publicLink'] as String? ?? '',
       type: () {
-        final t = (json['type'] ?? json['invoice_type'] ?? '').toString();
-        if (t == 'onlineOrder' || t == 'online_order') return DocumentType.onlineOrder;
+        final t = (json['type'] ?? json['invoice_type'] ?? '').toString().toLowerCase();
+        if (t.contains('online') || t.contains('order') || t.contains('booking')) return DocumentType.onlineOrder;
         if (t == 'quotation') return DocumentType.quotation;
         return DocumentType.invoice;
       }(),
