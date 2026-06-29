@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>{{businessName}} — Official Online Showroom & Store</title>
-  <meta name="description" content="Explore and order premium products & services directly from {{businessName}}. Fast delivery, best prices, and verified quality."/>
+  <title>{{businessName}} — Official Online Showroom</title>
+  <meta name="description" content="Order premium products & book verified doorstep services directly from {{businessName}}. Fast delivery and best pricing."/>
   
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -14,11 +14,10 @@
       --primary: #4f46e5;
       --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
       --secondary: #10b981;
-      --secondary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
       --accent: #f59e0b;
       --bg: #f8fafc;
       --surface: #ffffff;
-      --surface-glass: rgba(255, 255, 255, 0.85);
+      --surface-glass: rgba(255, 255, 255, 0.88);
       --text-main: #0f172a;
       --text-muted: #64748b;
       --border: #e2e8f0;
@@ -28,19 +27,21 @@
       --radius: 20px;
     }
 
-    body.theme-dark {
-      --bg: #090d16;
-      --surface: #131b2e;
-      --surface-glass: rgba(19, 27, 46, 0.85);
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --border: #222f4e;
-      --shadow-md: 0 12px 24px -6px rgba(0, 0, 0, 0.4);
+    /* Industry Theme Overrides */
+    body.mode-grocery {
+      --primary: #10b981;
+      --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      --shadow-lg: 0 20px 32px -8px rgba(16, 185, 129, 0.2);
     }
-
-    body.theme-rose {
+    body.mode-fashion {
       --primary: #e11d48;
       --primary-gradient: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+      --shadow-lg: 0 20px 32px -8px rgba(225, 29, 72, 0.2);
+    }
+    body.mode-service {
+      --primary: #0284c7;
+      --primary-gradient: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      --shadow-lg: 0 20px 32px -8px rgba(2, 132, 199, 0.2);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -52,17 +53,16 @@
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
+      transition: all 0.3s ease;
     }
 
-    /* ── Header / Navbar ── */
+    /* ── Navbar ── */
     .navbar {
       position: sticky; top: 0; z-index: 1000;
       background: var(--surface-glass);
       backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border);
       padding: 14px 24px;
-      transition: all 0.3s ease;
     }
     .nav-content {
       max-width: 1280px; margin: 0 auto;
@@ -73,53 +73,55 @@
       width: 48px; height: 48px; background: var(--primary-gradient); color: white;
       border-radius: 14px; display: flex; align-items: center; justify-content: center;
       font-size: 22px; font-weight: 900; box-shadow: var(--shadow-md);
-      font-family: 'Outfit', sans-serif;
+      font-family: 'Outfit', sans-serif; transition: background 0.3s;
     }
     .brand-name h1 { font-size: 20px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
     .badge-verified {
       background: #e0e7ff; color: #4f46e5; font-size: 11px; font-weight: 700;
       padding: 2px 8px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px;
     }
+    body.mode-grocery .badge-verified { background: #d1fae5; color: #059669; }
+    body.mode-fashion .badge-verified { background: #ffe4e6; color: #e11d48; }
+    body.mode-service .badge-verified { background: #e0f2fe; color: #0284c7; }
+
     .brand-name span { font-size: 13px; color: var(--text-muted); font-weight: 500; display: block; margin-top: -2px; }
 
     .nav-actions { display: flex; align-items: center; gap: 12px; }
     .btn-action {
       padding: 10px 18px; border-radius: 14px; font-weight: 700; font-size: 14px;
       text-decoration: none; display: flex; align-items: center; gap: 8px;
-      cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: none;
+      cursor: pointer; transition: all 0.2s; border: none;
     }
     .btn-call { background: var(--surface); border: 1.5px solid var(--border); color: var(--text-main); }
     .btn-call:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); }
-    .btn-service { background: var(--primary-gradient); color: white; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3); }
-    .btn-service:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4); }
+    .btn-service { background: var(--primary-gradient); color: white; box-shadow: 0 4px 14px rgba(0,0,0,0.15); }
+    .btn-service:hover { transform: translateY(-2px); }
 
     /* ── Hero Banner ── */
     .hero {
       position: relative; overflow: hidden;
       background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4f46e5 100%);
-      color: white; padding: 70px 24px 80px; text-align: center;
-      border-radius: 0 0 32px 32px; margin-bottom: 40px;
-      box-shadow: 0 20px 40px -15px rgba(30, 27, 75, 0.5);
+      color: white; padding: 60px 24px 70px; text-align: center;
+      border-radius: 0 0 32px 32px; margin-bottom: 32px;
+      box-shadow: 0 20px 40px -15px rgba(30, 27, 75, 0.5); transition: background 0.5s ease;
     }
-    .hero::after {
-      content: ''; position: absolute; inset: 0;
-      background: radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.25) 0%, transparent 40%),
-                  radial-gradient(circle at 20% 80%, rgba(16, 185, 129, 0.2) 0%, transparent 40%);
-      pointer-events: none;
-    }
+    body.mode-grocery .hero { background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #10b981 100%); }
+    body.mode-fashion .hero { background: linear-gradient(135deg, #4c0519 0%, #881337 50%, #e11d48 100%); }
+    body.mode-service .hero { background: linear-gradient(135deg, #0c4a6e 0%, #075985 50%, #0284c7 100%); }
+
     .hero-content { position: relative; z-index: 2; max-width: 760px; margin: 0 auto; }
     .hero-tag {
-      background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(8px);
+      background: rgba(255, 255, 255, 0.18); backdrop-filter: blur(8px);
       padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 700;
-      display: inline-flex; align-items: center; gap: 6px; margin-bottom: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.2); letter-spacing: 0.5px;
+      display: inline-flex; align-items: center; gap: 6px; margin-bottom: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.25); letter-spacing: 0.5px;
     }
-    .hero h2 { font-size: 46px; font-weight: 900; line-height: 1.15; margin-bottom: 16px; font-family: 'Outfit', sans-serif; letter-spacing: -1px; }
-    .hero p { font-size: 18px; opacity: 0.9; margin-bottom: 36px; font-weight: 400; max-width: 600px; margin-left: auto; margin-right: auto; }
+    .hero h2 { font-size: 42px; font-weight: 900; line-height: 1.15; margin-bottom: 14px; font-family: 'Outfit', sans-serif; letter-spacing: -1px; }
+    .hero p { font-size: 17px; opacity: 0.95; margin-bottom: 30px; font-weight: 400; max-width: 580px; margin-left: auto; margin-right: auto; }
 
     /* Search Box inside Hero */
     .hero-search {
-      max-width: 540px; margin: 0 auto 36px; position: relative;
+      max-width: 540px; margin: 0 auto 30px; position: relative;
       background: white; border-radius: 20px; padding: 6px;
       display: flex; align-items: center; box-shadow: 0 15px 35px rgba(0,0,0,0.2);
     }
@@ -134,27 +136,42 @@
     }
     .hero-search button:hover { transform: scale(1.03); }
 
-    .trust-badges { display: flex; justify-content: center; flex-wrap: wrap; gap: 32px; font-size: 14px; font-weight: 600; opacity: 0.95; }
+    .trust-badges { display: flex; justify-content: center; flex-wrap: wrap; gap: 28px; font-size: 14px; font-weight: 700; }
     .trust-item { display: flex; align-items: center; gap: 8px; }
-    .trust-icon { width: 28px; height: 28px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+    .trust-icon { width: 26px; height: 26px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+
+    /* ── Industry Mode Switcher Bar ── */
+    .industry-bar {
+      max-width: 800px; margin: 0 auto 36px; padding: 8px;
+      background: var(--surface); border: 1.5px solid var(--border); border-radius: 24px;
+      display: flex; gap: 8px; box-shadow: var(--shadow-sm); overflow-x: auto;
+    }
+    .ind-tab {
+      flex: 1; padding: 12px 16px; border-radius: 18px; border: none;
+      background: transparent; color: var(--text-muted); font-family: inherit;
+      font-size: 14px; font-weight: 800; cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap;
+    }
+    .ind-tab:hover { color: var(--text-main); background: var(--bg); }
+    .ind-tab.active { background: var(--primary-gradient); color: white; box-shadow: 0 4px 14px rgba(0,0,0,0.15); }
 
     /* ── Main Content Area ── */
     .main-container { max-width: 1280px; margin: 0 auto; padding: 0 24px 120px; }
 
     /* Categories Navigation */
     .cat-section { margin-bottom: 36px; }
-    .cat-title { font-size: 14px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 16px; }
+    .cat-title { font-size: 13px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 14px; }
     .cat-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
     .cat-scroll::-webkit-scrollbar { display: none; }
     .cat-pill {
       padding: 12px 22px; border-radius: 16px; background: var(--surface);
       border: 1.5px solid var(--border); color: var(--text-main); font-family: inherit;
       font-size: 15px; font-weight: 700; white-space: nowrap; cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; gap: 8px;
+      transition: all 0.2s; display: flex; align-items: center; gap: 8px;
       box-shadow: var(--shadow-sm);
     }
     .cat-pill:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); }
-    .cat-pill.active { background: var(--primary-gradient); color: white; border-color: transparent; box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25); }
+    .cat-pill.active { background: var(--primary-gradient); color: white; border-color: transparent; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
 
     /* Product Grid */
     .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
@@ -169,10 +186,10 @@
       border: 1.5px solid var(--border); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative; display: flex; flex-direction: column; box-shadow: var(--shadow-sm);
     }
-    .product-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); border-color: #c7d2fe; }
+    .product-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); border-color: var(--primary); }
     
     .product-thumb {
-      height: 180px; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      height: 190px; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
       position: relative; display: flex; align-items: center; justify-content: center;
       font-size: 72px; overflow: hidden; transition: transform 0.3s;
     }
@@ -191,26 +208,32 @@
     }
 
     .product-body { padding: 22px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
-    .product-meta { margin-bottom: 16px; }
-    .product-cat { font-size: 12px; color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: block; }
+    .product-cat { font-size: 12px; color: var(--primary); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: block; }
     .product-title { font-size: 19px; font-weight: 800; color: var(--text-main); line-height: 1.3; font-family: 'Outfit', sans-serif; }
     
-    .product-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 16px; border-top: 1px dashed var(--border); }
+    .product-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 16px; border-top: 1px dashed var(--border); margin-top: 16px; }
     .price-wrap { display: flex; flex-direction: column; }
     .price-current { font-size: 24px; font-weight: 900; color: var(--text-main); font-family: 'Outfit', sans-serif; }
     .price-old { font-size: 14px; color: var(--text-muted); text-decoration: line-through; font-weight: 600; margin-top: -2px; }
 
-    /* Quantity Stepper Button */
+    /* Buttons */
     .btn-add {
       background: var(--surface); border: 2px solid var(--primary); color: var(--primary);
       padding: 10px 20px; border-radius: 14px; font-weight: 800; font-size: 15px;
       cursor: pointer; transition: all 0.2s; font-family: inherit;
     }
-    .btn-add:hover { background: var(--primary); color: white; box-shadow: 0 6px 16px rgba(79, 70, 229, 0.25); }
+    .btn-add:hover { background: var(--primary); color: white; box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+
+    .btn-book-service {
+      background: var(--primary-gradient); color: white; border: none;
+      padding: 12px 20px; border-radius: 14px; font-weight: 800; font-size: 14px;
+      cursor: pointer; transition: all 0.2s; font-family: inherit; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .btn-book-service:hover { transform: scale(1.03); }
 
     .stepper {
       display: flex; align-items: center; background: var(--primary-gradient);
-      border-radius: 14px; overflow: hidden; box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3);
+      border-radius: 14px; overflow: hidden; box-shadow: 0 6px 16px rgba(0,0,0,0.15);
     }
     .stepper button {
       background: transparent; border: none; color: white; width: 36px; height: 40px;
@@ -219,20 +242,20 @@
     .stepper button:hover { background: rgba(255,255,255,0.2); }
     .stepper span { color: white; font-weight: 800; font-size: 16px; padding: 0 8px; min-width: 28px; text-align: center; }
 
-    /* ── Floating Bag / Checkout Bar ── */
+    /* ── Floating Bag Bar ── */
     .floating-checkout {
-      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(120px);
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(140px);
       width: calc(100% - 40px); max-width: 680px;
-      background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(16px);
+      background: rgba(15, 23, 42, 0.96); backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.15); color: white;
       padding: 16px 24px; border-radius: 24px; display: flex; align-items: center; justify-content: space-between;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); z-index: 2000;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); z-index: 2000;
       transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     .floating-checkout.active { transform: translateX(-50%) translateY(0); }
     
     .bag-info display: flex; flex-direction: column;
-    .bag-items { font-size: 13px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+    .bag-items { font-size: 13px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
     .bag-total { font-size: 26px; font-weight: 900; color: #38bdf8; font-family: 'Outfit', sans-serif; }
 
     .bag-buttons { display: flex; gap: 12px; }
@@ -241,12 +264,12 @@
       border-radius: 16px; font-weight: 800; font-size: 15px; cursor: pointer;
       display: flex; align-items: center; gap: 8px; transition: transform 0.2s;
     }
-    .btn-checkout-wa:hover { transform: scale(1.03); background: #22c55e; }
+    .btn-checkout-wa:hover { transform: scale(1.03); }
     .btn-checkout-online {
       background: var(--primary-gradient); color: white; border: none; padding: 14px 24px;
       border-radius: 16px; font-weight: 800; font-size: 15px; cursor: pointer;
       display: flex; align-items: center; gap: 8px; transition: transform 0.2s;
-      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
     }
     .btn-checkout-online:hover { transform: scale(1.03); }
 
@@ -272,7 +295,6 @@
     }
     .form-input:focus { border-color: var(--primary); background: var(--surface); }
 
-    /* Receipt preview table inside modal */
     .receipt-box { background: var(--bg); border-radius: 16px; padding: 16px; margin-bottom: 24px; border: 1px solid var(--border); }
     .receipt-item { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; font-weight: 600; }
     .receipt-total { display: flex; justify-content: space-between; font-size: 18px; font-weight: 900; border-top: 1px dashed var(--border); padding-top: 12px; margin-top: 12px; color: var(--primary); }
@@ -283,7 +305,7 @@
     .footer-brand p { color: var(--text-muted); max-width: 480px; margin: 0 auto 24px; font-size: 15px; }
     
     @media (max-width: 640px) {
-      .hero h2 { font-size: 34px; }
+      .hero h2 { font-size: 32px; }
       .nav-content { flex-direction: column; align-items: stretch; }
       .nav-actions { justify-content: space-between; }
       .product-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -293,10 +315,11 @@
       .floating-checkout { flex-direction: column; gap: 16px; text-align: center; }
       .bag-buttons { width: 100%; }
       .bag-buttons button { flex: 1; justify-content: center; }
+      .industry-bar { flex-direction: column; }
     }
   </style>
 </head>
-<body class="theme-modern">
+<body class="mode-grocery">
 
 <!-- ── Navigation Bar ────────────────────────────────────────────── -->
 <nav class="navbar">
@@ -305,12 +328,12 @@
       <div class="brand-logo">{{initial}}</div>
       <div class="brand-name">
         <h1>{{businessName}} <span class="badge-verified">✔ Verified Store</span></h1>
-        <span>Official Digital Showroom</span>
+        <span id="storeSubLabel">Supermarket & Daily Needs</span>
       </div>
     </a>
     <div class="nav-actions">
       <a href="tel:+91{{rawPhone}}" class="btn-action btn-call">📞 Call Shop</a>
-      <button onclick="openModal('SERVICE')" class="btn-action btn-service">🛎️ Book Service</button>
+      <button onclick="openModal('SERVICE')" class="btn-action btn-service" id="btnTopAction">🛎️ Book Service</button>
     </div>
   </div>
 </nav>
@@ -318,22 +341,29 @@
 <!-- ── Hero Section ──────────────────────────────────────────────── -->
 <header class="hero">
   <div class="hero-content">
-    <div class="hero-tag">⚡ Instant Online Ordering & Store Pickup</div>
-    <h2>Everything You Need, Delivered Directly to You.</h2>
-    <p>Browse our verified catalog, select your items, and place instant direct orders or WhatsApp bookings with zero hassle.</p>
+    <div class="hero-tag" id="heroTagText">⚡ 10-Min Instant Delivery & Doorstep Service</div>
+    <h2 id="heroHeading">Everything You Need, Delivered Directly to You.</h2>
+    <p id="heroSubText">Browse our verified catalog, select your items, and place instant direct app orders or WhatsApp bookings with zero hassle.</p>
     
     <div class="hero-search">
-      <input type="text" id="searchInput" placeholder="Search products, brands, or codes..." oninput="filterProducts()"/>
+      <input type="text" id="searchInput" placeholder="Search items, brands, or clothes..." oninput="filterProducts()"/>
       <button onclick="filterProducts()">Search →</button>
     </div>
 
-    <div class="trust-badges">
+    <div class="trust-badges" id="trustBadgesBox">
       <div class="trust-item"><div class="trust-icon">🛡️</div> 100% Quality Assurance</div>
-      <div class="trust-item"><div class="trust-icon">⚡</div> Instant App Notifications</div>
+      <div class="trust-item"><div class="trust-icon">⚡</div> Instant App Orders</div>
       <div class="trust-item"><div class="trust-icon">⭐</div> 4.9 Star Customer Rated</div>
     </div>
   </div>
 </header>
+
+<!-- ── Industry Mode Switcher Bar ───────────────────────────────── -->
+<div class="industry-bar">
+  <button class="ind-tab active" id="tabGrocery" onclick="setIndustryMode('grocery')">🛒 Grocery & Daily Needs</button>
+  <button class="ind-tab" id="tabFashion" onclick="setIndustryMode('fashion')">👗 Clothes & Fashion</button>
+  <button class="ind-tab" id="tabService" onclick="setIndustryMode('service')">🧺 Laundry & Services</button>
+</div>
 
 <!-- ── Main Showroom Catalog ─────────────────────────────────────── -->
 <main class="main-container">
@@ -342,7 +372,6 @@
     <div class="cat-title">Explore Categories</div>
     <div class="cat-scroll" id="categoryBar">
       <button class="cat-pill active" onclick="setCategory('all', this)">✨ All Items (<span id="countAll">0</span>)</button>
-      <!-- Categories injected dynamically -->
     </div>
   </div>
 
@@ -357,7 +386,7 @@
 
   <div id="emptyState" style="display:none; text-align:center; padding:80px 20px; background:var(--surface); border-radius:24px; border:1px dashed var(--border);">
     <div style="font-size:72px; margin-bottom:16px;">🔍</div>
-    <h3 style="font-size:22px; font-weight:800; margin-bottom:8px;">No products found</h3>
+    <h3 style="font-size:22px; font-weight:800; margin-bottom:8px;">No items found</h3>
     <p style="color:var(--text-muted); font-size:16px;">Try searching with different keywords or switch categories above.</p>
   </div>
 </main>
@@ -370,7 +399,7 @@
   </div>
   <div class="bag-buttons">
     <button class="btn-checkout-wa" onclick="checkout('wa')">💬 WhatsApp</button>
-    <button class="btn-checkout-online" onclick="openModal('ORDER')">🚀 Place Order</button>
+    <button class="btn-checkout-online" id="btnPlaceOrderText" onclick="openModal('ORDER')">🚀 Place Order</button>
   </div>
 </div>
 
@@ -382,11 +411,10 @@
       <button class="btn-close" onclick="closeModal()">×</button>
     </div>
     
-    <p id="modalSubtext" style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">Enter your delivery details below. The shopkeeper will receive your order instantly.</p>
+    <p id="modalSubtext" style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">Enter your delivery details below. The shopkeeper will receive your notification instantly.</p>
 
-    <!-- Order Preview Table (Only shown for ORDER mode) -->
     <div class="receipt-box" id="orderPreviewBox" style="display:none;">
-      <div style="font-size:12px; font-weight:800; color:var(--text-muted); margin-bottom:10px; text-transform:uppercase;">Order Summary</div>
+      <div style="font-size:12px; font-weight:800; color:var(--text-muted); margin-bottom:10px; text-transform:uppercase;">Summary</div>
       <div id="receiptItemsList"></div>
       <div class="receipt-total"><span>Total Payable</span><span id="receiptTotalAmount">₹0</span></div>
     </div>
@@ -408,7 +436,7 @@
 
     <div style="display:flex; gap:12px; margin-top:24px;">
       <button onclick="submitOrder('wa')" style="flex:1; background:#25D366; color:white; border:none; padding:16px; border-radius:16px; font-weight:800; font-size:15px; cursor:pointer;">💬 Send WhatsApp</button>
-      <button onclick="submitOrder('api')" style="flex:1; background:var(--primary-gradient); color:white; border:none; padding:16px; border-radius:16px; font-weight:800; font-size:15px; cursor:pointer; box-shadow:0 6px 20px rgba(79,70,229,0.3);">🚀 Send Direct Order</button>
+      <button onclick="submitOrder('api')" id="btnConfirmSend" style="flex:1; background:var(--primary-gradient); color:white; border:none; padding:16px; border-radius:16px; font-weight:800; font-size:15px; cursor:pointer; box-shadow:0 6px 20px rgba(0,0,0,0.2);">🚀 Confirm Order</button>
     </div>
   </div>
 </div>
@@ -417,7 +445,7 @@
 <footer>
   <div class="footer-brand">
     <h2>{{businessName}}</h2>
-    <p>We provide authentic, verified products with lightning-fast delivery and dedicated customer satisfaction.</p>
+    <p id="footerSubText">We provide authentic products & reliable doorstep services with prompt response.</p>
   </div>
   <div style="font-size:14px; color:var(--text-muted);">
     &copy; 2026 <strong>{{businessName}}</strong>. All rights reserved. <br/>
@@ -431,10 +459,21 @@
   let cart = {};
   let activeCat = 'all';
   let currentModalMode = 'ORDER';
+  let industryMode = 'grocery'; // grocery, fashion, service
 
   function init() {
     document.getElementById('countAll').textContent = PRODUCTS.length;
     
+    // Auto-detect industry mode based on business name or product names
+    const textCombo = (BUSINESS.businessName + ' ' + PRODUCTS.map(p => (p.name + ' ' + p.category)).join(' ')).toLowerCase();
+    if (textCombo.includes('wash') || textCombo.includes('laundry') || textCombo.includes('dry clean') || textCombo.includes('repair') || textCombo.includes('service') || textCombo.includes('ac ') || textCombo.includes('plumber') || textCombo.includes('salon')) {
+      setIndustryMode('service', true);
+    } else if (textCombo.includes('cloth') || textCombo.includes('saree') || textCombo.includes('dress') || textCombo.includes('fashion') || textCombo.includes('wear') || textCombo.includes('boutique') || textCombo.includes('jeans') || textCombo.includes('shirt')) {
+      setIndustryMode('fashion', true);
+    } else {
+      setIndustryMode('grocery', true);
+    }
+
     // Build category tabs
     const cats = [...new Set(PRODUCTS.map(p => p.category || 'General'))];
     const catBar = document.getElementById('categoryBar');
@@ -442,12 +481,54 @@
       const count = PRODUCTS.filter(p => (p.category || 'General') === c).length;
       const btn = document.createElement('button');
       btn.className = 'cat-pill';
-      btn.innerHTML = `<span>📦 ${c}</span> <span style="opacity:0.6; font-size:13px;">(${count})</span>`;
+      btn.innerHTML = `<span>📂 ${c}</span> <span style="opacity:0.6; font-size:13px;">(${count})</span>`;
       btn.onclick = () => setCategory(c, btn);
       catBar.appendChild(btn);
     });
 
     render(PRODUCTS);
+  }
+
+  function setIndustryMode(mode, isInitial = false) {
+    industryMode = mode;
+    document.body.className = `mode-${mode}`;
+    
+    document.querySelectorAll('.ind-tab').forEach(t => t.classList.remove('active'));
+    if (mode === 'grocery') document.getElementById('tabGrocery').classList.add('active');
+    if (mode === 'fashion') document.getElementById('tabFashion').classList.add('active');
+    if (mode === 'service') document.getElementById('tabService').classList.add('active');
+
+    const storeSub = document.getElementById('storeSubLabel');
+    const heroTag = document.getElementById('heroTagText');
+    const heroHead = document.getElementById('heroHeading');
+    const heroSub = document.getElementById('heroSubText');
+    const btnTop = document.getElementById('btnTopAction');
+    const btnPlace = document.getElementById('btnPlaceOrderText');
+
+    if (mode === 'grocery') {
+      storeSub.textContent = 'Supermarket & Daily Provisions';
+      heroTag.textContent = '⚡ 10-Min Grocery Delivery & Express Pickup';
+      heroHead.textContent = 'Fresh Groceries & Daily Needs, Delivered Instantly.';
+      heroSub.textContent = 'Order fresh farm fruits, vegetables, staples, and daily essentials at the lowest prices.';
+      btnTop.textContent = '🛒 Bulk Order Request';
+      btnPlace.textContent = '🚀 Place Grocery Order';
+    } else if (mode === 'fashion') {
+      storeSub.textContent = 'Exclusive Fashion & Boutique Showroom';
+      heroTag.textContent = '✨ Premium Quality Fabric & Latest Trends';
+      heroHead.textContent = 'Upgrade Your Wardrobe With Trendy Collections.';
+      heroSub.textContent = 'Explore our handcrafted apparels, designer wear, and premium clothing with easy returns.';
+      btnTop.textContent = '👗 Book Trial / Tailor';
+      btnPlace.textContent = '🛍️ Place Fashion Order';
+    } else if (mode === 'service') {
+      storeSub.textContent = 'Professional Doorstep Services';
+      heroTag.textContent = '🛡️ Verified Professionals & On-Time Doorstep Service';
+      heroHead.textContent = 'Expert Doorstep Services & Reliable Maintenance.';
+      heroSub.textContent = 'Book professional laundry, dry cleaning, repairs, or home consultations with guaranteed quality.';
+      btnTop.textContent = '📅 Schedule Doorstep Service';
+      btnPlace.textContent = '🛎️ Confirm Service Booking';
+    }
+
+    if (!isInitial) render(PRODUCTS);
   }
 
   function setCategory(cat, el) {
@@ -486,6 +567,10 @@
       const mrp = parseFloat(p.mrp || 0);
       const disc = mrp > price ? Math.round((mrp - price) / mrp * 100) : 0;
       const stock = !p.currentStock || p.currentStock > 0;
+      
+      let defaultIcon = '📦';
+      if (industryMode === 'fashion') defaultIcon = '👗';
+      if (industryMode === 'service') defaultIcon = '🧺';
 
       return `
         <div class="product-card">
@@ -493,7 +578,7 @@
           ${!stock ? `<div class="tag-stock">Out of Stock</div>` : ''}
           
           <div class="product-thumb">
-            ${p.image_url ? `<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover;"/>` : '🛍️'}
+            ${p.image_url ? `<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover;"/>` : defaultIcon}
           </div>
 
           <div class="product-body">
@@ -509,7 +594,9 @@
               </div>
 
               ${!stock ? `<span style="font-size:13px; font-weight:700; color:#ef4444;">Unavailable</span>` :
-                qty === 0 ? `
+                industryMode === 'service' ? `
+                  <button class="btn-book-service" onclick="bookDirectService('${p.name}', ${price})">🛎️ Book Service</button>
+                ` : qty === 0 ? `
                   <button class="btn-add" onclick="updateQty('${p.id}', 1)">+ ADD</button>
                 ` : `
                   <div class="stepper">
@@ -524,6 +611,10 @@
         </div>
       `;
     }).join('');
+  }
+
+  function bookDirectService(serviceName, price) {
+    openModal('SERVICE', serviceName, price);
   }
 
   function updateQty(id, change) {
@@ -541,7 +632,8 @@
       return sum + (p ? parseFloat(p.sellingPrice || p.price || 0) * cart[id] : 0);
     }, 0);
 
-    document.getElementById('bagItemCount').textContent = `${totalQty} ITEM${totalQty !== 1 ? 'S' : ''} SELECTED`;
+    const label = industryMode === 'grocery' ? 'GROCERY BAG' : industryMode === 'fashion' ? 'SHOPPING BAG' : 'SERVICE REQUESTS';
+    document.getElementById('bagItemCount').textContent = `${totalQty} ITEM${totalQty !== 1 ? 'S' : ''} IN ${label}`;
     document.getElementById('bagTotalAmount').textContent = `₹${totalAmt.toLocaleString('en-IN')}`;
     
     const bar = document.getElementById('checkoutBar');
@@ -549,7 +641,7 @@
     else bar.classList.remove('active');
   }
 
-  function openModal(mode) {
+  function openModal(mode, customService = '', customPrice = 0) {
     currentModalMode = mode;
     const modal = document.getElementById('actionModal');
     const heading = document.getElementById('modalHeading');
@@ -561,12 +653,11 @@
       const ids = Object.keys(cart);
       if (ids.length === 0) return alert('Please add at least one item to your bag first!');
       
-      heading.textContent = '📦 Confirm Online Order';
+      heading.textContent = industryMode === 'grocery' ? '🛒 Confirm Grocery Order' : '🛍️ Confirm Fashion Order';
       subtext.textContent = `Review your items and enter delivery address for ${BUSINESS.businessName}.`;
       labelNote.textContent = 'Complete Delivery Address & Landmark *';
       document.getElementById('custNote').placeholder = 'House No, Building, Street Name, City, Pincode...';
       
-      // Render Preview Table
       let html = '';
       let total = 0;
       ids.forEach(id => {
@@ -582,9 +673,10 @@
       previewBox.style.display = 'block';
 
     } else {
-      heading.textContent = '🛎️ Book Service / Request';
-      subtext.textContent = `Send a consultation or booking request directly to ${BUSINESS.businessName}.`;
-      labelNote.textContent = 'Service Needed or Preferred Date/Time *';
+      heading.textContent = customService ? `🛎️ Book: ${customService}` : '🛎️ Book Doorstep Service';
+      subtext.textContent = `Schedule a professional service or pickup with ${BUSINESS.businessName}.`;
+      labelNote.textContent = 'Service Details or Preferred Date & Time *';
+      document.getElementById('custNote').value = customService ? `Service Requested: ${customService} (Rate: ₹${customPrice})\nPreferred Time: ` : '';
       document.getElementById('custNote').placeholder = 'e.g. AC Repair needed tomorrow at 11 AM...';
       previewBox.style.display = 'none';
     }
@@ -620,7 +712,7 @@
     if (method === 'wa') {
       let msg = '';
       if (currentModalMode === 'ORDER') {
-        msg = `📦 *NEW ONLINE ORDER*\n*Store:* ${BUSINESS.businessName}\n\n👤 *Customer:* ${name}\n📞 *Phone:* ${phone}\n🏠 *Address:* ${note}\n\n*Items Ordered:*\n`;
+        msg = `📦 *NEW ONLINE ORDER (${industryMode.toUpperCase()})*\n*Store:* ${BUSINESS.businessName}\n\n👤 *Customer:* ${name}\n📞 *Phone:* ${phone}\n🏠 *Address:* ${note}\n\n*Items Ordered:*\n`;
         items.forEach(i => msg += `• ${i.name} (${i.quantity} pcs) = ₹${i.total}\n`);
         msg += `\n💰 *Total Amount: ₹${totalAmt.toLocaleString('en-IN')}*\n\nPlease confirm my order!`;
       } else {
@@ -633,7 +725,6 @@
       updateCheckoutBar();
       filterProducts();
     } else {
-      // Send API request directly to backend
       try {
         const slug = window.location.pathname.replace(/^\/shop\//, '').replace(/^\//, '').split('/')[0];
         const res = await fetch(`/api/shop/${slug}/orders`, {

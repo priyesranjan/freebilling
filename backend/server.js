@@ -78,7 +78,7 @@ app.get(['/:slug', '/shop/:slug'], async (req, res, next) => {
 
     const prodsResult = await db.query(
       `SELECT id, name, selling_price as "sellingPrice", mrp, current_stock as "currentStock", 
-              low_stock_level as "lowStockAlertLevel", COALESCE(category, 'General') as category, codes, tax_rate as "taxRate"
+              low_stock_level as "lowStockAlertLevel", COALESCE(category, 'General') as category, COALESCE(image_url, '') as image_url, codes, tax_rate as "taxRate"
        FROM products WHERE business_id = $1 ORDER BY name`,
       [biz.id]
     );
@@ -118,7 +118,7 @@ app.get('/api/shop/:slug', async (req, res) => {
     const biz = bizResult.rows[0];
 
     const prodsResult = await db.query(
-      'SELECT id, name, selling_price as "sellingPrice", mrp, current_stock as "currentStock", low_stock_level as "lowStockAlertLevel", codes, tax_rate as "taxRate" FROM products WHERE business_id = $1',
+      'SELECT id, name, selling_price as "sellingPrice", mrp, current_stock as "currentStock", low_stock_level as "lowStockAlertLevel", COALESCE(category, \'General\') as category, COALESCE(image_url, \'\') as image_url, codes, tax_rate as "taxRate" FROM products WHERE business_id = $1 ORDER BY name',
       [biz.id]
     );
     res.json({ business: biz, products: prodsResult.rows });
