@@ -54,8 +54,6 @@ class _AuthScreenState extends State<AuthScreen> with CodeAutoFill {
         setState(() {
           _phoneController.text = phone;
         });
-        // Auto trigger sending OTP
-        _sendOtp();
       }
     } catch (e) {
       debugPrint("Error getting phone hint: $e");
@@ -76,10 +74,10 @@ class _AuthScreenState extends State<AuthScreen> with CodeAutoFill {
 
   void _onPhoneChanged() {
     final phone = _phoneController.text.trim();
-    if (_mode == _AuthMode.otpPhone && phone.length == 10 && !_isAutoTriggering) {
+    if (_mode == _AuthMode.otpPhone && phone.length == 10 && !_isAutoTriggering && !_isLoading) {
       _isAutoTriggering = true;
       _sendOtp();
-      Future.delayed(const Duration(seconds: 2), () {
+      Future.delayed(const Duration(seconds: 4), () {
         if (mounted) setState(() => _isAutoTriggering = false);
       });
     }
@@ -101,6 +99,7 @@ class _AuthScreenState extends State<AuthScreen> with CodeAutoFill {
   }
 
   Future<void> _sendOtp() async {
+    if (_isLoading || _mode != _AuthMode.otpPhone) return;
     final String? phone = normalizeIndianPhoneNumber(_phoneController.text.trim());
     if (phone == null || phone.length < 10) {
       _showSnack('Please enter a valid 10-digit phone number');

@@ -258,26 +258,26 @@
 
     /* ── Floating Bag Bar (Slides up when items selected) ── */
     .floating-checkout {
-      position: fixed; bottom: 84px; left: 50%; transform: translateX(-50%) translateY(160px);
-      width: calc(100% - 32px); max-width: 680px;
-      background: rgba(15, 23, 42, 0.96); backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.15); color: white;
-      padding: 16px 24px; border-radius: 24px; display: flex; align-items: center; justify-content: space-between;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); z-index: 2000;
+      position: fixed; bottom: 76px; left: 50%; transform: translateX(-50%) translateY(160px);
+      width: calc(100% - 24px); max-width: 680px;
+      background: rgba(15, 23, 42, 0.98); backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.18); color: white;
+      padding: 12px 18px; border-radius: 20px; display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7); z-index: 2000;
       transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     .floating-checkout.active { transform: translateX(-50%) translateY(0); }
-    .bag-items { font-size: 13px; font-weight: 700; color: #94a3b8; text-transform: uppercase; display: block; }
-    .bag-total { font-size: 26px; font-weight: 900; color: #38bdf8; font-family: 'Outfit', sans-serif; }
+    .bag-items { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; display: block; }
+    .bag-total { font-size: 22px; font-weight: 900; color: #38bdf8; font-family: 'Outfit', sans-serif; }
 
-    .bag-buttons { display: flex; gap: 10px; }
+    .bag-buttons { display: flex; gap: 8px; }
     .btn-checkout-wa {
-      background: #25D366; color: white; border: none; padding: 14px 18px;
-      border-radius: 16px; font-weight: 800; font-size: 15px; cursor: pointer;
+      background: #25D366; color: white; border: none; padding: 10px 14px;
+      border-radius: 14px; font-weight: 800; font-size: 14px; cursor: pointer;
     }
     .btn-checkout-online {
-      background: var(--primary-gradient); color: white; border: none; padding: 14px 22px;
-      border-radius: 16px; font-weight: 800; font-size: 15px; cursor: pointer;
+      background: var(--primary-gradient); color: white; border: none; padding: 10px 16px;
+      border-radius: 14px; font-weight: 800; font-size: 14px; cursor: pointer;
       box-shadow: 0 4px 14px rgba(0,0,0,0.25);
     }
 
@@ -286,15 +286,15 @@
       position: fixed; bottom: 0; left: 0; right: 0;
       background: var(--surface-glass); backdrop-filter: blur(16px);
       border-top: 1px solid var(--border); display: flex; justify-content: space-around;
-      padding: 10px 0 12px; z-index: 1500; box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+      padding: 8px 0 10px; z-index: 1500; box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
     }
     .nav-tab {
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
       background: transparent; border: none; color: var(--text-muted);
-      font-size: 12px; font-weight: 700; cursor: pointer; transition: color 0.2s;
+      font-size: 11px; font-weight: 700; cursor: pointer; transition: color 0.2s;
     }
     .nav-tab.active { color: var(--primary); }
-    .nav-tab-icon { font-size: 22px; position: relative; }
+    .nav-tab-icon { font-size: 20px; position: relative; }
     .nav-badge {
       position: absolute; top: -4px; right: -8px; background: #ef4444; color: white;
       font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 10px;
@@ -343,16 +343,18 @@
       .footer-grid { grid-template-columns: 1fr 1fr; gap: 28px; }
     }
     @media (max-width: 600px) {
-      .hero h2 { font-size: 32px; }
+      .hero h2 { font-size: 30px; }
       .nav-content { flex-direction: column; align-items: stretch; }
       .nav-actions { justify-content: space-between; }
-      .product-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
-      .product-body { padding: 14px; }
-      .product-title { font-size: 16px; }
-      .price-current { font-size: 20px; }
-      .floating-checkout { flex-direction: column; gap: 14px; text-align: center; bottom: 74px; }
-      .bag-buttons { width: 100%; }
-      .bag-buttons button { flex: 1; justify-content: center; }
+      .product-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .product-body { padding: 12px; }
+      .product-title { font-size: 15px; }
+      .price-current { font-size: 18px; }
+      .floating-checkout { flex-direction: row; gap: 8px; padding: 10px 14px; bottom: 68px; }
+      .bag-items { font-size: 10px; }
+      .bag-total { font-size: 18px; }
+      .btn-checkout-wa { padding: 8px 12px; font-size: 13px; }
+      .btn-checkout-online { padding: 8px 14px; font-size: 13px; }
       .footer-grid { grid-template-columns: 1fr; }
     }
   </style>
@@ -727,6 +729,95 @@
     render(filtered);
   }
 
+  function getSmartItemIcon(item, idx) {
+    const n = (item.name + ' ' + (item.category || '')).toLowerCase();
+    if (industryMode === 'fashion') {
+      if (n.includes('under') || n.includes('banyan') || n.includes('inner') || n.includes('brief') || n.includes('trunk') || n.includes('panty') || n.includes('bra')) return '🩲';
+      if (n.includes('saree') || n.includes('sari') || n.includes('lehenga')) return '🥻';
+      if (n.includes('shirt') || n.includes('kurta') || n.includes('top') || n.includes('tshirt')) return '👕';
+      if (n.includes('jeans') || n.includes('pant') || n.includes('trouser') || n.includes('lower')) return '👖';
+      if (n.includes('shoe') || n.includes('boot') || n.includes('sandal') || n.includes('chappal')) return '👟';
+      if (n.includes('jacket') || n.includes('coat') || n.includes('blazer') || n.includes('hoodie')) return '🧥';
+      if (n.includes('dress') || n.includes('frock') || n.includes('suit') || n.includes('gown')) return '👗';
+      const arr = ['👕', '👗', '🥻', '👔', '👖', '👘', '🧥', '🩱'];
+      return arr[idx % arr.length];
+    }
+    if (industryMode === 'grocery') {
+      if (n.includes('rice') || n.includes('chawal') || n.includes('basmati')) return '🍚';
+      if (n.includes('milk') || n.includes('doodh') || n.includes('curd') || n.includes('dahi') || n.includes('paneer') || n.includes('butter') || n.includes('cheese')) return '🥛';
+      if (n.includes('oil') || n.includes('ghee') || n.includes('tel')) return '🛢️';
+      if (n.includes('dal') || n.includes('lentil') || n.includes('rajma') || n.includes('chana')) return '🍲';
+      if (n.includes('atta') || n.includes('flour') || n.includes('maida') || n.includes('suji') || n.includes('wheat')) return '🌾';
+      if (n.includes('soap') || n.includes('shampoo') || n.includes('wash') || n.includes('detergent') || n.includes('clean')) return '🧼';
+      if (n.includes('biscuit') || n.includes('cookie') || n.includes('rusk') || n.includes('chips') || n.includes('snack') || n.includes('namkeen')) return '🍪';
+      if (n.includes('tea') || n.includes('chai') || n.includes('coffee')) return '☕';
+      if (n.includes('sugar') || n.includes('salt') || n.includes('namak') || n.includes(' मसाला') || n.includes('masala')) return '🧂';
+      if (n.includes('apple') || n.includes('mango') || n.includes('banana') || n.includes('fruit')) return '🍎';
+      if (n.includes('potato') || n.includes('onion') || n.includes('tomato') || n.includes('veg')) return '🥦';
+      const arr = ['🥫', '🛒', '🍎', '🥦', '🍞', '🥛', '🧀', '🧃'];
+      return arr[idx % arr.length];
+    }
+    if (industryMode === 'medicine') {
+      if (n.includes('syrup') || n.includes('liquid') || n.includes('bottle')) return '🧴';
+      if (n.includes('injection') || n.includes('vaccine')) return '💉';
+      if (n.includes('cream') || n.includes('gel') || n.includes('ointment')) return '🩹';
+      if (n.includes('drop')) return '💧';
+      if (n.includes('mask') || n.includes('glove')) return '😷';
+      return '💊';
+    }
+    if (industryMode === 'electrical') {
+      if (n.includes('wire') || n.includes('cable') || n.includes('cord')) return '🔌';
+      if (n.includes('bulb') || n.includes('light') || n.includes('led') || n.includes('tube')) return '💡';
+      if (n.includes('fan') || n.includes('cooler')) return '🌪️';
+      if (n.includes('switch') || n.includes('socket') || n.includes('board')) return '🎛️';
+      if (n.includes('battery') || n.includes('inverter')) return '🔋';
+      return '⚡';
+    }
+    if (industryMode === 'salon') {
+      if (n.includes('hair') || n.includes('cut') || n.includes('style')) return '💇';
+      if (n.includes('shave') || n.includes('beard') || n.includes('facial')) return '🧔';
+      if (n.includes('spa') || n.includes('massage')) return '💆';
+      if (n.includes('makeup') || n.includes('bridal') || n.includes('color')) return '💄';
+      return '✂️';
+    }
+    if (industryMode === 'laundry') {
+      if (n.includes('iron') || n.includes('press')) return '🧷';
+      if (n.includes('dry clean') || n.includes('suit') || n.includes('saree')) return '👔';
+      if (n.includes('blanket') || n.includes('quilt') || n.includes('bedsheet')) return '🛏️';
+      return '🧺';
+    }
+    if (industryMode === 'restaurant') {
+      if (n.includes('pizza')) return '🍕';
+      if (n.includes('burger')) return '🍔';
+      if (n.includes('fries') || n.includes('roll')) return '🍟';
+      if (n.includes('biryani') || n.includes('rice') || n.includes('pulao')) return '🍛';
+      if (n.includes('thali') || n.includes('meal')) return '🍱';
+      if (n.includes('cold') || n.includes('drink') || n.includes('shake') || n.includes('cola')) return '🥤';
+      if (n.includes('sweet') || n.includes('cake') || n.includes('ice cream')) return '🍰';
+      return '🍽️';
+    }
+    if (industryMode === 'cyber') {
+      if (n.includes('print') || n.includes('xerox') || n.includes('copy')) return '🖨️';
+      if (n.includes('photo') || n.includes('passport')) return '📸';
+      if (n.includes('form') || n.includes('exam') || n.includes('apply')) return '📄';
+      return '🖥️';
+    }
+    if (industryMode === 'event') {
+      if (n.includes('dj') || n.includes('sound') || n.includes('music')) return '🔊';
+      if (n.includes('tent') || n.includes('stage') || n.includes('decor')) return '🎪';
+      if (n.includes('cater') || n.includes('food')) return '🍲';
+      return '🎉';
+    }
+    if (industryMode === 'auto') {
+      if (n.includes('wash') || n.includes('clean')) return '🚿';
+      if (n.includes('oil') || n.includes('lube')) return '🛢️';
+      if (n.includes('tyre') || n.includes('wheel') || n.includes('tube')) return '🛞';
+      return '🚙';
+    }
+    const gen = ['📦', '🛍️', '🎁', '✨', '🔥', '🏷️'];
+    return gen[idx % gen.length];
+  }
+
   function render(list) {
     const grid = document.getElementById('productGrid');
     const empty = document.getElementById('emptyState');
@@ -737,24 +828,13 @@
     }
     empty.style.display = 'none';
 
-    grid.innerHTML = list.map(p => {
+    grid.innerHTML = list.map((p, idx) => {
       const qty = cart[p.id] || 0;
       const price = parseFloat(p.sellingPrice || p.price || 0);
       const mrp = parseFloat(p.mrp || 0);
       const disc = mrp > price ? Math.round((mrp - price) / mrp * 100) : 0;
       const stock = !p.currentStock || p.currentStock > 0;
-      
-      let defaultIcon = '📦';
-      if (industryMode === 'fashion') defaultIcon = '👗';
-      if (industryMode === 'medicine') defaultIcon = '💊';
-      if (industryMode === 'electrical') defaultIcon = '⚡';
-      if (industryMode === 'salon') defaultIcon = '✂️';
-      if (industryMode === 'laundry') defaultIcon = '🧺';
-      if (industryMode === 'cyber') defaultIcon = '🖥️';
-      if (industryMode === 'event') defaultIcon = '🎪';
-      if (industryMode === 'restaurant') defaultIcon = '🍔';
-      if (industryMode === 'auto') defaultIcon = '🚙';
-
+      const smartIcon = getSmartItemIcon(p, idx);
       const isBookingMode = industryMode === 'salon' || industryMode === 'laundry' || industryMode === 'cyber' || industryMode === 'event' || industryMode === 'auto';
 
       return `
@@ -763,7 +843,7 @@
           ${!stock ? `<div class="tag-stock">Out of Stock</div>` : ''}
           
           <div class="product-thumb">
-            ${p.image_url ? `<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover;"/>` : defaultIcon}
+            ${p.image_url ? `<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover;"/>` : smartIcon}
           </div>
 
           <div class="product-body">

@@ -1,16 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../core/core.dart';
 import '../models/models.dart';
 
 class WebsitePreviewScreen extends StatelessWidget {
   const WebsitePreviewScreen({super.key});
 
+  void _copyToClipboard(BuildContext context, String url) {
+    Clipboard.setData(ClipboardData(text: url));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Copied link: $url'),
+        backgroundColor: BrandPalette.teal,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  Future<void> _shareOnWhatsApp(BuildContext context, String url, String name) async {
+    final text = Uri.encodeComponent('Welcome to $name!\nBrowse our digital store and order online: $url');
+    final uri = Uri.parse('https://wa.me/?text=$text');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      _copyToClipboard(context, url);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final settings = AppSettings.instance;
     final businessName = settings.businessName.isEmpty ? 'My Business' : settings.businessName;
     final slug = settings.websiteSlug.isNotEmpty ? settings.websiteSlug : businessName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '-');
+    final fullUrl = 'https://meradukan.in/$slug';
 
     return Scaffold(
       appBar: AppBar(
@@ -19,10 +43,8 @@ class WebsitePreviewScreen extends StatelessWidget {
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.share, color: BrandPalette.teal),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sharing catalog link...')));
-            },
+            icon: const Icon(Icons.copy, color: BrandPalette.teal),
+            onPressed: () => _copyToClipboard(context, fullUrl),
           ),
         ],
       ),
@@ -72,9 +94,7 @@ class WebsitePreviewScreen extends StatelessWidget {
                       ),
                     ),
                     TextButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Link copied to clipboard!')));
-                      },
+                      onPressed: () => _copyToClipboard(context, fullUrl),
                       child: const Text('COPY', style: TextStyle(fontWeight: FontWeight.bold)),
                     )
                   ],
@@ -84,14 +104,12 @@ class WebsitePreviewScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Opening WhatsApp...')));
-                  },
+                  onPressed: () => _shareOnWhatsApp(context, fullUrl, businessName),
                   icon: const Icon(Icons.share),
                   label: const Text('Share on WhatsApp'),
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: const Color(0xFF25D366), // WhatsApp Green
+                    backgroundColor: const Color(0xFF25D366),
                   ),
                 ),
               )

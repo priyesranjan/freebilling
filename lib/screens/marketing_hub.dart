@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../core/core.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -147,6 +148,7 @@ class _ReviewAIViewState extends State<ReviewAIView> {
                   alignment: Alignment.centerRight,
                   child: TextButton.icon(
                     onPressed: () {
+                      Clipboard.setData(ClipboardData(text: suggestion));
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Copied to clipboard! Paste it on Google My Business.')));
                     },
                     icon: const Icon(Icons.copy, size: 16),
