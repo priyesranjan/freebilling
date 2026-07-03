@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
@@ -446,6 +448,26 @@ class ApiService {
       } catch (_) {}
       throw Exception(msg);
     }
+  }
+
+  static ImageProvider? resolveImage(String? url) {
+    if (url == null || url.trim().isEmpty) return null;
+    final cleanUrl = url.trim();
+    if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
+      return NetworkImage(cleanUrl);
+    }
+    if (cleanUrl.startsWith('/uploads/') || cleanUrl.startsWith('uploads/')) {
+      final host = baseUrl.replaceAll('/api', '');
+      final path = cleanUrl.startsWith('/') ? cleanUrl : '/$cleanUrl';
+      return NetworkImage('$host$path');
+    }
+    try {
+      final f = File(cleanUrl);
+      if (f.existsSync()) {
+        return FileImage(f);
+      }
+    } catch (_) {}
+    return null;
   }
 }
 

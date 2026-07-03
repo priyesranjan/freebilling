@@ -208,15 +208,12 @@ class _AuthScreenState extends State<AuthScreen> with CodeAutoFill {
     if (!mounted) return;
 
     if (hasNameSet) {
-      if (hasLanguageSet) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const PlatformShell()),
-        );
-      } else {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const LanguageSelectionScreen()),
-        );
+      if (!hasLanguageSet) {
+        await prefs.setString('app_language', 'en');
       }
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const PlatformShell()),
+      );
     } else {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const OnboardingScreen()),

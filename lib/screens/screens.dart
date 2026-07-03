@@ -525,7 +525,7 @@ class _PlatformShellState extends State<PlatformShell> {
 
   Widget _buildBusinessAvatar() {
     final settings = AppSettings.instance;
-    final logo = settings.businessLogo;
+    final logoProvider = ApiService.resolveImage(settings.businessLogo);
     final initial = settings.businessName.isNotEmpty
         ? settings.businessName[0].toUpperCase()
         : 'B';
@@ -542,18 +542,14 @@ class _PlatformShellState extends State<PlatformShell> {
             offset: const Offset(0, 3),
           ),
         ],
-        image: logo != null
+        image: logoProvider != null
             ? DecorationImage(
-                image: (logo.startsWith('http://') || logo.startsWith('https://'))
-                    ? NetworkImage(logo) as ImageProvider
-                    : (dart_io.File(logo).existsSync()
-                        ? FileImage(dart_io.File(logo)) as ImageProvider
-                        : const AssetImage('assets/placeholder.png')),
+                image: logoProvider,
                 fit: BoxFit.cover,
               )
             : null,
       ),
-      child: logo == null
+      child: logoProvider == null
           ? Center(
               child: Text(
                 initial,

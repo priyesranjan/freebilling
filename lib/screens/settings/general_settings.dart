@@ -172,12 +172,10 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: BrandPalette.navy.withValues(alpha: 0.2)),
                   ),
-                  child: _localLogoPath != null 
+                  child: ApiService.resolveImage(_localLogoPath) != null 
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(16),
-                        child: (_localLogoPath!.startsWith('http://') || _localLogoPath!.startsWith('https://'))
-                            ? Image.network(_localLogoPath!, fit: BoxFit.cover)
-                            : Image.file(File(_localLogoPath!), fit: BoxFit.cover),
+                        child: Image(image: ApiService.resolveImage(_localLogoPath)!, fit: BoxFit.cover),
                       )
                     : const Icon(Icons.business, size: 36, color: BrandPalette.navy),
                 ),
@@ -321,12 +319,10 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: BrandPalette.navy.withValues(alpha: 0.2)),
               ),
-              child: _localSignaturePath != null
+              child: ApiService.resolveImage(_localSignaturePath) != null
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: (_localSignaturePath!.startsWith('http://') || _localSignaturePath!.startsWith('https://'))
-                          ? Image.network(_localSignaturePath!, fit: BoxFit.contain)
-                          : Image.file(File(_localSignaturePath!), fit: BoxFit.contain),
+                      child: Image(image: ApiService.resolveImage(_localSignaturePath)!, fit: BoxFit.contain),
                     )
                   : const Column(
                       mainAxisAlignment: MainAxisAlignment.center,

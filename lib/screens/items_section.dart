@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../models/models.dart';
 import '../core/core.dart';
+import '../services/api_service.dart';
 import '../services/sync_service.dart';
 import '../widgets/premium_widgets.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -198,20 +199,25 @@ class _ItemsSectionState extends State<ItemsSection> {
                       padding: const EdgeInsets.all(12.0),
                       child: Row(
                         children: [
-                          Container(
-                            width: 64,
-                            height: 64,
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.grey.shade200),
-                              image: product.imageUrl != null
-                                  ? DecorationImage(image: FileImage(File(product.imageUrl!)), fit: BoxFit.cover)
-                                  : null,
-                            ),
-                            child: product.imageUrl == null
-                                ? const Icon(Icons.image, color: Colors.grey, size: 28)
-                                : null,
+                          Builder(
+                            builder: (ctx) {
+                              final imgProvider = ApiService.resolveImage(product.imageUrl);
+                              return Container(
+                                width: 64,
+                                height: 64,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.grey.shade200),
+                                  image: imgProvider != null
+                                      ? DecorationImage(image: imgProvider, fit: BoxFit.cover)
+                                      : null,
+                                ),
+                                child: imgProvider == null
+                                    ? const Icon(Icons.inventory_2, color: BrandPalette.teal, size: 28)
+                                    : null,
+                              );
+                            },
                           ),
                           const SizedBox(width: 16),
                           Expanded(
@@ -274,8 +280,8 @@ class _ItemsSectionState extends State<ItemsSection> {
                     color: Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(color: Colors.grey.shade300, width: 2),
-                    image: selectedImagePath != null 
-                        ? DecorationImage(image: FileImage(File(selectedImagePath!)), fit: BoxFit.cover)
+                    image: ApiService.resolveImage(selectedImagePath) != null 
+                        ? DecorationImage(image: ApiService.resolveImage(selectedImagePath)!, fit: BoxFit.cover)
                         : null,
                   ),
                   child: selectedImagePath == null 
