@@ -558,7 +558,7 @@ class _GMBPerformanceViewState extends State<GMBPerformanceView> {
           decoration: BoxDecoration(
             gradient: LinearGradient(colors: [Colors.green.shade700, Colors.teal.shade800]),
             borderRadius: BorderRadius.circular(16),
-            boxShadow: [BoxShadow(color: Colors.green.withValues(alpha: 0.2), blurRadius: 8, offset: const EdgeInsets.only(top: 4))],
+            boxShadow: [BoxShadow(color: Colors.green.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 4))],
           ),
           child: Row(
             children: [
