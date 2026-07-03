@@ -552,6 +552,38 @@ class _GMBPerformanceViewState extends State<GMBPerformanceView> {
 
         const SizedBox(height: 20),
 
+        // Local SEO Health Meter (Dhandha AI Style)
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [Colors.green.shade700, Colors.teal.shade800]),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [BoxShadow(color: Colors.green.withValues(alpha: 0.2), blurRadius: 8, offset: const EdgeInsets.only(top: 4))],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), shape: BoxShape.circle),
+                child: const Icon(Icons.verified, color: Colors.white, size: 28),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('🎯 Local SEO Health Meter: 94%', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                    const SizedBox(height: 4),
+                    Text('Status: EXCELLENT • Storefront Verified on Google Maps • Ready to dominate nearby search!', style: TextStyle(color: Colors.green.shade100, fontSize: 11)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
         // Places API Review Booster
         const Text('⭐ Google Places API Review Booster', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         const SizedBox(height: 8),
@@ -636,15 +668,47 @@ class _GMBPerformanceViewState extends State<GMBPerformanceView> {
 
         const SizedBox(height: 24),
 
-        // Promotional Post Box
-        const Text('📢 Create Offer Post on Google Maps', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const SizedBox(height: 24),
+
+        // Dhandha AI Style Quick Offer Generator
+        const Text('🤖 Dhandha AI Post & Offer Studio', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: BrandPalette.navy)),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.grey.shade300)),
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: BrandPalette.teal.withValues(alpha: 0.4), width: 1.5)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const Text('Quick Auto-Generate Captions:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
+              const SizedBox(height: 8),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    ActionChip(
+                      avatar: const Icon(Icons.celebration, size: 14, color: Colors.orange),
+                      label: const Text('🎉 Festival Special', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                      backgroundColor: Colors.orange.shade50,
+                      onPressed: () => setState(() => _postCtrl.text = '🎉 Grand Festival Maha-Sale! Flat 30% OFF on all premium items at our store today. Visit us or order via WhatsApp! #FestivalSale #VocalForLocal #BestOffers'),
+                    ),
+                    const SizedBox(width: 6),
+                    ActionChip(
+                      avatar: const Icon(Icons.local_offer, size: 14, color: Colors.green),
+                      label: const Text('💥 Flat 50% OFF', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                      backgroundColor: Colors.green.shade50,
+                      onPressed: () => setState(() => _postCtrl.text = '💥 Limited Time Clearance! Get up to 50% OFF on select products when you show this Google Post at our billing counter! #Discount #SuperSale #KiranaStore'),
+                    ),
+                    const SizedBox(width: 6),
+                    ActionChip(
+                      avatar: const Icon(Icons.inventory_2, size: 14, color: Colors.blue),
+                      label: const Text('📦 New Arrival', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                      backgroundColor: Colors.blue.shade50,
+                      onPressed: () => setState(() => _postCtrl.text = '📦 Fresh Stock Just Arrived! Check out our latest collection and top-quality items in store today. Best prices guaranteed! #NewArrivals #QualityStore'),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
               TextField(
                 controller: _postCtrl,
                 maxLines: 3,
@@ -655,14 +719,17 @@ class _GMBPerformanceViewState extends State<GMBPerformanceView> {
                 ),
               ),
               const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _postToGoogle,
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade700, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                  icon: const Icon(Icons.send, size: 18),
-                  label: const Text('Publish Post to Google Profile', style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _postToGoogle,
+                      style: ElevatedButton.styleFrom(backgroundColor: BrandPalette.teal, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.symmetric(vertical: 12)),
+                      icon: const Icon(Icons.send, size: 18),
+                      label: const Text('🚀 Publish to Google Maps', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
