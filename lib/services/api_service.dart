@@ -428,4 +428,19 @@ class ApiService {
       throw Exception('Failed to update website config: ${response.body}');
     }
   }
+
+  Future<Map<String, dynamic>> syncGMBProfile(String placeId) async {
+    final token = await getToken();
+    final response = await http.post(
+      Uri.parse('$baseUrl/businesses/sync-gmb'),
+      headers: _headers(token),
+      body: jsonEncode({'placeId': placeId}),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to sync GMB profile: ${response.body}');
+    }
+  }
 }
+

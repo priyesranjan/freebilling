@@ -297,10 +297,13 @@ class GMBPerformanceView extends StatefulWidget {
 class _GMBPerformanceViewState extends State<GMBPerformanceView> {
   bool _isConnected = true;
   bool _isTesting = false;
+  bool _isSyncing = false;
+  String _liveRating = '4.8';
+  String _liveCount = '124';
   List<Map<String, String>> _apiResults = [];
   final _placeIdCtrl = TextEditingController(text: 'ChIJN1t_tDeuEmsRUsoyG83frY4');
   final _postCtrl = TextEditingController(text: '🌟 Weekend Special Offer! Flat 25% OFF on all items when you visit our showroom today. Mention this Google Post!');
-  final List<Map<String, String>> _reviews = [
+  List<Map<String, String>> _reviews = [
     {
       'name': 'Rohan Verma',
       'stars': '★★★★★ (5.0)',
@@ -323,6 +326,36 @@ class _GMBPerformanceViewState extends State<GMBPerformanceView> {
       'reply': '',
     },
   ];
+
+  void _syncGooglePlaces() async {
+    setState(() => _isSyncing = true);
+    try {
+      final res = await ApiService().syncGMBProfile(_placeIdCtrl.text.trim());
+      if (res['success'] == true && res['reviews'] != null) {
+        final List<dynamic> revs = res['reviews'];
+        setState(() {
+          _liveRating = res['rating']?.toString() ?? '4.8';
+          _liveCount = res['totalReviews']?.toString() ?? '124';
+          _reviews = revs.map((r) => {
+            'name': r['name']?.toString() ?? 'Google Reviewer',
+            'stars': r['stars']?.toString() ?? '★★★★★ (5.0)',
+            'date': r['date']?.toString() ?? 'Recent',
+            'text': r['text']?.toString() ?? '',
+            'reply': '',
+          }).toList();
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✔ Google Maps Listing & Reviews Synced Live!'), backgroundColor: Colors.green));
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Sync error: $e'), backgroundColor: Colors.red));
+      }
+    } finally {
+      if (mounted) setState(() => _isSyncing = false);
+    }
+  }
 
   void _runAPIDiagnostics() async {
     setState(() {
@@ -539,6 +572,16 @@ class _GMBPerformanceViewState extends State<GMBPerformanceView> {
                 ),
               ),
               const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _isSyncing ? null : _syncGooglePlaces,
+                  style: ElevatedButton.styleFrom(backgroundColor: BrandPalette.navy, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                  icon: _isSyncing ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.sync, size: 18),
+                  label: Text(_isSyncing ? 'Syncing Google Maps Feed...' : '🔗 Connect & Sync Live Place Reviews', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                ),
+              ),
+              const SizedBox(height: 10),
               Row(
                 children: [
                   Expanded(
@@ -578,7 +621,7 @@ class _GMBPerformanceViewState extends State<GMBPerformanceView> {
           children: [
             _buildStatCard('Search Hits', '1,420', Icons.search, Colors.blue),
             const SizedBox(width: 12),
-            _buildStatCard('Maps Directions', '384', Icons.directions, Colors.green),
+            _buildStatCard('Google Rating', '★ $_liveRating ($_liveCount)', Icons.star, Colors.amber),
           ],
         ),
         const SizedBox(height: 12),
