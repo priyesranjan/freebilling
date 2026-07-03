@@ -27,13 +27,17 @@
       --radius: 20px;
     }
 
-    /* ── Specialized Industry Theme Palettes ── */
+    /* ── 10 Specialized Industry Theme Palettes ── */
     body.mode-grocery { --primary: #10b981; --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%); --shadow-lg: 0 20px 32px -8px rgba(16, 185, 129, 0.22); }
     body.mode-fashion { --primary: #e11d48; --primary-gradient: linear-gradient(135deg, #e11d48 0%, #be123c 100%); --shadow-lg: 0 20px 32px -8px rgba(225, 29, 72, 0.22); }
     body.mode-medicine { --primary: #0d9488; --primary-gradient: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); --shadow-lg: 0 20px 32px -8px rgba(13, 148, 136, 0.22); }
     body.mode-electrical { --primary: #d97706; --primary-gradient: linear-gradient(135deg, #d97706 0%, #b45309 100%); --shadow-lg: 0 20px 32px -8px rgba(217, 119, 6, 0.22); }
     body.mode-salon { --primary: #8b5cf6; --primary-gradient: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); --shadow-lg: 0 20px 32px -8px rgba(139, 92, 246, 0.22); }
     body.mode-laundry { --primary: #0284c7; --primary-gradient: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); --shadow-lg: 0 20px 32px -8px rgba(2, 132, 199, 0.22); }
+    body.mode-cyber { --primary: #4f46e5; --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); --shadow-lg: 0 20px 32px -8px rgba(79, 70, 229, 0.22); }
+    body.mode-event { --primary: #c026d3; --primary-gradient: linear-gradient(135deg, #c026d3 0%, #86198f 100%); --shadow-lg: 0 20px 32px -8px rgba(192, 38, 211, 0.22); }
+    body.mode-restaurant { --primary: #dc2626; --primary-gradient: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); --shadow-lg: 0 20px 32px -8px rgba(220, 38, 38, 0.22); }
+    body.mode-auto { --primary: #475569; --primary-gradient: linear-gradient(135deg, #475569 0%, #1e293b 100%); --shadow-lg: 0 20px 32px -8px rgba(71, 85, 105, 0.22); }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     
@@ -42,7 +46,7 @@
       background-color: var(--bg); color: var(--text-main);
       line-height: 1.5; -webkit-font-smoothing: antialiased;
       overflow-x: hidden; transition: background-color 0.3s ease;
-      padding-bottom: 80px; /* Space for Bottom Nav */
+      padding-bottom: 84px; /* Space for Bottom Nav */
     }
 
     /* ── Navbar ── */
@@ -74,6 +78,10 @@
     body.mode-electrical .badge-verified { background: #fef3c7; color: #b45309; }
     body.mode-salon .badge-verified { background: #ede9fe; color: #6d28d9; }
     body.mode-laundry .badge-verified { background: #e0f2fe; color: #0284c7; }
+    body.mode-cyber .badge-verified { background: #e0e7ff; color: #4f46e5; }
+    body.mode-event .badge-verified { background: #fae8ff; color: #c026d3; }
+    body.mode-restaurant .badge-verified { background: #fee2e2; color: #dc2626; }
+    body.mode-auto .badge-verified { background: #f1f5f9; color: #475569; }
 
     .brand-name span { font-size: 13px; color: var(--text-muted); font-weight: 600; display: block; margin-top: -2px; }
 
@@ -102,6 +110,10 @@
     body.mode-electrical .hero { background: linear-gradient(135deg, #78350f 0%, #9a3412 50%, #d97706 100%); }
     body.mode-salon .hero { background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 50%, #8b5cf6 100%); }
     body.mode-laundry .hero { background: linear-gradient(135deg, #0c4a6e 0%, #075985 50%, #0284c7 100%); }
+    body.mode-cyber .hero { background: linear-gradient(135deg, #1e1b4b 0%, #3730a3 50%, #4f46e5 100%); }
+    body.mode-event .hero { background: linear-gradient(135deg, #581c87 0%, #86198f 50%, #c026d3 100%); }
+    body.mode-restaurant .hero { background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 50%, #dc2626 100%); }
+    body.mode-auto .hero { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #475569 100%); }
 
     .hero-content { position: relative; z-index: 2; max-width: 780px; margin: 0 auto; }
     .hero-tag {
@@ -137,8 +149,8 @@
     .trust-item { display: flex; align-items: center; gap: 8px; }
     .trust-icon { width: 26px; height: 26px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
 
-    /* ── Multi-Industry Switcher Bar (6 Modes) ── */
-    .industry-wrapper { max-width: 1100px; margin: 0 auto 32px; padding: 0 16px; }
+    /* ── Multi-Industry Switcher Bar (10 Modes) ── */
+    .industry-wrapper { max-width: 1200px; margin: 0 auto 32px; padding: 0 16px; }
     .industry-bar {
       background: var(--surface); border: 1.5px solid var(--border); border-radius: 24px;
       padding: 8px; display: flex; gap: 6px; box-shadow: var(--shadow-sm); overflow-x: auto;
@@ -154,14 +166,16 @@
     .ind-tab:hover { color: var(--text-main); background: var(--bg); }
     .ind-tab.active { background: var(--primary-gradient); color: white; box-shadow: 0 4px 14px rgba(0,0,0,0.18); }
 
-    /* Special Rx Button for Medicine Mode */
-    #btnUploadRx {
-      display: none; margin: 0 auto 28px; max-width: 560px;
-      background: #0f766e; color: white; padding: 14px 22px; border-radius: 18px;
+    /* Special Document Upload / Rx Buttons */
+    .spec-banner-btn {
+      display: none; margin: 0 auto 28px; max-width: 580px;
+      color: white; padding: 14px 22px; border-radius: 18px;
       font-weight: 800; font-size: 15px; text-decoration: none; text-align: center;
-      box-shadow: 0 10px 25px rgba(13, 148, 136, 0.3); border: 2px dashed rgba(255,255,255,0.4);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25); border: 2px dashed rgba(255,255,255,0.4);
     }
-    body.mode-medicine #btnUploadRx { display: block; animation: pulseGlow 2s infinite; }
+    body.mode-medicine #btnUploadRx { display: block; background: #0f766e; animation: pulseGlow 2s infinite; }
+    body.mode-cyber #btnUploadDoc { display: block; background: #3730a3; animation: pulseGlow 2s infinite; }
+    body.mode-event #btnEventInquiry { display: block; background: #86198f; animation: pulseGlow 2s infinite; }
 
     /* ── Main Showroom Catalog ── */
     .main-container { max-width: 1280px; margin: 0 auto; padding: 0 24px 40px; }
@@ -370,12 +384,14 @@
     <p id="heroSubText">Browse our verified catalog, select your items, and place instant direct app orders or WhatsApp bookings with zero hassle.</p>
     
     <div class="hero-search">
-      <input type="text" id="searchInput" placeholder="Search items, brands, medicines, clothes..." oninput="filterProducts()"/>
+      <input type="text" id="searchInput" placeholder="Search items, services, events, forms..." oninput="filterProducts()"/>
       <button onclick="filterProducts()">Search →</button>
     </div>
 
-    <!-- Special Medicine Prescription Button -->
-    <a href="javascript:void(0)" onclick="sendRxWhatsApp()" id="btnUploadRx">📄 Click here to Upload Doctor Prescription (WhatsApp) →</a>
+    <!-- Special Action Banners -->
+    <a href="javascript:void(0)" onclick="sendSpecialWhatsApp('Doctor Prescription (Rx)')" class="spec-banner-btn" id="btnUploadRx">📄 Click here to Upload Doctor Prescription (WhatsApp) →</a>
+    <a href="javascript:void(0)" onclick="sendSpecialWhatsApp('Document / PDF / Form for Printout')" class="spec-banner-btn" id="btnUploadDoc">📄 Send Documents / PDF / Photos for Printout (WhatsApp) →</a>
+    <a href="javascript:void(0)" onclick="sendSpecialWhatsApp('Event Booking & Package Customization Inquiry')" class="spec-banner-btn" id="btnEventInquiry">🎪 Click here for Custom Event / Decor Package Inquiry →</a>
 
     <div class="trust-badges" id="trustBadgesBox">
       <div class="trust-item"><div class="trust-icon">🛡️</div> 100% Quality Assurance</div>
@@ -385,15 +401,19 @@
   </div>
 </header>
 
-<!-- ── 6-Mode Specialized Industry Switcher Bar ── -->
+<!-- ── 10-Mode Specialized Industry Switcher Bar ── -->
 <div class="industry-wrapper" id="sectionProducts">
   <div class="industry-bar">
-    <button class="ind-tab active" id="tabGrocery" onclick="setIndustryMode('grocery')">🛒 Grocery Store</button>
-    <button class="ind-tab" id="tabFashion" onclick="setIndustryMode('fashion')">👗 Clothes & Boutique</button>
-    <button class="ind-tab" id="tabMedicine" onclick="setIndustryMode('medicine')">💊 Pharmacy & Medicine</button>
-    <button class="ind-tab" id="tabElectrical" onclick="setIndustryMode('electrical')">⚡ Electricals & Electronics</button>
-    <button class="ind-tab" id="tabSalon" onclick="setIndustryMode('salon')">✂️ Salon & Appointments</button>
-    <button class="ind-tab" id="tabLaundry" onclick="setIndustryMode('laundry')">🧺 Laundry & Services</button>
+    <button class="ind-tab active" id="tabGrocery" onclick="setIndustryMode('grocery')">🛒 Grocery</button>
+    <button class="ind-tab" id="tabFashion" onclick="setIndustryMode('fashion')">👗 Clothes</button>
+    <button class="ind-tab" id="tabMedicine" onclick="setIndustryMode('medicine')">💊 Pharmacy</button>
+    <button class="ind-tab" id="tabElectrical" onclick="setIndustryMode('electrical')">⚡ Hardware</button>
+    <button class="ind-tab" id="tabSalon" onclick="setIndustryMode('salon')">✂️ Salon</button>
+    <button class="ind-tab" id="tabLaundry" onclick="setIndustryMode('laundry')">🧺 Laundry</button>
+    <button class="ind-tab" id="tabCyber" onclick="setIndustryMode('cyber')">🖥️ Cyber Cafe</button>
+    <button class="ind-tab" id="tabEvent" onclick="setIndustryMode('event')">🎪 Event Management</button>
+    <button class="ind-tab" id="tabRestaurant" onclick="setIndustryMode('restaurant')">🍔 Restaurant / Cafe</button>
+    <button class="ind-tab" id="tabAuto" onclick="setIndustryMode('auto')">🚙 Auto & Garage</button>
   </div>
 </div>
 
@@ -467,7 +487,7 @@
     <p id="modalSubtext" style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">Enter your details below. The shopkeeper will receive your notification instantly.</p>
 
     <div class="receipt-box" id="orderPreviewBox" style="display:none; background:var(--bg); padding:16px; border-radius:16px; margin-bottom:20px; border:1px solid var(--border);">
-      <div style="font-size:12px; font-weight:800; color:var(--text-muted); margin-bottom:10px;">ORDER SUMMARY</div>
+      <div style="font-size:12px; font-weight:800; color:var(--text-muted); margin-bottom:10px;">SUMMARY</div>
       <div id="receiptItemsList"></div>
       <div style="display:flex; justify-content:space-between; font-size:18px; font-weight:900; border-top:1px dashed var(--border); padding-top:12px; margin-top:12px; color:var(--primary);">
         <span>Total Payable</span><span id="receiptTotalAmount">₹0</span>
@@ -540,8 +560,9 @@
       <ul class="footer-links">
         <li onclick="setIndustryMode('grocery')">🛒 Supermarket & Kirana</li>
         <li onclick="setIndustryMode('fashion')">👗 Clothes & Boutique</li>
-        <li onclick="setIndustryMode('medicine')">💊 Pharmacy & Chemist</li>
-        <li onclick="setIndustryMode('salon')">✂️ Salon & Appointments</li>
+        <li onclick="setIndustryMode('cyber')">🖥️ Cyber Cafe & Studio</li>
+        <li onclick="setIndustryMode('event')">🎪 Event Management</li>
+        <li onclick="setIndustryMode('restaurant')">🍔 Restaurant / Cafe</li>
       </ul>
     </div>
 
@@ -583,9 +604,17 @@
   function init() {
     document.getElementById('countAll').textContent = PRODUCTS.length;
     
-    // Auto-detect 6 categories
+    // Smart Auto-Detect 10 categories
     const textCombo = (BUSINESS.businessName + ' ' + PRODUCTS.map(p => (p.name + ' ' + p.category)).join(' ')).toLowerCase();
-    if (textCombo.includes('salon') || textCombo.includes('beauty') || textCombo.includes('hair') || textCombo.includes('spa') || textCombo.includes('parlour')) {
+    if (textCombo.includes('cyber') || textCombo.includes('print') || textCombo.includes('xerox') || textCombo.includes('form') || textCombo.includes('studio') || textCombo.includes('photo')) {
+      setIndustryMode('cyber', true);
+    } else if (textCombo.includes('event') || textCombo.includes('tent') || textCombo.includes('dj') || textCombo.includes('decor') || textCombo.includes('cater') || textCombo.includes('stage')) {
+      setIndustryMode('event', true);
+    } else if (textCombo.includes('restau') || textCombo.includes('cafe') || textCombo.includes('pizza') || textCombo.includes('burger') || textCombo.includes('thali') || textCombo.includes('hotel')) {
+      setIndustryMode('restaurant', true);
+    } else if (textCombo.includes('garage') || textCombo.includes('auto') || textCombo.includes('bike') || textCombo.includes('car ') || textCombo.includes('mechanic')) {
+      setIndustryMode('auto', true);
+    } else if (textCombo.includes('salon') || textCombo.includes('beauty') || textCombo.includes('hair') || textCombo.includes('spa') || textCombo.includes('parlour')) {
       setIndustryMode('salon', true);
     } else if (textCombo.includes('wash') || textCombo.includes('laundry') || textCombo.includes('dry clean') || textCombo.includes('plumber') || textCombo.includes('repair')) {
       setIndustryMode('laundry', true);
@@ -630,49 +659,53 @@
     const btnPlace = document.getElementById('btnPlaceOrderText');
 
     if (mode === 'grocery') {
-      storeSub.textContent = 'Supermarket & Daily Provisions';
-      heroTag.textContent = '⚡ 10-Min Grocery Delivery & Express Pickup';
-      heroHead.textContent = 'Fresh Groceries & Daily Needs, Delivered Instantly.';
-      heroSub.textContent = 'Order farm fresh staples, dairy, provisions, and household essentials at the best prices.';
+      storeSub.textContent = 'Supermarket & Daily Provisions'; heroTag.textContent = '⚡ 10-Min Grocery Delivery & Express Pickup';
+      heroHead.textContent = 'Fresh Groceries & Daily Needs, Delivered Instantly.'; heroSub.textContent = 'Order farm fresh staples, provisions, and household essentials at the best prices.';
       btnTop.textContent = '🛒 Bulk Order'; btnPlace.textContent = '🚀 Place Grocery Order';
     } else if (mode === 'fashion') {
-      storeSub.textContent = 'Exclusive Fashion & Boutique Showroom';
-      heroTag.textContent = '✨ Premium Fabric Quality & Easy Returns';
-      heroHead.textContent = 'Upgrade Your Wardrobe With Trendy Designer Wear.';
-      heroSub.textContent = 'Explore our handcrafted designer clothing, sarees, kurtis, and modern fashion apparel.';
-      btnTop.textContent = '👗 Book Tailor / Trial'; btnPlace.textContent = '🛍️ Place Fashion Order';
+      storeSub.textContent = 'Exclusive Fashion & Boutique Showroom'; heroTag.textContent = '✨ Premium Fabric Quality & Latest Trends';
+      heroHead.textContent = 'Upgrade Your Wardrobe With Designer Wear.'; heroSub.textContent = 'Explore our handcrafted designer apparel, sarees, and modern fashion.';
+      btnTop.textContent = '👗 Book Tailor'; btnPlace.textContent = '🛍️ Place Fashion Order';
     } else if (mode === 'medicine') {
-      storeSub.textContent = 'Verified Chemist & Healthcare Pharmacy';
-      heroTag.textContent = '🛡️ 100% Genuine Medicines & Rapid Doorstep Delivery';
-      heroHead.textContent = 'Trusted Pharmacy & Healthcare Supplies.';
-      heroSub.textContent = 'Order verified prescribed medicines, vitamins, wellness supplements, and medical devices.';
+      storeSub.textContent = 'Verified Chemist & Healthcare Pharmacy'; heroTag.textContent = '🛡️ 100% Genuine Medicines & Rapid Delivery';
+      heroHead.textContent = 'Trusted Pharmacy & Healthcare Supplies.'; heroSub.textContent = 'Order verified prescribed medicines, vitamins, and medical supplies.';
       btnTop.textContent = '📄 Upload Rx'; btnPlace.textContent = '🚀 Order Medicines';
     } else if (mode === 'electrical') {
-      storeSub.textContent = 'Electricals, Hardware & Electronics';
-      heroTag.textContent = '🔧 Genuine Brand Parts & Official Warranty';
-      heroHead.textContent = 'Heavy-Duty Electricals & Quality Hardware.';
-      heroSub.textContent = 'Order switches, wiring, fans, lights, and authentic appliances with guaranteed reliability.';
+      storeSub.textContent = 'Electricals, Hardware & Electronics'; heroTag.textContent = '🔧 Genuine Brand Parts & Official Warranty';
+      heroHead.textContent = 'Heavy-Duty Electricals & Quality Hardware.'; heroSub.textContent = 'Order switches, wiring, fans, lights, and appliances with guaranteed reliability.';
       btnTop.textContent = '⚡ Book Electrician'; btnPlace.textContent = '📦 Place Hardware Order';
     } else if (mode === 'salon') {
-      storeSub.textContent = 'Professional Salon & Spa Appointments';
-      heroTag.textContent = '✨ Expert Stylists & Premium Sanitized Care';
-      heroHead.textContent = 'Relax, Refresh & Rejuvenate With Expert Grooming.';
-      heroSub.textContent = 'Schedule personalized beauty, haircuts, bridal makeup, or spa sessions with top specialists.';
+      storeSub.textContent = 'Professional Salon & Spa Appointments'; heroTag.textContent = '✨ Expert Stylists & Sanitized Care';
+      heroHead.textContent = 'Relax, Refresh & Rejuvenate With Expert Grooming.'; heroSub.textContent = 'Schedule personalized haircuts, bridal makeup, or spa sessions.';
       btnTop.textContent = '📅 Schedule Visit'; btnPlace.textContent = '📅 Confirm Appointment';
     } else if (mode === 'laundry') {
-      storeSub.textContent = 'Professional Laundry & Dry Cleaning';
-      heroTag.textContent = '✨ Express Doorstep Pickup & Hygiene Wash';
-      heroHead.textContent = 'Crisp, Clean & Fresh Clothes Delivered Back to You.';
-      heroSub.textContent = 'Schedule professional washing, steam ironing, shoe cleaning, or carpet care with free pickup.';
+      storeSub.textContent = 'Professional Laundry & Dry Cleaning'; heroTag.textContent = '✨ Express Doorstep Pickup & Hygiene Wash';
+      heroHead.textContent = 'Crisp, Clean & Fresh Clothes Delivered Back to You.'; heroSub.textContent = 'Schedule washing, steam ironing, or dry cleaning with free doorstep pickup.';
       btnTop.textContent = '📅 Schedule Pickup'; btnPlace.textContent = '🛎️ Confirm Service Booking';
+    } else if (mode === 'cyber') {
+      storeSub.textContent = 'Cyber Cafe, Printout & Digital Services'; heroTag.textContent = '⚡ High-Speed Printing & Online Exam / Form Filling';
+      heroHead.textContent = 'Instant Digital Printouts, Xerox & Online Form Filling.'; heroSub.textContent = 'Send PDFs on WhatsApp for printouts, lamination, passport photos, or government exam registrations.';
+      btnTop.textContent = '🖨️ Print Request'; btnPlace.textContent = '🖥️ Confirm Digital Service';
+    } else if (mode === 'event') {
+      storeSub.textContent = 'Event Management, Decorators & DJ'; heroTag.textContent = '🎪 Grand Wedding, Birthday & Corporate Event Planners';
+      heroHead.textContent = 'Make Your Celebrations Unforgettable.'; heroSub.textContent = 'Book luxury tent decorations, sound systems, stage lighting, DJ packages, and catering.';
+      btnTop.textContent = '🎪 Book Event Date'; btnPlace.textContent = '🎪 Confirm Package Booking';
+    } else if (mode === 'restaurant') {
+      storeSub.textContent = 'Restaurant, Cafe & Fast Food Parcel'; heroTag.textContent = '🍔 Hot & Delicious Food Delivered to Your Table / Doorstep';
+      heroHead.textContent = 'Taste the Best Hot Food & Refreshing Drinks.'; heroSub.textContent = 'Order fresh pizzas, burgers, Indian thalis, coffee, or reserve a dining table.';
+      btnTop.textContent = '🍽️ Book Table'; btnPlace.textContent = '🍔 Order Food Parcel';
+    } else if (mode === 'auto') {
+      storeSub.textContent = 'Automobile Repair, Washing & Garage'; heroTag.textContent = '🚙 Expert Mechanics & Spare Parts Warranty';
+      heroHead.textContent = 'Professional Bike & Car Servicing & Repair.'; heroSub.textContent = 'Book engine overhauling, foam washing, tyre replacement, or emergency breakdown towing.';
+      btnTop.textContent = '🔧 Book Servicing'; btnPlace.textContent = '🚙 Confirm Garage Service';
     }
 
     if (!isInitial) render(PRODUCTS);
   }
 
-  function sendRxWhatsApp() {
+  function sendSpecialWhatsApp(title) {
     const bizPhone = BUSINESS.phone ? BUSINESS.phone.replace(/\D/g, '') : '';
-    const msg = `Hello *${BUSINESS.businessName}*! I want to upload/send my Doctor Prescription (Rx) for medicine ordering. Please check!`;
+    const msg = `Hello *${BUSINESS.businessName}*! I want to send/inquire about: *${title}*. Please assist!`;
     window.open(`https://wa.me/91${bizPhone}?text=${encodeURIComponent(msg)}`, '_blank');
   }
 
@@ -717,8 +750,12 @@
       if (industryMode === 'electrical') defaultIcon = '⚡';
       if (industryMode === 'salon') defaultIcon = '✂️';
       if (industryMode === 'laundry') defaultIcon = '🧺';
+      if (industryMode === 'cyber') defaultIcon = '🖥️';
+      if (industryMode === 'event') defaultIcon = '🎪';
+      if (industryMode === 'restaurant') defaultIcon = '🍔';
+      if (industryMode === 'auto') defaultIcon = '🚙';
 
-      const isBookingMode = industryMode === 'salon' || industryMode === 'laundry';
+      const isBookingMode = industryMode === 'salon' || industryMode === 'laundry' || industryMode === 'cyber' || industryMode === 'event' || industryMode === 'auto';
 
       return `
         <div class="product-card">
@@ -743,7 +780,7 @@
 
               ${!stock ? `<span style="font-size:13px;font-weight:700;color:#ef4444;">Unavailable</span>` :
                 isBookingMode ? `
-                  <button class="btn-book-service" onclick="openModal('SERVICE', '${p.name}', ${price})">📅 Book Appointment</button>
+                  <button class="btn-book-service" onclick="openModal('SERVICE', '${p.name}', ${price})">📅 Book / Select</button>
                 ` : qty === 0 ? `
                   <button class="btn-add" onclick="updateQty('${p.id}', 1)">+ ADD</button>
                 ` : `
@@ -776,7 +813,7 @@
       return sum + (p ? parseFloat(p.sellingPrice || p.price || 0) * cart[id] : 0);
     }, 0);
 
-    const label = industryMode === 'grocery' ? 'GROCERY BAG' : industryMode === 'fashion' ? 'SHOPPING BAG' : industryMode === 'medicine' ? 'MEDICINE ORDER' : 'ITEMS SELECTED';
+    const label = industryMode === 'grocery' ? 'GROCERY BAG' : industryMode === 'restaurant' ? 'FOOD PARCEL' : 'ITEMS SELECTED';
     document.getElementById('bagItemCount').textContent = `${totalQty} ITEM${totalQty !== 1 ? 'S' : ''} IN ${label}`;
     document.getElementById('bagTotalAmount').textContent = `₹${totalAmt.toLocaleString('en-IN')}`;
     
@@ -803,7 +840,7 @@
       const ids = Object.keys(cart);
       if (ids.length === 0 && !customService) return alert('Please select at least one item first!');
       
-      heading.textContent = industryMode === 'salon' ? '📅 Confirm Appointment' : '📦 Confirm Your Order';
+      heading.textContent = '📦 Confirm Your Order';
       labelNote.textContent = 'Complete Delivery Address or Appointment Note *';
       
       let html = '';
@@ -821,9 +858,9 @@
       previewBox.style.display = 'block';
 
     } else {
-      heading.textContent = customService ? `📅 Book: ${customService}` : '📅 Book Doorstep Appointment';
+      heading.textContent = customService ? `📅 Booking: ${customService}` : '📅 Book Doorstep Appointment / Service';
       labelNote.textContent = 'Preferred Date, Time & Address Details *';
-      document.getElementById('custNote').value = customService ? `Service Booking: ${customService} (Rate: ₹${customPrice})\nPreferred Date & Time: ` : '';
+      document.getElementById('custNote').value = customService ? `Service/Package: ${customService} (Rate: ₹${customPrice})\nPreferred Date & Time: ` : '';
       previewBox.style.display = 'none';
     }
 
@@ -856,9 +893,9 @@
     const totalAmt = items.reduce((sum, item) => sum + item.total, 0);
 
     if (method === 'wa') {
-      let msg = `📦 *NEW ORDER / APPOINTMENT (${industryMode.toUpperCase()})*\n*Store:* ${BUSINESS.businessName}\n\n👤 *Customer:* ${name}\n📞 *Phone:* ${phone}\n📍 *Details:* ${note}\n\n*Selected Items/Services:*\n`;
+      let msg = `📦 *NEW ORDER / BOOKING (${industryMode.toUpperCase()})*\n*Store:* ${BUSINESS.businessName}\n\n👤 *Customer:* ${name}\n📞 *Phone:* ${phone}\n📍 *Details:* ${note}\n\n*Selected Items/Services:*\n`;
       items.forEach(i => msg += `• ${i.name} × ${i.quantity} = ₹${i.total}\n`);
-      msg += `\n💰 *Total Payable: ₹${totalAmt}*\nPlease confirm my order/appointment!`;
+      msg += `\n💰 *Total Payable: ₹${totalAmt}*\nPlease confirm!`;
       const bizPhone = BUSINESS.phone ? BUSINESS.phone.replace(/\D/g, '') : '';
       window.open(`https://wa.me/91${bizPhone}?text=${encodeURIComponent(msg)}`, '_blank');
       closeModal(); cart = {}; updateCheckoutBar(); filterProducts();
@@ -870,14 +907,14 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             customerName: name, customerPhone: phone,
-            items: currentModalMode === 'ORDER' ? items : [{ name: 'Appointment: ' + note, quantity: 1, rate: 0, total: 0 }],
+            items: currentModalMode === 'ORDER' ? items : [{ name: 'Booking: ' + note, quantity: 1, rate: 0, total: 0 }],
             totalAmount: currentModalMode === 'ORDER' ? totalAmt : 0, note: note,
             orderType: currentModalMode === 'ORDER' ? 'online_order' : 'service_booking'
           })
         });
         const data = await res.json();
         if (data.success) {
-          alert('🎉 SUCCESS!\nYour order/appointment request has been sent to the shopkeeper directly in their Dukan Bill app!');
+          alert('🎉 SUCCESS!\nYour order/booking request has been sent directly to the shopkeeper in their Dukan Bill app!');
           closeModal(); cart = {}; updateCheckoutBar(); filterProducts();
         } else alert('Error: ' + data.error);
       } catch (e) { submitOrder('wa'); }
