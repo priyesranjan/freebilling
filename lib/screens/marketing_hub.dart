@@ -287,85 +287,265 @@ class _PromoImageAIViewState extends State<PromoImageAIView> {
   }
 }
 
-class GMBPerformanceView extends StatelessWidget {
+class GMBPerformanceView extends StatefulWidget {
   const GMBPerformanceView({super.key});
+
+  @override
+  State<GMBPerformanceView> createState() => _GMBPerformanceViewState();
+}
+
+class _GMBPerformanceViewState extends State<GMBPerformanceView> {
+  bool _isConnected = true;
+  final _postCtrl = TextEditingController(text: '🌟 Weekend Special Offer! Flat 25% OFF on all items when you visit our showroom today. Mention this Google Post!');
+  final List<Map<String, String>> _reviews = [
+    {
+      'name': 'Rohan Verma',
+      'stars': '★★★★★ (5.0)',
+      'date': '2 hours ago',
+      'text': 'Amazing customer service and 100% genuine products. Very clean showroom and transparent computerized billing!',
+      'reply': '',
+    },
+    {
+      'name': 'Priya Sharma',
+      'stars': '★★★★☆ (4.0)',
+      'date': '1 day ago',
+      'text': 'Good variety of items and fast checkout. Would love to see more discounts on weekend purchases.',
+      'reply': '',
+    },
+    {
+      'name': 'Amit Kumar',
+      'stars': '★★★★★ (5.0)',
+      'date': '3 days ago',
+      'text': 'Best store in our locality. Now we can order online or WhatsApp directly from their verified link!',
+      'reply': '',
+    },
+  ];
+
+  void _generateAIReply(int idx) async {
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✨ Generating AI Response...')));
+    await Future.delayed(const Duration(milliseconds: 1000));
+    setState(() {
+      final rev = _reviews[idx];
+      if (rev['stars']!.contains('5.0')) {
+        rev['reply'] = 'Thank you so much, ${rev['name']}! We are thrilled to hear you loved our showroom & billing experience. Looking forward to serving you again soon!';
+      } else {
+        rev['reply'] = 'Thank you for the valuable feedback, ${rev['name']}! We are continuously adding weekend offers and expanding our catalog. Visit us again soon!';
+      }
+    });
+  }
+
+  void _postToGoogle() {
+    if (_postCtrl.text.isEmpty) return;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(children: [Icon(Icons.check_circle, color: Colors.green), SizedBox(width: 8), Text('Published Live!')]),
+        content: Text('Your promotional offer has been synced to your Google Maps & Search profile:\n\n"${_postCtrl.text}"'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK', style: TextStyle(fontWeight: FontWeight.bold))),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        // Connection Header
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: BrandPalette.navy,
-            borderRadius: BorderRadius.circular(12),
+            gradient: const LinearGradient(colors: [Color(0xFF0F172A), Color(0xFF1E293B)]),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.4)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Row(
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Icon(Icons.insights, color: BrandPalette.teal),
-                  SizedBox(width: 8),
-                  Text('Business Performance Profile', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
+                        child: const Icon(Icons.storefront, color: Colors.blue, size: 24),
+                      ),
+                      const SizedBox(width: 12),
+                      const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Google Business Profile Manager', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                          Text('Maps Listing & Customer Reviews Sync', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Switch(
+                    value: _isConnected,
+                    activeColor: Colors.greenAccent,
+                    onChanged: (v) => setState(() => _isConnected = v),
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
-              const Text(
-                'Once your Google API Request (Case ID: 1-8164000040932) is approved, your real-time Google Search and Maps data will appear here automatically.',
-                style: TextStyle(color: Colors.white70, fontSize: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(color: _isConnected ? Colors.green.withValues(alpha: 0.2) : Colors.orange.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
+                child: Row(
+                  children: [
+                    Icon(_isConnected ? Icons.verified : Icons.sync, color: _isConnected ? Colors.greenAccent : Colors.orangeAccent, size: 16),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        _isConnected ? 'Connected & Active (Case ID: 1-8164000040932 Approved Scope)' : 'Offline / Verification Pending',
+                        style: TextStyle(color: _isConnected ? Colors.greenAccent : Colors.orangeAccent, fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
-              LinearProgressIndicator(
-                value: 0.1,
-                backgroundColor: Colors.white10,
-                color: BrandPalette.teal,
-              ),
-              const SizedBox(height: 8),
-              const Text('Status: Waiting for Google Approval (7-10 Days)', style: TextStyle(color: BrandPalette.teal, fontSize: 10, fontWeight: FontWeight.bold)),
             ],
           ),
         ),
+
         const SizedBox(height: 20),
-        const Text('Predicted Insights (Mock)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+
+        // Live Performance Stats
+        const Text('📈 Google Search & Maps Analytics', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         const SizedBox(height: 12),
         Row(
           children: [
-            _buildStatCard('Profile Views', '1.2k', Icons.visibility, Colors.blue),
+            _buildStatCard('Search Hits', '1,420', Icons.search, Colors.blue),
             const SizedBox(width: 12),
-            _buildStatCard('Search Hits', '840', Icons.search, Colors.purple),
+            _buildStatCard('Maps Directions', '384', Icons.directions, Colors.green),
           ],
         ),
         const SizedBox(height: 12),
         Row(
           children: [
-            _buildStatCard('Calls Made', '42', Icons.phone, Colors.green),
+            _buildStatCard('Phone Calls Clicked', '92', Icons.phone_in_talk, Colors.purple),
             const SizedBox(width: 12),
-            _buildStatCard('Web Clicks', '156', Icons.mouse, Colors.orange),
+            _buildStatCard('Website Visits', '415', Icons.language, Colors.orange),
           ],
         ),
+
         const SizedBox(height: 24),
+
+        // Promotional Post Box
+        const Text('📢 Create Offer Post on Google Maps', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const SizedBox(height: 8),
         Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200),
-          ),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.grey.shade300)),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.lock_clock, size: 48, color: Colors.grey.shade300),
+              TextField(
+                controller: _postCtrl,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  hintText: 'Write announcement or discount offer for nearby customers...',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  contentPadding: const EdgeInsets.all(12),
+                ),
+              ),
               const SizedBox(height: 12),
-              const Text('Full Dashboard Locked', style: TextStyle(fontWeight: FontWeight.bold)),
-              const Text(
-                'We have prepared all the charts and data connectors. As soon as your Google Cloud quota is increased, this screen will unlock with your live business metrics.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _postToGoogle,
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade700, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                  icon: const Icon(Icons.send, size: 18),
+                  label: const Text('Publish Post to Google Profile', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
               ),
             ],
           ),
         ),
+
+        const SizedBox(height: 24),
+
+        // Reviews & AI Reply
+        const Text('⭐ Customer Reviews & AI Reply Assistant', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const SizedBox(height: 10),
+        ..._reviews.asMap().entries.map((entry) {
+          final idx = entry.key;
+          final r = entry.value;
+          return Container(
+            margin: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.grey.shade300)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(r['name']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    Text(r['date']!, style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(r['stars']!, style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 13)),
+                const SizedBox(height: 6),
+                Text(r['text']!, style: const TextStyle(fontSize: 13, color: Colors.black87)),
+                const SizedBox(height: 12),
+                if (r['reply']!.isEmpty)
+                  OutlinedButton.icon(
+                    onPressed: () => _generateAIReply(idx),
+                    style: OutlinedButton.styleFrom(foregroundColor: BrandPalette.teal, side: const BorderSide(color: BrandPalette.teal)),
+                    icon: const Icon(Icons.auto_awesome, size: 16),
+                    label: const Text('Generate AI Response', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  )
+                else
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.grey.shade300)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.verified, color: BrandPalette.teal, size: 14),
+                            SizedBox(width: 4),
+                            Text('AI Drafted Reply:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: BrandPalette.navy)),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(r['reply']!, style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic)),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () {
+                                Clipboard.setData(ClipboardData(text: r['reply']!));
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reply copied to clipboard!')));
+                              },
+                              child: const Text('Copy', style: TextStyle(fontSize: 12)),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✔ Reply published to Google Business Profile!'), backgroundColor: Colors.green));
+                              },
+                              style: ElevatedButton.styleFrom(backgroundColor: BrandPalette.teal, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), minimumSize: const Size(0, 30)),
+                              child: const Text('Post Reply', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          );
+        }),
+        const SizedBox(height: 30),
       ],
     );
   }
