@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/core.dart';
+import '../services/api_service.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class MarketingHubScreen extends StatefulWidget {
@@ -21,7 +22,6 @@ class _MarketingHubScreenState extends State<MarketingHubScreen> {
           title: const Text('AI Marketing & Website Studio'),
           backgroundColor: BrandPalette.pageBase,
           elevation: 0,
-          isScrollable: true,
           bottom: const TabBar(
             isScrollable: true,
             labelColor: BrandPalette.navy,
