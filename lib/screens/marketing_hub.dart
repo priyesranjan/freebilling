@@ -296,6 +296,7 @@ class GMBPerformanceView extends StatefulWidget {
 
 class _GMBPerformanceViewState extends State<GMBPerformanceView> {
   bool _isConnected = true;
+  final _placeIdCtrl = TextEditingController(text: 'ChIJN1t_tDeuEmsRUsoyG83frY4');
   final _postCtrl = TextEditingController(text: '🌟 Weekend Special Offer! Flat 25% OFF on all items when you visit our showroom today. Mention this Google Post!');
   final List<Map<String, String>> _reviews = [
     {
@@ -402,12 +403,65 @@ class _GMBPerformanceViewState extends State<GMBPerformanceView> {
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        _isConnected ? 'Connected & Active (Case ID: 1-8164000040932 Approved Scope)' : 'Offline / Verification Pending',
+                        _isConnected ? 'Connected & Active (Places API & Maps SDK Enabled)' : 'Offline / Verification Pending',
                         style: TextStyle(color: _isConnected ? Colors.greenAccent : Colors.orangeAccent, fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
                 ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        // Places API Review Booster
+        const Text('⭐ Google Places API Review Booster', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.grey.shade300)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Enter Google Place ID / Store Address:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: BrandPalette.navy)),
+              const SizedBox(height: 6),
+              TextField(
+                controller: _placeIdCtrl,
+                decoration: InputDecoration(
+                  hintText: 'e.g. ChIJN1t_tDeuEmsRUsoyG83frY4',
+                  filled: true, fillColor: Colors.grey.shade50,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        final link = 'https://search.google.com/local/writereview?placeid=${_placeIdCtrl.text.trim()}';
+                        Clipboard.setData(ClipboardData(text: link));
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✔ 5-Star Review Link Copied to Clipboard!')));
+                      },
+                      icon: const Icon(Icons.copy, size: 16),
+                      label: const Text('Copy Review Link', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('📲 Sending Google Review Request via WhatsApp!'), backgroundColor: Colors.green));
+                      },
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green.shade600, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                      icon: const Icon(Icons.share, size: 16),
+                      label: const Text('Blast on WhatsApp', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
