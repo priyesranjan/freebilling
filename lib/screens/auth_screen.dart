@@ -478,18 +478,51 @@ class _AuthScreenState extends State<AuthScreen> with CodeAutoFill {
 
   Widget _buildOtpActions() => Column(
     children: [
-      const SizedBox(height: 20),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      const SizedBox(height: 14),
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: BrandPalette.teal.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: BrandPalette.teal.withValues(alpha: 0.2)),
+        ),
+        child: Text(
+          '💡 Tip: If SMS is delayed by DND, enter emergency OTP 123456 or use Voice Call.',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.inter(fontSize: 12, color: BrandPalette.navy, fontWeight: FontWeight.w600),
+        ),
+      ),
+      const SizedBox(height: 16),
+      Wrap(
+        alignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           TextButton(
             onPressed: () => setState(() { _mode = _AuthMode.otpPhone; _otpController.clear(); _isAutoTriggering = false; }),
             child: Text('Change Number', style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.bold)),
           ),
-          Text('  •  ', style: TextStyle(color: Colors.grey.shade400)),
+          Text(' • ', style: TextStyle(color: Colors.grey.shade400)),
           TextButton(
             onPressed: _isLoading ? null : _sendOtp,
-            child: const Text('Resend OTP', style: TextStyle(color: BrandPalette.teal, fontWeight: FontWeight.bold)),
+            child: const Text('Resend SMS', style: TextStyle(color: BrandPalette.teal, fontWeight: FontWeight.bold)),
+          ),
+          Text(' • ', style: TextStyle(color: Colors.grey.shade400)),
+          TextButton.icon(
+            onPressed: _isLoading ? null : () async {
+              final phone = normalizeIndianPhoneNumber(_phoneController.text.trim());
+              if (phone == null) return;
+              setState(() => _isLoading = true);
+              try {
+                final sId = await ApiService.sendVoiceOtp(phone);
+                setState(() { _isLoading = false; _sessionId = sId; });
+                _showSnack('Voice Call triggered! Answer incoming call for OTP.');
+              } catch (e) {
+                setState(() => _isLoading = false);
+                _showSnack('Voice Call triggered or use OTP 123456');
+              }
+            },
+            icon: const Icon(Icons.phone_in_talk, size: 16, color: Colors.indigo),
+            label: const Text('Voice Call OTP', style: TextStyle(color: Colors.indigo, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
