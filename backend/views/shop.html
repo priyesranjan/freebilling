@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>{{businessName}} — Verified Online Showroom & Portal</title>
+  <title>{{businessName}} — Official Online Showroom & Portal</title>
   <meta name="description" content="Order premium items or schedule appointments directly with {{businessName}}. Instant app notifications, best pricing, and verified quality."/>
   
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -48,10 +48,10 @@
       background-color: var(--bg); color: var(--text-main);
       line-height: 1.5; -webkit-font-smoothing: antialiased;
       overflow-x: hidden; transition: background-color 0.3s ease;
-      padding-bottom: 110px; /* Space for Bottom Nav */
+      padding-bottom: 110px;
     }
 
-    /* ── Navbar (Sleek Dark Header) ── */
+    /* ── Navbar ── */
     .navbar {
       position: sticky; top: 0; z-index: 1000;
       background: var(--surface-glass); backdrop-filter: blur(20px);
@@ -67,11 +67,11 @@
       width: 44px; height: 44px; background: var(--primary-gradient); color: #000;
       border-radius: 14px; display: flex; align-items: center; justify-content: center;
       font-size: 22px; font-weight: 900; font-family: 'Outfit', sans-serif;
-      box-shadow: 0 4px 15px rgba(255, 183, 3, 0.3);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
     .brand-name h1 { font-size: 19px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 6px; }
     .badge-verified {
-      background: rgba(255, 183, 3, 0.15); border: 1px solid var(--primary);
+      background: rgba(255, 255, 255, 0.1); border: 1px solid var(--primary);
       color: var(--primary); font-size: 10px; font-weight: 800;
       padding: 2px 8px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px;
     }
@@ -84,7 +84,7 @@
     }
     .btn-login-outline:hover { background: var(--primary); color: #000; box-shadow: var(--shadow-gold); }
 
-    /* ── Hero Section (Dark Glassmorphism UI) ── */
+    /* ── Hero Section ── */
     .hero {
       position: relative; overflow: hidden;
       background: linear-gradient(180deg, #0e1626 0%, #090d16 100%);
@@ -97,10 +97,10 @@
       pointer-events: none;
     }
 
-    /* InternMatrix Inspired Offer Card */
+    /* Offer Card */
     .offer-card {
       max-width: 620px; margin: 0 auto 32px;
-      background: #0d1322; border: 1.5px solid rgba(255, 183, 3, 0.35);
+      background: #0d1322; border: 1.5px solid var(--primary);
       border-radius: 26px; padding: 22px; box-shadow: 0 25px 60px rgba(0,0,0,0.8);
       position: relative; text-align: left;
     }
@@ -133,7 +133,6 @@
     }
     .offer-footer { font-size: 12px; font-weight: 700; color: var(--primary); text-align: center; }
 
-    /* Headline & Action CTAs */
     .hero h2 { font-size: 34px; font-weight: 900; line-height: 1.2; margin-bottom: 12px; max-width: 700px; margin-left: auto; margin-right: auto; }
     .hero p { font-size: 15px; color: var(--text-muted); max-width: 580px; margin: 0 auto 24px; }
     
@@ -149,7 +148,6 @@
       cursor: pointer; display: flex; align-items: center; gap: 8px;
     }
 
-    /* 3-Column Stats Counter */
     .stats-row {
       display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;
       padding: 20px 0; border-top: 1px dashed var(--border); max-width: 800px; margin: 0 auto;
@@ -157,7 +155,6 @@
     .stat-item h4 { font-size: 32px; font-weight: 900; color: var(--primary); font-family: 'Outfit', sans-serif; }
     .stat-item span { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
 
-    /* Search Bar */
     .search-wrap { max-width: 560px; margin: 30px auto 10px; position: relative; }
     .search-input {
       width: 100%; padding: 16px 20px; border-radius: 20px;
@@ -166,7 +163,6 @@
     }
     .search-input:focus { border-color: var(--primary); }
 
-    /* Special Upload Action Banners */
     .spec-banner-btn {
       display: none; margin: 20px auto 0; max-width: 580px;
       color: #000; background: var(--primary-gradient); padding: 14px 22px; border-radius: 18px;
@@ -177,22 +173,8 @@
     body.mode-cyber #btnUploadDoc { display: block; }
     body.mode-event #btnEventInquiry { display: block; }
 
-    /* Industry Switcher Bar */
-    .industry-wrapper { max-width: 1280px; margin: 24px auto; padding: 0 20px; }
-    .industry-bar {
-      background: var(--surface); border: 1px solid var(--border); border-radius: 24px;
-      padding: 8px; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
-    }
-    .industry-bar::-webkit-scrollbar { display: none; }
-    .ind-tab {
-      padding: 10px 18px; border-radius: 16px; border: none; background: transparent;
-      color: var(--text-muted); font-size: 14px; font-weight: 800; cursor: pointer;
-      white-space: nowrap; transition: all 0.2s;
-    }
-    .ind-tab.active { background: var(--primary-gradient); color: #000; box-shadow: 0 4px 15px rgba(255, 183, 3, 0.3); }
-
     /* Catalog Area */
-    .main-container { max-width: 1280px; margin: 0 auto; padding: 0 20px 40px; }
+    .main-container { max-width: 1280px; margin: 36px auto 0; padding: 0 20px 40px; }
     .cat-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 16px; scrollbar-width: none; }
     .cat-scroll::-webkit-scrollbar { display: none; }
     .cat-pill {
@@ -206,7 +188,6 @@
     .section-header h3 { font-size: 24px; font-weight: 800; font-family: 'Outfit', sans-serif; }
     .item-counter { background: var(--surface); border: 1px solid var(--border); padding: 4px 12px; border-radius: 10px; font-size: 13px; font-weight: 700; color: var(--primary); }
 
-    /* Product Grid */
     .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
     .product-card {
       background: var(--surface); border: 1px solid var(--border); border-radius: 22px;
@@ -243,7 +224,54 @@
     .stepper button { background: transparent; border: none; color: #000; width: 34px; height: 36px; font-size: 18px; font-weight: 900; cursor: pointer; }
     .stepper span { color: #000; font-weight: 900; font-size: 15px; padding: 0 6px; }
 
-    /* Floating Green WhatsApp Button */
+    /* ── World-Class E-Commerce Mega Footer ── */
+    .mega-footer {
+      background: #06090f; border-top: 1.5px solid var(--border);
+      color: var(--text-main); margin-top: 60px;
+    }
+    .vip-banner {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 24px 20px;
+    }
+    .vip-content {
+      max-width: 1280px; margin: 0 auto; display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 20px;
+    }
+    .vip-text h3 { font-size: 20px; font-weight: 900; color: #fff; font-family: 'Outfit', sans-serif; }
+    .vip-text p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+    .vip-form { display: flex; gap: 10px; flex-wrap: wrap; }
+    .vip-input {
+      padding: 12px 18px; border-radius: 14px; border: 1px solid var(--border);
+      background: #090d16; color: #fff; font-size: 14px; outline: none; width: 260px;
+    }
+    .btn-vip {
+      background: var(--primary-gradient); color: #000; border: none; padding: 12px 22px;
+      border-radius: 14px; font-weight: 900; font-size: 14px; cursor: pointer;
+    }
+
+    .footer-main { max-width: 1280px; margin: 0 auto; padding: 50px 20px 40px; }
+    .footer-grid {
+      display: grid; grid-template-columns: 1.6fr 1fr 1fr 1.2fr; gap: 40px;
+    }
+    .footer-col h4 { font-size: 15px; font-weight: 900; color: #fff; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; font-family: 'Outfit', sans-serif; }
+    .footer-links { list-style: none; display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: var(--text-muted); font-weight: 600; }
+    .footer-links li { cursor: pointer; transition: color 0.2s; display: flex; align-items: center; gap: 8px; }
+    .footer-links li:hover { color: var(--primary); }
+    
+    .trust-badges { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+    .trust-pill { background: #111726; border: 1px solid var(--border); padding: 8px 14px; border-radius: 12px; font-size: 12px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 6px; }
+
+    .footer-bottom {
+      background: #030508; border-top: 1px solid rgba(255,255,255,0.08); padding: 24px 20px;
+    }
+    .bottom-content {
+      max-width: 1280px; margin: 0 auto; display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 16px; font-size: 13px; color: var(--text-muted); font-weight: 600;
+    }
+    .pay-icons { display: flex; gap: 12px; font-size: 14px; font-weight: 800; color: #fff; align-items: center; }
+    .pay-chip { background: #111726; border: 1px solid var(--border); padding: 4px 10px; border-radius: 8px; font-size: 11px; }
+
+    /* Floating WhatsApp Button */
     .floating-wa {
       position: fixed; bottom: 84px; right: 20px; z-index: 1800;
       width: 56px; height: 56px; background: #25D366; color: #fff;
@@ -253,7 +281,7 @@
     }
     .floating-wa:hover { transform: scale(1.1); }
 
-    /* Compact Non-Overlapping Checkout Bar */
+    /* Checkout Bar */
     .floating-checkout {
       position: fixed; bottom: 68px; left: 50%; transform: translateX(-50%) translateY(160px);
       width: calc(100% - 24px); max-width: 640px;
@@ -271,7 +299,7 @@
       border-radius: 12px; font-weight: 900; font-size: 14px; cursor: pointer;
     }
 
-    /* Pure Black Sleek Mobile Bottom Navigation */
+    /* Bottom Nav */
     .bottom-nav {
       position: fixed; bottom: 0; left: 0; right: 0;
       background: #05070c; border-top: 1px solid rgba(255,255,255,0.1);
@@ -304,6 +332,9 @@
       background: #090d16; color: #fff; font-size: 15px; outline: none;
     }
 
+    @media (max-width: 800px) {
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 28px; }
+    }
     @media (max-width: 600px) {
       .hero h2 { font-size: 26px; }
       .offer-card { padding: 16px; }
@@ -315,6 +346,10 @@
       .product-title { font-size: 14px; }
       .price-current { font-size: 18px; }
       .floating-checkout { bottom: 64px; padding: 10px 14px; }
+      .footer-grid { grid-template-columns: 1fr; gap: 24px; }
+      .vip-content { flex-direction: column; text-align: center; }
+      .vip-input { width: 100%; }
+      .btn-vip { width: 100%; }
     }
   </style>
 </head>
@@ -326,23 +361,22 @@
     <a href="/" class="nav-brand">
       <div class="brand-logo">{{initial}}</div>
       <div class="brand-name">
-        <h1>{{businessName}} <span class="badge-verified">⚡ Verified</span></h1>
-        <span id="storeSubLabel">Official Digital Portal</span>
+        <h1>{{businessName}} <span class="badge-verified" id="topIndustryBadge">⚡ Verified Store</span></h1>
+        <span id="storeSubLabel">Official Digital Showroom</span>
       </div>
     </a>
-    <button onclick="openContactModal()" class="btn-login-outline">Store Profile</button>
+    <button onclick="openContactModal()" class="btn-login-outline">🏪 Store Profile</button>
   </div>
 </nav>
 
 <!-- Hero & Dark Glass Offer Card -->
 <header class="hero">
-  <!-- InternMatrix Inspired Offer Card -->
   <div class="offer-card">
     <div class="offer-header">
-      <div class="offer-icon-box">🎁</div>
+      <div class="offer-icon-box" id="offerIconDisplay">🎁</div>
       <div class="offer-title">
-        <h3>✨ Limited Time Welcome Offer!</h3>
-        <span>Get <strong>20% - 50% OFF</strong> on first online order / booking</span>
+        <h3 id="offerTitleDisplay">✨ Welcome Offer!</h3>
+        <span id="offerSubDisplay">Get <strong>20% - 50% OFF</strong> on your first order / booking</span>
       </div>
     </div>
 
@@ -352,52 +386,35 @@
     </div>
 
     <div class="timer-pill">🕒 <span id="clockHours">23</span> : <span id="clockMins">59</span> : <span id="clockSecs">33</span></div>
-    <div class="offer-footer">⚡ Hurry! Offer ends soon. Limited slots available.</div>
+    <div class="offer-footer" id="offerFooterText">⚡ Hurry! Offer ends soon. Limited slots available.</div>
   </div>
 
-  <h2>Gain Real-World Quality & Instant Service With <span style="color:var(--primary);">{{businessName}}</span>.</h2>
-  <p>Browse our verified product catalog, select your items or services, and get fast doorstep action.</p>
+  <h2 id="heroHeadlineText">Gain Real-World Quality & Instant Service With <span style="color:var(--primary);">{{businessName}}</span>.</h2>
+  <p id="heroSubText">Browse our verified catalog, select items or services, and experience rapid action.</p>
   
   <div class="dual-ctas">
-    <button onclick="scrollToElem('sectionProducts')" class="btn-cta-primary">Explore Items & Skills ></button>
-    <button onclick="openContactModal()" class="btn-cta-secondary">Sample Bill / Verification ></button>
+    <button onclick="scrollToElem('sectionProducts')" class="btn-cta-primary" id="btnExploreMain">Explore Catalog ></button>
+    <button onclick="openContactModal()" class="btn-cta-secondary">Store Verification ></button>
   </div>
 
   <!-- 3-Column Stats -->
   <div class="stats-row">
-    <div class="stat-item"><h4>5k+</h4><span>Orders Placed</span></div>
-    <div class="stat-item"><h4>50+</h4><span>Categories</span></div>
-    <div class="stat-item"><h4>99%</h4><span>Success Rate</span></div>
+    <div class="stat-item"><h4 id="stat1Val">5k+</h4><span id="stat1Lbl">Orders Placed</span></div>
+    <div class="stat-item"><h4 id="stat2Val">50+</h4><span id="stat2Lbl">Categories</span></div>
+    <div class="stat-item"><h4 id="stat3Val">99%</h4><span id="stat3Lbl">Success Rate</span></div>
   </div>
 
   <div class="search-wrap">
-    <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search items, services, printouts..." oninput="filterProducts()"/>
+    <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search catalog items, services..." oninput="filterProducts()"/>
   </div>
 
-  <!-- Special Banners -->
   <a href="javascript:void(0)" onclick="sendSpecialWhatsApp('Doctor Prescription (Rx)')" class="spec-banner-btn" id="btnUploadRx">📄 Upload Doctor Prescription (WhatsApp) →</a>
   <a href="javascript:void(0)" onclick="sendSpecialWhatsApp('Document / PDF / Form Printout')" class="spec-banner-btn" id="btnUploadDoc">📄 Send Documents / PDF for Printout →</a>
   <a href="javascript:void(0)" onclick="sendSpecialWhatsApp('Event & Decor Inquiry')" class="spec-banner-btn" id="btnEventInquiry">🎪 Custom Event Package Inquiry →</a>
 </header>
 
-<!-- Industry Switcher -->
-<div class="industry-wrapper" id="sectionProducts">
-  <div class="industry-bar">
-    <button class="ind-tab active" id="tabGrocery" onclick="setIndustryMode('grocery')">🛒 Grocery</button>
-    <button class="ind-tab" id="tabFashion" onclick="setIndustryMode('fashion')">👗 Clothes</button>
-    <button class="ind-tab" id="tabMedicine" onclick="setIndustryMode('medicine')">💊 Pharmacy</button>
-    <button class="ind-tab" id="tabElectrical" onclick="setIndustryMode('electrical')">⚡ Hardware</button>
-    <button class="ind-tab" id="tabSalon" onclick="setIndustryMode('salon')">✂️ Salon</button>
-    <button class="ind-tab" id="tabLaundry" onclick="setIndustryMode('laundry')">🧺 Laundry</button>
-    <button class="ind-tab" id="tabCyber" onclick="setIndustryMode('cyber')">🖥️ Cyber Cafe</button>
-    <button class="ind-tab" id="tabEvent" onclick="setIndustryMode('event')">🎪 Event Planners</button>
-    <button class="ind-tab" id="tabRestaurant" onclick="setIndustryMode('restaurant')">🍔 Restaurant</button>
-    <button class="ind-tab" id="tabAuto" onclick="setIndustryMode('auto')">🚙 Garage</button>
-  </div>
-</div>
-
 <!-- Catalog -->
-<main class="main-container">
+<main class="main-container" id="sectionProducts">
   <div class="cat-scroll" id="categoryBar">
     <button class="cat-pill active" onclick="setCategory('all', this)">✨ All Items (<span id="countAll">0</span>)</button>
   </div>
@@ -416,10 +433,91 @@
   </div>
 </main>
 
-<!-- Floating Green WhatsApp Support Button -->
+<!-- ── E-COMMERCE WORLD-CLASS MEGA FOOTER ── -->
+<footer class="mega-footer">
+  <div class="vip-banner">
+    <div class="vip-content">
+      <div class="vip-text">
+        <h3>🚀 Join 10,000+ VIP Members of {{businessName}}</h3>
+        <p>Subscribe for instant WhatsApp coupon alerts, special member discounts, and new arrivals.</p>
+      </div>
+      <div class="vip-form">
+        <input type="tel" class="vip-input" placeholder="Enter your 10-digit WhatsApp number"/>
+        <button class="btn-vip" onclick="alert('🎉 Welcome to VIP Club! You will receive discounts directly on WhatsApp.')">Join VIP Club →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-main">
+    <div class="footer-grid">
+      <!-- Col 1 -->
+      <div class="footer-col">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+          <div class="brand-logo" style="width:38px;height:38px;font-size:18px;">{{initial}}</div>
+          <span style="font-size:18px;font-weight:900;color:#fff;">{{businessName}}</span>
+        </div>
+        <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">Your trusted neighborhood showroom offering 100% genuine quality, transparent billing, and instant doorstep support.</p>
+        <div class="trust-badges">
+          <div class="trust-pill">🛡️ 100% Safe & Secure</div>
+          <div class="trust-pill">⚡ Express Fulfillment</div>
+          <div class="trust-pill">✔ GST Verified</div>
+        </div>
+      </div>
+
+      <!-- Col 2 -->
+      <div class="footer-col">
+        <h4 id="footerCol2Title">Quick Categories</h4>
+        <ul class="footer-links" id="footerCategoryLinks">
+          <li onclick="scrollToElem('sectionProducts')">👉 All Products & Services</li>
+          <li onclick="scrollToElem('sectionProducts')">🔥 Special Discounted Items</li>
+          <li onclick="scrollToElem('sectionProducts')">📦 Bulk Order Inquiry</li>
+        </ul>
+      </div>
+
+      <!-- Col 3 -->
+      <div class="footer-col">
+        <h4>Customer Care</h4>
+        <ul class="footer-links">
+          <li onclick="openContactModal()">💬 Direct WhatsApp Support</li>
+          <li onclick="openModal('ORDER')">📦 Track My Order / Booking</li>
+          <li onclick="alert('Return Policy: Please inspect items at delivery or consult showroom within 24 hours.')">🔄 Return & Exchange Policy</li>
+          <li onclick="alert('Shipping: Fast doorstep action within operating city area.')">🚚 Doorstep Delivery Info</li>
+          <li onclick="alert('Privacy Policy: Customer data is 100% encrypted & protected.')">🔒 Privacy & Security</li>
+        </ul>
+      </div>
+
+      <!-- Col 4 -->
+      <div class="footer-col">
+        <h4>Showroom Location</h4>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.8;">
+          <p>📍 <strong>Address:</strong> {{city}}</p>
+          <p>🕒 <strong>Hours:</strong> Mon - Sun (9:00 AM - 9:30 PM)</p>
+          <p>📞 <strong>Phone:</strong> +91 {{phone}}</p>
+          <div style="margin-top:14px;">
+            <a href="https://wa.me/91{{rawPhone}}" target="_blank" style="display:inline-block;background:#25D366;color:#fff;padding:10px 18px;border-radius:12px;text-decoration:none;font-weight:800;font-size:13px;">💬 Chat on WhatsApp</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <div class="bottom-content">
+      <div>© 2026 <strong>{{businessName}}</strong>. All rights reserved. Powered by Dukan Bill Cloud.</div>
+      <div class="pay-icons">
+        <span>Payment Accepted:</span>
+        <span class="pay-chip">💳 UPI / GPay</span>
+        <span class="pay-chip">💵 Cash on Delivery</span>
+        <span class="pay-chip">🏦 Cards / NetBank</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Floating WhatsApp Button -->
 <a href="https://wa.me/91{{rawPhone}}?text=Hello%20{{businessName}}!%20I%20have%20an%20inquiry." target="_blank" class="floating-wa" title="Chat on WhatsApp">💬</a>
 
-<!-- Compact Floating Bag Bar -->
+<!-- Compact Checkout Bar -->
 <div class="floating-checkout" id="checkoutBar">
   <div class="bag-info">
     <span class="bag-items" id="bagItemCount">0 ITEMS SELECTED</span>
@@ -487,7 +585,7 @@
       <p style="color:var(--primary);font-size:13px;font-weight:800;margin-bottom:16px;">✔ 100% Verified Dukan Showroom</p>
       
       <div style="background:#090d16;padding:16px;border-radius:14px;text-align:left;margin-bottom:16px;font-size:13px;border:1px solid var(--border);">
-        <p>📍 <strong>City:</strong> {{city}}</p>
+        <p>📍 <strong>City / Address:</strong> {{city}}</p>
         <p style="margin-top:6px;">📞 <strong>Phone:</strong> +91 {{phone}}</p>
         <p style="margin-top:6px;">🕒 <strong>Operating Hours:</strong> 9:00 AM - 9:30 PM</p>
       </div>
@@ -508,7 +606,6 @@
   let currentModalMode = 'ORDER';
   let industryMode = 'grocery';
 
-  // Live Timer Engine
   let timeRemaining = 23 * 3600 + 59 * 60 + 33;
   setInterval(() => {
     if (timeRemaining > 0) timeRemaining--;
@@ -528,20 +625,28 @@
 
   function init() {
     document.getElementById('countAll').textContent = PRODUCTS.length;
-    const combo = (BUSINESS.businessName + ' ' + PRODUCTS.map(p => (p.name + ' ' + p.category)).join(' ')).toLowerCase();
-    if (combo.includes('cyber') || combo.includes('print')) setIndustryMode('cyber', true);
-    else if (combo.includes('event') || combo.includes('tent')) setIndustryMode('event', true);
-    else if (combo.includes('restau') || combo.includes('cafe')) setIndustryMode('restaurant', true);
-    else if (combo.includes('garage') || combo.includes('auto')) setIndustryMode('auto', true);
-    else if (combo.includes('salon') || combo.includes('beauty')) setIndustryMode('salon', true);
-    else if (combo.includes('laundry') || combo.includes('wash')) setIndustryMode('laundry', true);
-    else if (combo.includes('med') || combo.includes('pharma')) setIndustryMode('medicine', true);
-    else if (combo.includes('electr') || combo.includes('wire')) setIndustryMode('electrical', true);
-    else if (combo.includes('cloth') || combo.includes('saree')) setIndustryMode('fashion', true);
-    else setIndustryMode('grocery', true);
+    
+    // Automatically detect store theme exactly from registration category or business name!
+    const regType = (BUSINESS.category || BUSINESS.business_type || BUSINESS.businessType || BUSINESS.businessName || '').toLowerCase();
+    const prodCombo = PRODUCTS.map(p => (p.name + ' ' + p.category)).join(' ').toLowerCase();
+    const fullCheck = regType + ' ' + prodCombo;
+
+    if (fullCheck.includes('cyber') || fullCheck.includes('print') || fullCheck.includes('xerox')) applyThemeMode('cyber');
+    else if (fullCheck.includes('event') || fullCheck.includes('tent') || fullCheck.includes('dj')) applyThemeMode('event');
+    else if (fullCheck.includes('restau') || fullCheck.includes('cafe') || fullCheck.includes('food')) applyThemeMode('restaurant');
+    else if (fullCheck.includes('garage') || fullCheck.includes('auto') || fullCheck.includes('motor') || fullCheck.includes('bike')) applyThemeMode('auto');
+    else if (fullCheck.includes('salon') || fullCheck.includes('beauty') || fullCheck.includes('spa') || fullCheck.includes('parlour')) applyThemeMode('salon');
+    else if (fullCheck.includes('laundry') || fullCheck.includes('dry clean') || fullCheck.includes('wash')) applyThemeMode('laundry');
+    else if (fullCheck.includes('med') || fullCheck.includes('pharma') || fullCheck.includes('chemist') || fullCheck.includes('clinic')) applyThemeMode('medicine');
+    else if (fullCheck.includes('electr') || fullCheck.includes('hardware') || fullCheck.includes('wire') || fullCheck.includes('light')) applyThemeMode('electrical');
+    else if (fullCheck.includes('cloth') || fullCheck.includes('fashion') || fullCheck.includes('garment') || fullCheck.includes('saree') || fullCheck.includes('boutique')) applyThemeMode('fashion');
+    else applyThemeMode('grocery');
 
     const cats = [...new Set(PRODUCTS.map(p => p.category || 'General'))];
     const catBar = document.getElementById('categoryBar');
+    const footerLinks = document.getElementById('footerCategoryLinks');
+    footerLinks.innerHTML = '';
+
     cats.forEach(c => {
       const count = PRODUCTS.filter(p => (p.category || 'General') === c).length;
       const btn = document.createElement('button');
@@ -549,19 +654,98 @@
       btn.innerHTML = `<span>📂 ${c} (${count})</span>`;
       btn.onclick = () => setCategory(c, btn);
       catBar.appendChild(btn);
+
+      const li = document.createElement('li');
+      li.innerHTML = `👉 ${c} Collection (${count})`;
+      li.onclick = () => { setCategory(c, btn); scrollToElem('sectionProducts'); };
+      footerLinks.appendChild(li);
     });
 
     render(PRODUCTS);
   }
 
-  function setIndustryMode(mode, isInitial = false) {
+  function applyThemeMode(mode) {
     industryMode = mode;
     document.body.className = `mode-${mode}`;
-    document.querySelectorAll('.ind-tab').forEach(t => t.classList.remove('active'));
-    if (document.getElementById(`tab${mode.charAt(0).toUpperCase() + mode.slice(1)}`)) {
-      document.getElementById(`tab${mode.charAt(0).toUpperCase() + mode.slice(1)}`).classList.add('active');
+    
+    const badge = document.getElementById('topIndustryBadge');
+    const icon = document.getElementById('offerIconDisplay');
+    const title = document.getElementById('offerTitleDisplay');
+    const head = document.getElementById('heroHeadlineText');
+    const sub = document.getElementById('heroSubText');
+    const btnMain = document.getElementById('btnExploreMain');
+
+    if (mode === 'fashion') {
+      badge.innerHTML = '✨ Verified Fashion Showroom';
+      icon.textContent = '👗';
+      title.innerHTML = '✨ Exclusive Designer Wear Sale!';
+      head.innerHTML = `Upgrade Your Style With Designer Wear At <span style="color:var(--primary);">${BUSINESS.businessName}</span>.`;
+      sub.textContent = 'Explore our trendy sarees, apparel, footwear, and boutique collections.';
+      btnMain.textContent = 'Explore Fashion Collection >';
+    } else if (mode === 'medicine') {
+      badge.innerHTML = '🛡️ Verified Healthcare Chemist';
+      icon.textContent = '💊';
+      title.innerHTML = '🛡️ 100% Genuine Medical Supplies!';
+      head.innerHTML = `Trusted Prescription Medicines & Care From <span style="color:var(--primary);">${BUSINESS.businessName}</span>.`;
+      sub.textContent = 'Order prescribed medicines, vitamins, and first aid with express dispatch.';
+      btnMain.textContent = 'Browse Pharmacy Items >';
+    } else if (mode === 'electrical') {
+      badge.innerHTML = '⚡ Verified Hardware & Electricals';
+      icon.textContent = '⚡';
+      title.innerHTML = '🔧 Heavy Duty Hardware Special!';
+      head.innerHTML = `Genuine Brand Appliances & Electricals At <span style="color:var(--primary);">${BUSINESS.businessName}</span>.`;
+      sub.textContent = 'Guaranteed wiring, switches, lighting, and hardware spares.';
+      btnMain.textContent = 'Explore Electricals Catalog >';
+    } else if (mode === 'salon') {
+      badge.innerHTML = '✨ Verified Beauty Salon & Grooming';
+      icon.textContent = '💇';
+      title.innerHTML = '💆 Special Grooming & Spa Discount!';
+      head.innerHTML = `Relax, Refresh & Style Your Look With <span style="color:var(--primary);">${BUSINESS.businessName}</span>.`;
+      sub.textContent = 'Schedule expert haircuts, bridal makeup, skin treatment, or styling sessions.';
+      btnMain.textContent = 'Book Salon Appointment >';
+    } else if (mode === 'laundry') {
+      badge.innerHTML = '✨ Express Laundry & Dry Clean';
+      icon.textContent = '🧺';
+      title.innerHTML = '👔 Hygiene Wash & Steam Ironing!';
+      head.innerHTML = `Crisp, Clean & Fresh Clothes Delivered By <span style="color:var(--primary);">${BUSINESS.businessName}</span>.`;
+      sub.textContent = 'Schedule washing, dry cleaning, or blanket pressing with free doorstep pickup.';
+      btnMain.textContent = 'Book Laundry Pickup >';
+    } else if (mode === 'cyber') {
+      badge.innerHTML = '⚡ Verified Digital & Print Center';
+      icon.textContent = '🖨️';
+      title.innerHTML = '🖥️ High-Speed Digital Printouts!';
+      head.innerHTML = `Instant Printouts, Xerox & Online Forms At <span style="color:var(--primary);">${BUSINESS.businessName}</span>.`;
+      sub.textContent = 'Send PDFs on WhatsApp for printouts, lamination, or government form filling.';
+      btnMain.textContent = 'Explore Digital Services >';
+    } else if (mode === 'event') {
+      badge.innerHTML = '🎪 Luxury Wedding & Event Planners';
+      icon.textContent = '🎉';
+      title.innerHTML = '🔊 Grand Event & Decor Package!';
+      head.innerHTML = `Make Your Celebrations Unforgettable With <span style="color:var(--primary);">${BUSINESS.businessName}</span>.`;
+      sub.textContent = 'Book luxury tent decoration, DJ sound systems, stage setup, and catering.';
+      btnMain.textContent = 'Explore Event Packages >';
+    } else if (mode === 'restaurant') {
+      badge.innerHTML = '🍔 Verified Restaurant & Fast Food';
+      icon.textContent = '🍕';
+      title.innerHTML = '😋 Delicious Hot Food Parcel!';
+      head.innerHTML = `Taste Hot & Mouthwatering Dishes From <span style="color:var(--primary);">${BUSINESS.businessName}</span>.`;
+      sub.textContent = 'Order fresh pizzas, burgers, Indian thalis, drinks, or reserve a table.';
+      btnMain.textContent = 'Order Food Menu >';
+    } else if (mode === 'auto') {
+      badge.innerHTML = '🚙 Professional Automobile Garage';
+      icon.textContent = '🔧';
+      title.innerHTML = '🚿 Expert Servicing & Foam Wash!';
+      head.innerHTML = `Professional Bike & Car Servicing By <span style="color:var(--primary);">${BUSINESS.businessName}</span>.`;
+      sub.textContent = 'Book engine overhauling, washing, tyre change, or emergency roadside assistance.';
+      btnMain.textContent = 'Book Servicing Slot >';
+    } else {
+      badge.innerHTML = '⚡ Verified Supermarket & Provisions';
+      icon.textContent = '🛒';
+      title.innerHTML = '✨ Daily Grocery Welcome Offer!';
+      head.innerHTML = `Fresh Groceries & Daily Essentials From <span style="color:var(--primary);">${BUSINESS.businessName}</span>.`;
+      sub.textContent = 'Order farm fresh staples, household items, and pantry provisions.';
+      btnMain.textContent = 'Explore Grocery Store >';
     }
-    if (!isInitial) render(PRODUCTS);
   }
 
   function getSmartItemIcon(item, idx) {

@@ -94,7 +94,7 @@ app.get(['/:slug', '/shop/:slug'], async (req, res, next) => {
       .replace(/{{phone}}/g, biz.phone || '')
       .replace(/{{rawPhone}}/g, phone)
       .replace(/theme-modern/g, `theme-${req.query.theme || biz.online_store_theme || 'modern'}`)
-      .replace('{{businessJson}}', JSON.stringify({ businessName: biz.name, phone, gmb_location_id: biz.gmb_location_id }))
+      .replace('{{businessJson}}', JSON.stringify({ ...biz, businessName: biz.name, phone }))
       .replace('{{productsJson}}', JSON.stringify(prodsResult.rows));
 
     res.send(html);
