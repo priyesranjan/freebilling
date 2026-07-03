@@ -439,7 +439,12 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      throw Exception('Failed to sync GMB profile: ${response.body}');
+      String msg = response.body;
+      try {
+        final body = jsonDecode(response.body);
+        if (body['error'] != null) msg = body['error'];
+      } catch (_) {}
+      throw Exception(msg);
     }
   }
 }

@@ -350,7 +350,8 @@ class _GMBPerformanceViewState extends State<GMBPerformanceView> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Sync error: $e'), backgroundColor: Colors.red));
+        final cleanMsg = e.toString().replaceAll('Exception: ', '');
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(cleanMsg, style: const TextStyle(fontWeight: FontWeight.bold)), backgroundColor: Colors.red.shade700));
       }
     } finally {
       if (mounted) setState(() => _isSyncing = false);
