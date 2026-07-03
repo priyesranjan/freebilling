@@ -3,6 +3,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../core/core.dart';
+import '../../models/models.dart';
 import '../../services/api_service.dart';
 
 class GoogleBusinessSettingsScreen extends StatefulWidget {
