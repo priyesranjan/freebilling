@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>{{businessName}} — Official Online Showroom</title>
-  <meta name="description" content="Order premium products & book verified doorstep services directly from {{businessName}}. Fast delivery and best pricing."/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>{{businessName}} — Official Online Showroom & Service Portal</title>
+  <meta name="description" content="Order premium items or schedule verified appointments directly with {{businessName}}. Instant app notifications, best pricing, and verified quality."/>
   
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -17,52 +17,40 @@
       --accent: #f59e0b;
       --bg: #f8fafc;
       --surface: #ffffff;
-      --surface-glass: rgba(255, 255, 255, 0.88);
+      --surface-glass: rgba(255, 255, 255, 0.9);
       --text-main: #0f172a;
       --text-muted: #64748b;
       --border: #e2e8f0;
       --shadow-sm: 0 2px 4px rgba(15, 23, 42, 0.04);
       --shadow-md: 0 12px 24px -6px rgba(15, 23, 42, 0.08);
-      --shadow-lg: 0 20px 32px -8px rgba(79, 70, 229, 0.15);
+      --shadow-lg: 0 20px 32px -8px rgba(79, 70, 229, 0.18);
       --radius: 20px;
     }
 
-    /* Industry Theme Overrides */
-    body.mode-grocery {
-      --primary: #10b981;
-      --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      --shadow-lg: 0 20px 32px -8px rgba(16, 185, 129, 0.2);
-    }
-    body.mode-fashion {
-      --primary: #e11d48;
-      --primary-gradient: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
-      --shadow-lg: 0 20px 32px -8px rgba(225, 29, 72, 0.2);
-    }
-    body.mode-service {
-      --primary: #0284c7;
-      --primary-gradient: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-      --shadow-lg: 0 20px 32px -8px rgba(2, 132, 199, 0.2);
-    }
+    /* ── Specialized Industry Theme Palettes ── */
+    body.mode-grocery { --primary: #10b981; --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%); --shadow-lg: 0 20px 32px -8px rgba(16, 185, 129, 0.22); }
+    body.mode-fashion { --primary: #e11d48; --primary-gradient: linear-gradient(135deg, #e11d48 0%, #be123c 100%); --shadow-lg: 0 20px 32px -8px rgba(225, 29, 72, 0.22); }
+    body.mode-medicine { --primary: #0d9488; --primary-gradient: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); --shadow-lg: 0 20px 32px -8px rgba(13, 148, 136, 0.22); }
+    body.mode-electrical { --primary: #d97706; --primary-gradient: linear-gradient(135deg, #d97706 0%, #b45309 100%); --shadow-lg: 0 20px 32px -8px rgba(217, 119, 6, 0.22); }
+    body.mode-salon { --primary: #8b5cf6; --primary-gradient: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); --shadow-lg: 0 20px 32px -8px rgba(139, 92, 246, 0.22); }
+    body.mode-laundry { --primary: #0284c7; --primary-gradient: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); --shadow-lg: 0 20px 32px -8px rgba(2, 132, 199, 0.22); }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     
     body { 
       font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif; 
-      background-color: var(--bg); 
-      color: var(--text-main);
-      line-height: 1.5;
-      -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
-      transition: all 0.3s ease;
+      background-color: var(--bg); color: var(--text-main);
+      line-height: 1.5; -webkit-font-smoothing: antialiased;
+      overflow-x: hidden; transition: background-color 0.3s ease;
+      padding-bottom: 80px; /* Space for Bottom Nav */
     }
 
     /* ── Navbar ── */
     .navbar {
       position: sticky; top: 0; z-index: 1000;
-      background: var(--surface-glass);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
-      padding: 14px 24px;
+      background: var(--surface-glass); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border); padding: 14px 24px;
+      box-shadow: var(--shadow-sm); transition: all 0.3s ease;
     }
     .nav-content {
       max-width: 1280px; margin: 0 auto;
@@ -82,9 +70,12 @@
     }
     body.mode-grocery .badge-verified { background: #d1fae5; color: #059669; }
     body.mode-fashion .badge-verified { background: #ffe4e6; color: #e11d48; }
-    body.mode-service .badge-verified { background: #e0f2fe; color: #0284c7; }
+    body.mode-medicine .badge-verified { background: #ccfbf1; color: #0f766e; }
+    body.mode-electrical .badge-verified { background: #fef3c7; color: #b45309; }
+    body.mode-salon .badge-verified { background: #ede9fe; color: #6d28d9; }
+    body.mode-laundry .badge-verified { background: #e0f2fe; color: #0284c7; }
 
-    .brand-name span { font-size: 13px; color: var(--text-muted); font-weight: 500; display: block; margin-top: -2px; }
+    .brand-name span { font-size: 13px; color: var(--text-muted); font-weight: 600; display: block; margin-top: -2px; }
 
     .nav-actions { display: flex; align-items: center; gap: 12px; }
     .btn-action {
@@ -102,28 +93,34 @@
       position: relative; overflow: hidden;
       background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4f46e5 100%);
       color: white; padding: 60px 24px 70px; text-align: center;
-      border-radius: 0 0 32px 32px; margin-bottom: 32px;
+      border-radius: 0 0 32px 32px; margin-bottom: 28px;
       box-shadow: 0 20px 40px -15px rgba(30, 27, 75, 0.5); transition: background 0.5s ease;
     }
     body.mode-grocery .hero { background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #10b981 100%); }
     body.mode-fashion .hero { background: linear-gradient(135deg, #4c0519 0%, #881337 50%, #e11d48 100%); }
-    body.mode-service .hero { background: linear-gradient(135deg, #0c4a6e 0%, #075985 50%, #0284c7 100%); }
+    body.mode-medicine .hero { background: linear-gradient(135deg, #134e4a 0%, #0f766e 50%, #0d9488 100%); }
+    body.mode-electrical .hero { background: linear-gradient(135deg, #78350f 0%, #9a3412 50%, #d97706 100%); }
+    body.mode-salon .hero { background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 50%, #8b5cf6 100%); }
+    body.mode-laundry .hero { background: linear-gradient(135deg, #0c4a6e 0%, #075985 50%, #0284c7 100%); }
 
-    .hero-content { position: relative; z-index: 2; max-width: 760px; margin: 0 auto; }
+    .hero-content { position: relative; z-index: 2; max-width: 780px; margin: 0 auto; }
     .hero-tag {
       background: rgba(255, 255, 255, 0.18); backdrop-filter: blur(8px);
       padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 700;
       display: inline-flex; align-items: center; gap: 6px; margin-bottom: 18px;
       border: 1px solid rgba(255, 255, 255, 0.25); letter-spacing: 0.5px;
+      animation: pulseGlow 2.5s infinite;
     }
+    @keyframes pulseGlow { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+
     .hero h2 { font-size: 42px; font-weight: 900; line-height: 1.15; margin-bottom: 14px; font-family: 'Outfit', sans-serif; letter-spacing: -1px; }
-    .hero p { font-size: 17px; opacity: 0.95; margin-bottom: 30px; font-weight: 400; max-width: 580px; margin-left: auto; margin-right: auto; }
+    .hero p { font-size: 17px; opacity: 0.95; margin-bottom: 28px; font-weight: 400; max-width: 600px; margin-left: auto; margin-right: auto; }
 
     /* Search Box inside Hero */
     .hero-search {
-      max-width: 540px; margin: 0 auto 30px; position: relative;
+      max-width: 560px; margin: 0 auto 28px; position: relative;
       background: white; border-radius: 20px; padding: 6px;
-      display: flex; align-items: center; box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+      display: flex; align-items: center; box-shadow: 0 15px 35px rgba(0,0,0,0.25);
     }
     .hero-search input {
       flex: 1; border: none; outline: none; padding: 14px 18px;
@@ -136,30 +133,40 @@
     }
     .hero-search button:hover { transform: scale(1.03); }
 
-    .trust-badges { display: flex; justify-content: center; flex-wrap: wrap; gap: 28px; font-size: 14px; font-weight: 700; }
+    .trust-badges { display: flex; justify-content: center; flex-wrap: wrap; gap: 24px; font-size: 14px; font-weight: 700; }
     .trust-item { display: flex; align-items: center; gap: 8px; }
     .trust-icon { width: 26px; height: 26px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
 
-    /* ── Industry Mode Switcher Bar ── */
+    /* ── Multi-Industry Switcher Bar (6 Modes) ── */
+    .industry-wrapper { max-width: 1100px; margin: 0 auto 32px; padding: 0 16px; }
     .industry-bar {
-      max-width: 800px; margin: 0 auto 36px; padding: 8px;
       background: var(--surface); border: 1.5px solid var(--border); border-radius: 24px;
-      display: flex; gap: 8px; box-shadow: var(--shadow-sm); overflow-x: auto;
+      padding: 8px; display: flex; gap: 6px; box-shadow: var(--shadow-sm); overflow-x: auto;
+      scrollbar-width: none;
     }
+    .industry-bar::-webkit-scrollbar { display: none; }
     .ind-tab {
-      flex: 1; padding: 12px 16px; border-radius: 18px; border: none;
+      padding: 12px 18px; border-radius: 18px; border: none;
       background: transparent; color: var(--text-muted); font-family: inherit;
       font-size: 14px; font-weight: 800; cursor: pointer; transition: all 0.2s;
-      display: flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap;
+      display: flex; align-items: center; gap: 8px; white-space: nowrap;
     }
     .ind-tab:hover { color: var(--text-main); background: var(--bg); }
-    .ind-tab.active { background: var(--primary-gradient); color: white; box-shadow: 0 4px 14px rgba(0,0,0,0.15); }
+    .ind-tab.active { background: var(--primary-gradient); color: white; box-shadow: 0 4px 14px rgba(0,0,0,0.18); }
 
-    /* ── Main Content Area ── */
-    .main-container { max-width: 1280px; margin: 0 auto; padding: 0 24px 120px; }
+    /* Special Rx Button for Medicine Mode */
+    #btnUploadRx {
+      display: none; margin: 0 auto 28px; max-width: 560px;
+      background: #0f766e; color: white; padding: 14px 22px; border-radius: 18px;
+      font-weight: 800; font-size: 15px; text-decoration: none; text-align: center;
+      box-shadow: 0 10px 25px rgba(13, 148, 136, 0.3); border: 2px dashed rgba(255,255,255,0.4);
+    }
+    body.mode-medicine #btnUploadRx { display: block; animation: pulseGlow 2s infinite; }
 
-    /* Categories Navigation */
-    .cat-section { margin-bottom: 36px; }
+    /* ── Main Showroom Catalog ── */
+    .main-container { max-width: 1280px; margin: 0 auto; padding: 0 24px 40px; }
+
+    .cat-section { margin-bottom: 32px; }
     .cat-title { font-size: 13px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 14px; }
     .cat-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
     .cat-scroll::-webkit-scrollbar { display: none; }
@@ -167,20 +174,16 @@
       padding: 12px 22px; border-radius: 16px; background: var(--surface);
       border: 1.5px solid var(--border); color: var(--text-main); font-family: inherit;
       font-size: 15px; font-weight: 700; white-space: nowrap; cursor: pointer;
-      transition: all 0.2s; display: flex; align-items: center; gap: 8px;
-      box-shadow: var(--shadow-sm);
+      transition: all 0.2s; display: flex; align-items: center; gap: 8px; box-shadow: var(--shadow-sm);
     }
     .cat-pill:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); }
     .cat-pill.active { background: var(--primary-gradient); color: white; border-color: transparent; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
 
-    /* Product Grid */
     .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
     .section-header h3 { font-size: 26px; font-weight: 800; font-family: 'Outfit', sans-serif; }
     .item-counter { background: var(--surface); border: 1px solid var(--border); padding: 6px 14px; border-radius: 12px; font-size: 14px; font-weight: 700; color: var(--text-muted); }
 
-    .product-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 28px;
-    }
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 28px; }
     .product-card {
       background: var(--surface); border-radius: var(--radius); overflow: hidden;
       border: 1.5px solid var(--border); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -199,11 +202,10 @@
       position: absolute; top: 14px; left: 14px;
       background: #ef4444; color: white; font-size: 12px; font-weight: 800;
       padding: 6px 12px; border-radius: 10px; z-index: 2;
-      box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
     }
     .tag-stock {
       position: absolute; top: 14px; right: 14px;
-      background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(6px); color: white;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(6px); color: white;
       font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 10px; z-index: 2;
     }
 
@@ -216,7 +218,6 @@
     .price-current { font-size: 24px; font-weight: 900; color: var(--text-main); font-family: 'Outfit', sans-serif; }
     .price-old { font-size: 14px; color: var(--text-muted); text-decoration: line-through; font-weight: 600; margin-top: -2px; }
 
-    /* Buttons */
     .btn-add {
       background: var(--surface); border: 2px solid var(--primary); color: var(--primary);
       padding: 10px 20px; border-radius: 14px; font-weight: 800; font-size: 15px;
@@ -237,15 +238,14 @@
     }
     .stepper button {
       background: transparent; border: none; color: white; width: 36px; height: 40px;
-      font-size: 18px; font-weight: 800; cursor: pointer; transition: background 0.2s;
+      font-size: 18px; font-weight: 800; cursor: pointer;
     }
-    .stepper button:hover { background: rgba(255,255,255,0.2); }
     .stepper span { color: white; font-weight: 800; font-size: 16px; padding: 0 8px; min-width: 28px; text-align: center; }
 
-    /* ── Floating Bag Bar ── */
+    /* ── Floating Bag Bar (Slides up when items selected) ── */
     .floating-checkout {
-      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(140px);
-      width: calc(100% - 40px); max-width: 680px;
+      position: fixed; bottom: 84px; left: 50%; transform: translateX(-50%) translateY(160px);
+      width: calc(100% - 32px); max-width: 680px;
       background: rgba(15, 23, 42, 0.96); backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.15); color: white;
       padding: 16px 24px; border-radius: 24px; display: flex; align-items: center; justify-content: space-between;
@@ -253,29 +253,61 @@
       transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     .floating-checkout.active { transform: translateX(-50%) translateY(0); }
-    
-    .bag-info display: flex; flex-direction: column;
-    .bag-items { font-size: 13px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+    .bag-items { font-size: 13px; font-weight: 700; color: #94a3b8; text-transform: uppercase; display: block; }
     .bag-total { font-size: 26px; font-weight: 900; color: #38bdf8; font-family: 'Outfit', sans-serif; }
 
-    .bag-buttons { display: flex; gap: 12px; }
+    .bag-buttons { display: flex; gap: 10px; }
     .btn-checkout-wa {
-      background: #25D366; color: white; border: none; padding: 14px 20px;
+      background: #25D366; color: white; border: none; padding: 14px 18px;
       border-radius: 16px; font-weight: 800; font-size: 15px; cursor: pointer;
-      display: flex; align-items: center; gap: 8px; transition: transform 0.2s;
     }
-    .btn-checkout-wa:hover { transform: scale(1.03); }
     .btn-checkout-online {
-      background: var(--primary-gradient); color: white; border: none; padding: 14px 24px;
+      background: var(--primary-gradient); color: white; border: none; padding: 14px 22px;
       border-radius: 16px; font-weight: 800; font-size: 15px; cursor: pointer;
-      display: flex; align-items: center; gap: 8px; transition: transform 0.2s;
       box-shadow: 0 4px 14px rgba(0,0,0,0.25);
     }
-    .btn-checkout-online:hover { transform: scale(1.03); }
 
-    /* ── Modals ── */
+    /* ── Mobile App Bottom Navigation Bar ── */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--surface-glass); backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border); display: flex; justify-content: space-around;
+      padding: 10px 0 12px; z-index: 1500; box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+    }
+    .nav-tab {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      background: transparent; border: none; color: var(--text-muted);
+      font-size: 12px; font-weight: 700; cursor: pointer; transition: color 0.2s;
+    }
+    .nav-tab.active { color: var(--primary); }
+    .nav-tab-icon { font-size: 22px; position: relative; }
+    .nav-badge {
+      position: absolute; top: -4px; right: -8px; background: #ef4444; color: white;
+      font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 10px;
+    }
+
+    /* ── High-End Professional MNC Footer ── */
+    .mnc-footer {
+      background: var(--surface); border-top: 1.5px solid var(--border);
+      padding: 60px 24px 30px; color: var(--text-main); margin-top: 40px;
+    }
+    .footer-grid {
+      max-width: 1280px; margin: 0 auto 40px;
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px;
+    }
+    .footer-col h4 { font-size: 16px; font-weight: 800; margin-bottom: 18px; font-family: 'Outfit', sans-serif; }
+    .footer-links { list-style: none; display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: var(--text-muted); font-weight: 600; }
+    .footer-links li { cursor: pointer; transition: color 0.2s; }
+    .footer-links li:hover { color: var(--primary); }
+    .footer-bottom {
+      max-width: 1280px; margin: 0 auto; padding-top: 24px; border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
+      font-size: 14px; color: var(--text-muted); font-weight: 600;
+    }
+
+    /* Modals */
     .modal-overlay {
-      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px);
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.82); backdrop-filter: blur(8px);
       z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px;
     }
     .modal-box {
@@ -286,25 +318,17 @@
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .modal-header h3 { font-size: 22px; font-weight: 800; font-family: 'Outfit', sans-serif; }
     .btn-close { background: var(--bg); border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 20px; font-weight: 700; cursor: pointer; color: var(--text-muted); }
-    
     .form-group { margin-bottom: 18px; }
-    .form-label { display: block; font-size: 12px; font-weight: 800; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-label { display: block; font-size: 12px; font-weight: 800; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; }
     .form-input {
       width: 100%; padding: 14px 18px; border: 1.5px solid var(--border); border-radius: 14px;
-      background: var(--bg); color: var(--text-main); font-size: 15px; font-family: inherit; outline: none; transition: border 0.2s;
+      background: var(--bg); color: var(--text-main); font-size: 15px; font-family: inherit; outline: none;
     }
-    .form-input:focus { border-color: var(--primary); background: var(--surface); }
 
-    .receipt-box { background: var(--bg); border-radius: 16px; padding: 16px; margin-bottom: 24px; border: 1px solid var(--border); }
-    .receipt-item { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; font-weight: 600; }
-    .receipt-total { display: flex; justify-content: space-between; font-size: 18px; font-weight: 900; border-top: 1px dashed var(--border); padding-top: 12px; margin-top: 12px; color: var(--primary); }
-
-    /* Footer */
-    footer { background: var(--surface); border-top: 1px solid var(--border); padding: 60px 24px 40px; text-align: center; }
-    .footer-brand h2 { font-size: 24px; font-weight: 900; margin-bottom: 10px; font-family: 'Outfit', sans-serif; }
-    .footer-brand p { color: var(--text-muted); max-width: 480px; margin: 0 auto 24px; font-size: 15px; }
-    
-    @media (max-width: 640px) {
+    @media (max-width: 800px) {
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 28px; }
+    }
+    @media (max-width: 600px) {
       .hero h2 { font-size: 32px; }
       .nav-content { flex-direction: column; align-items: stretch; }
       .nav-actions { justify-content: space-between; }
@@ -312,23 +336,23 @@
       .product-body { padding: 14px; }
       .product-title { font-size: 16px; }
       .price-current { font-size: 20px; }
-      .floating-checkout { flex-direction: column; gap: 16px; text-align: center; }
+      .floating-checkout { flex-direction: column; gap: 14px; text-align: center; bottom: 74px; }
       .bag-buttons { width: 100%; }
       .bag-buttons button { flex: 1; justify-content: center; }
-      .industry-bar { flex-direction: column; }
+      .footer-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
-<body class="mode-grocery">
+<body class="mode-grocery" id="bodyTop">
 
-<!-- ── Navigation Bar ────────────────────────────────────────────── -->
-<nav class="navbar">
+<!-- ── Top Navigation Bar ── -->
+<nav class="navbar" id="navHome">
   <div class="nav-content">
     <a href="/" class="nav-brand">
       <div class="brand-logo">{{initial}}</div>
       <div class="brand-name">
         <h1>{{businessName}} <span class="badge-verified">✔ Verified Store</span></h1>
-        <span id="storeSubLabel">Supermarket & Daily Needs</span>
+        <span id="storeSubLabel">Supermarket & Daily Provisions</span>
       </div>
     </a>
     <div class="nav-actions">
@@ -338,17 +362,20 @@
   </div>
 </nav>
 
-<!-- ── Hero Section ──────────────────────────────────────────────── -->
+<!-- ── Hero Section ── -->
 <header class="hero">
   <div class="hero-content">
-    <div class="hero-tag" id="heroTagText">⚡ 10-Min Instant Delivery & Doorstep Service</div>
+    <div class="hero-tag" id="heroTagText">⚡ 10-Min Instant Delivery & Express Doorstep Service</div>
     <h2 id="heroHeading">Everything You Need, Delivered Directly to You.</h2>
     <p id="heroSubText">Browse our verified catalog, select your items, and place instant direct app orders or WhatsApp bookings with zero hassle.</p>
     
     <div class="hero-search">
-      <input type="text" id="searchInput" placeholder="Search items, brands, or clothes..." oninput="filterProducts()"/>
+      <input type="text" id="searchInput" placeholder="Search items, brands, medicines, clothes..." oninput="filterProducts()"/>
       <button onclick="filterProducts()">Search →</button>
     </div>
+
+    <!-- Special Medicine Prescription Button -->
+    <a href="javascript:void(0)" onclick="sendRxWhatsApp()" id="btnUploadRx">📄 Click here to Upload Doctor Prescription (WhatsApp) →</a>
 
     <div class="trust-badges" id="trustBadgesBox">
       <div class="trust-item"><div class="trust-icon">🛡️</div> 100% Quality Assurance</div>
@@ -358,18 +385,22 @@
   </div>
 </header>
 
-<!-- ── Industry Mode Switcher Bar ───────────────────────────────── -->
-<div class="industry-bar">
-  <button class="ind-tab active" id="tabGrocery" onclick="setIndustryMode('grocery')">🛒 Grocery & Daily Needs</button>
-  <button class="ind-tab" id="tabFashion" onclick="setIndustryMode('fashion')">👗 Clothes & Fashion</button>
-  <button class="ind-tab" id="tabService" onclick="setIndustryMode('service')">🧺 Laundry & Services</button>
+<!-- ── 6-Mode Specialized Industry Switcher Bar ── -->
+<div class="industry-wrapper" id="sectionProducts">
+  <div class="industry-bar">
+    <button class="ind-tab active" id="tabGrocery" onclick="setIndustryMode('grocery')">🛒 Grocery Store</button>
+    <button class="ind-tab" id="tabFashion" onclick="setIndustryMode('fashion')">👗 Clothes & Boutique</button>
+    <button class="ind-tab" id="tabMedicine" onclick="setIndustryMode('medicine')">💊 Pharmacy & Medicine</button>
+    <button class="ind-tab" id="tabElectrical" onclick="setIndustryMode('electrical')">⚡ Electricals & Electronics</button>
+    <button class="ind-tab" id="tabSalon" onclick="setIndustryMode('salon')">✂️ Salon & Appointments</button>
+    <button class="ind-tab" id="tabLaundry" onclick="setIndustryMode('laundry')">🧺 Laundry & Services</button>
+  </div>
 </div>
 
-<!-- ── Main Showroom Catalog ─────────────────────────────────────── -->
+<!-- ── Main Catalog Area ── -->
 <main class="main-container">
-  
   <div class="cat-section">
-    <div class="cat-title">Explore Categories</div>
+    <div class="cat-title">Explore Collections</div>
     <div class="cat-scroll" id="categoryBar">
       <button class="cat-pill active" onclick="setCategory('all', this)">✨ All Items (<span id="countAll">0</span>)</button>
     </div>
@@ -377,12 +408,10 @@
 
   <div class="section-header">
     <h3 id="sectionTitle">Showing All Products</h3>
-    <div class="item-counter"><span id="visibleCount">0</span> Items Listed</div>
+    <div class="item-counter"><span id="visibleCount">0</span> Listed</div>
   </div>
 
-  <div class="product-grid" id="productGrid">
-    <!-- Products rendered dynamically -->
-  </div>
+  <div class="product-grid" id="productGrid"></div>
 
   <div id="emptyState" style="display:none; text-align:center; padding:80px 20px; background:var(--surface); border-radius:24px; border:1px dashed var(--border);">
     <div style="font-size:72px; margin-bottom:16px;">🔍</div>
@@ -391,19 +420,43 @@
   </div>
 </main>
 
-<!-- ── Floating Checkout Bag ─────────────────────────────────────── -->
+<!-- ── Floating Checkout Bag Bar ── -->
 <div class="floating-checkout" id="checkoutBar">
   <div class="bag-info">
     <span class="bag-items" id="bagItemCount">0 ITEMS IN BAG</span>
     <span class="bag-total" id="bagTotalAmount">₹0</span>
   </div>
   <div class="bag-buttons">
-    <button class="btn-checkout-wa" onclick="checkout('wa')">💬 WhatsApp</button>
+    <button class="btn-checkout-wa" onclick="openModal('ORDER', '', 0, 'wa')">💬 WhatsApp</button>
     <button class="btn-checkout-online" id="btnPlaceOrderText" onclick="openModal('ORDER')">🚀 Place Order</button>
   </div>
 </div>
 
-<!-- ── Order & Service Booking Modal ──────────────────────────────── -->
+<!-- ── Mobile App Bottom Navigation Bar ── -->
+<div class="bottom-nav">
+  <button class="nav-tab active" onclick="scrollToElem('navHome', this)">
+    <span class="nav-tab-icon">🏠</span>
+    <span>Home</span>
+  </button>
+  <button class="nav-tab" onclick="scrollToElem('sectionProducts', this)">
+    <span class="nav-tab-icon">🛍️</span>
+    <span>Products</span>
+  </button>
+  <button class="nav-tab" onclick="openModal('ORDER')">
+    <span class="nav-tab-icon">📦<span class="nav-badge" id="bottomBagBadge" style="display:none;">0</span></span>
+    <span>My Order</span>
+  </button>
+  <button class="nav-tab" onclick="openModal('SERVICE')">
+    <span class="nav-tab-icon">📅</span>
+    <span>Booking</span>
+  </button>
+  <button class="nav-tab" onclick="openContactModal()">
+    <span class="nav-tab-icon">🏪</span>
+    <span>Account</span>
+  </button>
+</div>
+
+<!-- ── Order & Booking Modal ── -->
 <div class="modal-overlay" id="actionModal">
   <div class="modal-box">
     <div class="modal-header">
@@ -411,12 +464,14 @@
       <button class="btn-close" onclick="closeModal()">×</button>
     </div>
     
-    <p id="modalSubtext" style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">Enter your delivery details below. The shopkeeper will receive your notification instantly.</p>
+    <p id="modalSubtext" style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">Enter your details below. The shopkeeper will receive your notification instantly.</p>
 
-    <div class="receipt-box" id="orderPreviewBox" style="display:none;">
-      <div style="font-size:12px; font-weight:800; color:var(--text-muted); margin-bottom:10px; text-transform:uppercase;">Summary</div>
+    <div class="receipt-box" id="orderPreviewBox" style="display:none; background:var(--bg); padding:16px; border-radius:16px; margin-bottom:20px; border:1px solid var(--border);">
+      <div style="font-size:12px; font-weight:800; color:var(--text-muted); margin-bottom:10px;">ORDER SUMMARY</div>
       <div id="receiptItemsList"></div>
-      <div class="receipt-total"><span>Total Payable</span><span id="receiptTotalAmount">₹0</span></div>
+      <div style="display:flex; justify-content:space-between; font-size:18px; font-weight:900; border-top:1px dashed var(--border); padding-top:12px; margin-top:12px; color:var(--primary);">
+        <span>Total Payable</span><span id="receiptTotalAmount">₹0</span>
+      </div>
     </div>
 
     <div class="form-group">
@@ -435,21 +490,85 @@
     </div>
 
     <div style="display:flex; gap:12px; margin-top:24px;">
-      <button onclick="submitOrder('wa')" style="flex:1; background:#25D366; color:white; border:none; padding:16px; border-radius:16px; font-weight:800; font-size:15px; cursor:pointer;">💬 Send WhatsApp</button>
-      <button onclick="submitOrder('api')" id="btnConfirmSend" style="flex:1; background:var(--primary-gradient); color:white; border:none; padding:16px; border-radius:16px; font-weight:800; font-size:15px; cursor:pointer; box-shadow:0 6px 20px rgba(0,0,0,0.2);">🚀 Confirm Order</button>
+      <button onclick="submitOrder('wa')" style="flex:1; background:#25D366; color:white; border:none; padding:16px; border-radius:16px; font-weight:800; font-size:15px; cursor:pointer;">💬 WhatsApp</button>
+      <button onclick="submitOrder('api')" id="btnConfirmSend" style="flex:1; background:var(--primary-gradient); color:white; border:none; padding:16px; border-radius:16px; font-weight:800; font-size:15px; cursor:pointer;">🚀 Confirm Order</button>
     </div>
   </div>
 </div>
 
-<!-- ── Footer ────────────────────────────────────────────────────── -->
-<footer>
-  <div class="footer-brand">
-    <h2>{{businessName}}</h2>
-    <p id="footerSubText">We provide authentic products & reliable doorstep services with prompt response.</p>
+<!-- ── Store Account / Info Modal ── -->
+<div class="modal-overlay" id="contactModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>🏪 Store Profile & Account</h3>
+      <button class="btn-close" onclick="closeContactModal()">×</button>
+    </div>
+    <div style="text-align:center; padding:20px 0;">
+      <div class="brand-logo" style="width:64px;height:64px;font-size:30px;margin:0 auto 16px;">{{initial}}</div>
+      <h3 style="font-size:22px;font-weight:800;margin-bottom:6px;">{{businessName}}</h3>
+      <p style="color:var(--text-muted);font-size:15px;margin-bottom:20px;">Official Dukan Bill Verified Showroom</p>
+      
+      <div style="background:var(--bg);padding:16px;border-radius:16px;text-align:left;margin-bottom:20px;font-size:14px;border:1px solid var(--border);">
+        <p>📍 <strong>Location:</strong> {{city}}</p>
+        <p style="margin-top:8px;">📞 <strong>Phone:</strong> +91 {{phone}}</p>
+        <p style="margin-top:8px;">🕒 <strong>Timings:</strong> 9:00 AM - 9:30 PM (All Days)</p>
+        <p style="margin-top:8px;">🛡️ <strong>Status:</strong> 100% Verified Merchant</p>
+      </div>
+
+      <div style="display:flex;gap:12px;">
+        <a href="tel:+91{{rawPhone}}" style="flex:1;background:var(--primary);color:white;padding:14px;border-radius:16px;text-decoration:none;font-weight:800;">📞 Call Store</a>
+        <a href="https://wa.me/91{{rawPhone}}" style="flex:1;background:#25D366;color:white;padding:14px;border-radius:16px;text-decoration:none;font-weight:800;">💬 WhatsApp</a>
+      </div>
+    </div>
   </div>
-  <div style="font-size:14px; color:var(--text-muted);">
-    &copy; 2026 <strong>{{businessName}}</strong>. All rights reserved. <br/>
-    <span style="margin-top:8px; display:inline-block;">Powered by <a href="https://meradukan.in" style="color:var(--primary); font-weight:800; text-decoration:none;">MeraDukan Digital Showroom</a></span>
+</div>
+
+<!-- ── High-End MNC Professional Footer ── -->
+<footer class="mnc-footer">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+        <div class="brand-logo" style="width:40px;height:40px;font-size:18px;">{{initial}}</div>
+        <h3 style="font-size:20px;font-weight:900;">{{businessName}}</h3>
+      </div>
+      <p style="color:var(--text-muted);font-size:14px;line-height:1.6;margin-bottom:16px;">Your trusted digital partner for verified products, authentic quality, and rapid doorstep service.</p>
+      <div style="font-size:13px;font-weight:800;color:var(--primary);">✔ 100% SECURE & VERIFIED SHOWROOM</div>
+    </div>
+
+    <div class="footer-col">
+      <h4>Operating Categories</h4>
+      <ul class="footer-links">
+        <li onclick="setIndustryMode('grocery')">🛒 Supermarket & Kirana</li>
+        <li onclick="setIndustryMode('fashion')">👗 Clothes & Boutique</li>
+        <li onclick="setIndustryMode('medicine')">💊 Pharmacy & Chemist</li>
+        <li onclick="setIndustryMode('salon')">✂️ Salon & Appointments</li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>Customer Support</h4>
+      <ul class="footer-links">
+        <li onclick="openContactModal()">📍 Store Operating Hours</li>
+        <li onclick="openContactModal()">📞 Direct Helpline</li>
+        <li>🛡️ 100% Quality Assurance</li>
+        <li>⚡ Instant Delivery Policy</li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>Visit Showroom</h4>
+      <p style="font-size:14px;color:var(--text-muted);line-height:1.6;">
+        {{businessName}}<br/>
+        {{city}}<br/>
+        India<br/>
+        <strong>Phone:</strong> +91 {{phone}}
+      </p>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <span>&copy; 2026 <strong>{{businessName}}</strong>. All rights reserved.</span>
+    <span>🔒 Secured by <a href="https://meradukan.in" style="color:var(--primary);text-decoration:none;font-weight:800;">MeraDukan AI Commerce</a></span>
   </div>
 </footer>
 
@@ -459,29 +578,34 @@
   let cart = {};
   let activeCat = 'all';
   let currentModalMode = 'ORDER';
-  let industryMode = 'grocery'; // grocery, fashion, service
+  let industryMode = 'grocery';
 
   function init() {
     document.getElementById('countAll').textContent = PRODUCTS.length;
     
-    // Auto-detect industry mode based on business name or product names
+    // Auto-detect 6 categories
     const textCombo = (BUSINESS.businessName + ' ' + PRODUCTS.map(p => (p.name + ' ' + p.category)).join(' ')).toLowerCase();
-    if (textCombo.includes('wash') || textCombo.includes('laundry') || textCombo.includes('dry clean') || textCombo.includes('repair') || textCombo.includes('service') || textCombo.includes('ac ') || textCombo.includes('plumber') || textCombo.includes('salon')) {
-      setIndustryMode('service', true);
-    } else if (textCombo.includes('cloth') || textCombo.includes('saree') || textCombo.includes('dress') || textCombo.includes('fashion') || textCombo.includes('wear') || textCombo.includes('boutique') || textCombo.includes('jeans') || textCombo.includes('shirt')) {
+    if (textCombo.includes('salon') || textCombo.includes('beauty') || textCombo.includes('hair') || textCombo.includes('spa') || textCombo.includes('parlour')) {
+      setIndustryMode('salon', true);
+    } else if (textCombo.includes('wash') || textCombo.includes('laundry') || textCombo.includes('dry clean') || textCombo.includes('plumber') || textCombo.includes('repair')) {
+      setIndustryMode('laundry', true);
+    } else if (textCombo.includes('med') || textCombo.includes('pharma') || textCombo.includes('chemist') || textCombo.includes('clinic') || textCombo.includes('tablet') || textCombo.includes('syrup')) {
+      setIndustryMode('medicine', true);
+    } else if (textCombo.includes('electr') || textCombo.includes('wire') || textCombo.includes('switch') || textCombo.includes('fan ') || textCombo.includes('hardware')) {
+      setIndustryMode('electrical', true);
+    } else if (textCombo.includes('cloth') || textCombo.includes('saree') || textCombo.includes('dress') || textCombo.includes('fashion') || textCombo.includes('wear') || textCombo.includes('boutique')) {
       setIndustryMode('fashion', true);
     } else {
       setIndustryMode('grocery', true);
     }
 
-    // Build category tabs
     const cats = [...new Set(PRODUCTS.map(p => p.category || 'General'))];
     const catBar = document.getElementById('categoryBar');
     cats.forEach(c => {
       const count = PRODUCTS.filter(p => (p.category || 'General') === c).length;
       const btn = document.createElement('button');
       btn.className = 'cat-pill';
-      btn.innerHTML = `<span>📂 ${c}</span> <span style="opacity:0.6; font-size:13px;">(${count})</span>`;
+      btn.innerHTML = `<span>📂 ${c}</span> <span style="opacity:0.6;font-size:13px;">(${count})</span>`;
       btn.onclick = () => setCategory(c, btn);
       catBar.appendChild(btn);
     });
@@ -494,9 +618,9 @@
     document.body.className = `mode-${mode}`;
     
     document.querySelectorAll('.ind-tab').forEach(t => t.classList.remove('active'));
-    if (mode === 'grocery') document.getElementById('tabGrocery').classList.add('active');
-    if (mode === 'fashion') document.getElementById('tabFashion').classList.add('active');
-    if (mode === 'service') document.getElementById('tabService').classList.add('active');
+    if (document.getElementById(`tab${mode.charAt(0).toUpperCase() + mode.slice(1)}`)) {
+      document.getElementById(`tab${mode.charAt(0).toUpperCase() + mode.slice(1)}`).classList.add('active');
+    }
 
     const storeSub = document.getElementById('storeSubLabel');
     const heroTag = document.getElementById('heroTagText');
@@ -509,26 +633,47 @@
       storeSub.textContent = 'Supermarket & Daily Provisions';
       heroTag.textContent = '⚡ 10-Min Grocery Delivery & Express Pickup';
       heroHead.textContent = 'Fresh Groceries & Daily Needs, Delivered Instantly.';
-      heroSub.textContent = 'Order fresh farm fruits, vegetables, staples, and daily essentials at the lowest prices.';
-      btnTop.textContent = '🛒 Bulk Order Request';
-      btnPlace.textContent = '🚀 Place Grocery Order';
+      heroSub.textContent = 'Order farm fresh staples, dairy, provisions, and household essentials at the best prices.';
+      btnTop.textContent = '🛒 Bulk Order'; btnPlace.textContent = '🚀 Place Grocery Order';
     } else if (mode === 'fashion') {
       storeSub.textContent = 'Exclusive Fashion & Boutique Showroom';
-      heroTag.textContent = '✨ Premium Quality Fabric & Latest Trends';
-      heroHead.textContent = 'Upgrade Your Wardrobe With Trendy Collections.';
-      heroSub.textContent = 'Explore our handcrafted apparels, designer wear, and premium clothing with easy returns.';
-      btnTop.textContent = '👗 Book Trial / Tailor';
-      btnPlace.textContent = '🛍️ Place Fashion Order';
-    } else if (mode === 'service') {
-      storeSub.textContent = 'Professional Doorstep Services';
-      heroTag.textContent = '🛡️ Verified Professionals & On-Time Doorstep Service';
-      heroHead.textContent = 'Expert Doorstep Services & Reliable Maintenance.';
-      heroSub.textContent = 'Book professional laundry, dry cleaning, repairs, or home consultations with guaranteed quality.';
-      btnTop.textContent = '📅 Schedule Doorstep Service';
-      btnPlace.textContent = '🛎️ Confirm Service Booking';
+      heroTag.textContent = '✨ Premium Fabric Quality & Easy Returns';
+      heroHead.textContent = 'Upgrade Your Wardrobe With Trendy Designer Wear.';
+      heroSub.textContent = 'Explore our handcrafted designer clothing, sarees, kurtis, and modern fashion apparel.';
+      btnTop.textContent = '👗 Book Tailor / Trial'; btnPlace.textContent = '🛍️ Place Fashion Order';
+    } else if (mode === 'medicine') {
+      storeSub.textContent = 'Verified Chemist & Healthcare Pharmacy';
+      heroTag.textContent = '🛡️ 100% Genuine Medicines & Rapid Doorstep Delivery';
+      heroHead.textContent = 'Trusted Pharmacy & Healthcare Supplies.';
+      heroSub.textContent = 'Order verified prescribed medicines, vitamins, wellness supplements, and medical devices.';
+      btnTop.textContent = '📄 Upload Rx'; btnPlace.textContent = '🚀 Order Medicines';
+    } else if (mode === 'electrical') {
+      storeSub.textContent = 'Electricals, Hardware & Electronics';
+      heroTag.textContent = '🔧 Genuine Brand Parts & Official Warranty';
+      heroHead.textContent = 'Heavy-Duty Electricals & Quality Hardware.';
+      heroSub.textContent = 'Order switches, wiring, fans, lights, and authentic appliances with guaranteed reliability.';
+      btnTop.textContent = '⚡ Book Electrician'; btnPlace.textContent = '📦 Place Hardware Order';
+    } else if (mode === 'salon') {
+      storeSub.textContent = 'Professional Salon & Spa Appointments';
+      heroTag.textContent = '✨ Expert Stylists & Premium Sanitized Care';
+      heroHead.textContent = 'Relax, Refresh & Rejuvenate With Expert Grooming.';
+      heroSub.textContent = 'Schedule personalized beauty, haircuts, bridal makeup, or spa sessions with top specialists.';
+      btnTop.textContent = '📅 Schedule Visit'; btnPlace.textContent = '📅 Confirm Appointment';
+    } else if (mode === 'laundry') {
+      storeSub.textContent = 'Professional Laundry & Dry Cleaning';
+      heroTag.textContent = '✨ Express Doorstep Pickup & Hygiene Wash';
+      heroHead.textContent = 'Crisp, Clean & Fresh Clothes Delivered Back to You.';
+      heroSub.textContent = 'Schedule professional washing, steam ironing, shoe cleaning, or carpet care with free pickup.';
+      btnTop.textContent = '📅 Schedule Pickup'; btnPlace.textContent = '🛎️ Confirm Service Booking';
     }
 
     if (!isInitial) render(PRODUCTS);
+  }
+
+  function sendRxWhatsApp() {
+    const bizPhone = BUSINESS.phone ? BUSINESS.phone.replace(/\D/g, '') : '';
+    const msg = `Hello *${BUSINESS.businessName}*! I want to upload/send my Doctor Prescription (Rx) for medicine ordering. Please check!`;
+    window.open(`https://wa.me/91${bizPhone}?text=${encodeURIComponent(msg)}`, '_blank');
   }
 
   function setCategory(cat, el) {
@@ -555,9 +700,7 @@
     document.getElementById('visibleCount').textContent = list.length;
 
     if (list.length === 0) {
-      grid.innerHTML = '';
-      empty.style.display = 'block';
-      return;
+      grid.innerHTML = ''; empty.style.display = 'block'; return;
     }
     empty.style.display = 'none';
 
@@ -570,7 +713,12 @@
       
       let defaultIcon = '📦';
       if (industryMode === 'fashion') defaultIcon = '👗';
-      if (industryMode === 'service') defaultIcon = '🧺';
+      if (industryMode === 'medicine') defaultIcon = '💊';
+      if (industryMode === 'electrical') defaultIcon = '⚡';
+      if (industryMode === 'salon') defaultIcon = '✂️';
+      if (industryMode === 'laundry') defaultIcon = '🧺';
+
+      const isBookingMode = industryMode === 'salon' || industryMode === 'laundry';
 
       return `
         <div class="product-card">
@@ -593,9 +741,9 @@
                 ${disc > 0 ? `<span class="price-old">₹${mrp.toLocaleString('en-IN')}</span>` : ''}
               </div>
 
-              ${!stock ? `<span style="font-size:13px; font-weight:700; color:#ef4444;">Unavailable</span>` :
-                industryMode === 'service' ? `
-                  <button class="btn-book-service" onclick="bookDirectService('${p.name}', ${price})">🛎️ Book Service</button>
+              ${!stock ? `<span style="font-size:13px;font-weight:700;color:#ef4444;">Unavailable</span>` :
+                isBookingMode ? `
+                  <button class="btn-book-service" onclick="openModal('SERVICE', '${p.name}', ${price})">📅 Book Appointment</button>
                 ` : qty === 0 ? `
                   <button class="btn-add" onclick="updateQty('${p.id}', 1)">+ ADD</button>
                 ` : `
@@ -613,10 +761,6 @@
     }).join('');
   }
 
-  function bookDirectService(serviceName, price) {
-    openModal('SERVICE', serviceName, price);
-  }
-
   function updateQty(id, change) {
     cart[id] = (cart[id] || 0) + change;
     if (cart[id] <= 0) delete cart[id];
@@ -632,31 +776,35 @@
       return sum + (p ? parseFloat(p.sellingPrice || p.price || 0) * cart[id] : 0);
     }, 0);
 
-    const label = industryMode === 'grocery' ? 'GROCERY BAG' : industryMode === 'fashion' ? 'SHOPPING BAG' : 'SERVICE REQUESTS';
+    const label = industryMode === 'grocery' ? 'GROCERY BAG' : industryMode === 'fashion' ? 'SHOPPING BAG' : industryMode === 'medicine' ? 'MEDICINE ORDER' : 'ITEMS SELECTED';
     document.getElementById('bagItemCount').textContent = `${totalQty} ITEM${totalQty !== 1 ? 'S' : ''} IN ${label}`;
     document.getElementById('bagTotalAmount').textContent = `₹${totalAmt.toLocaleString('en-IN')}`;
     
     const bar = document.getElementById('checkoutBar');
-    if (totalQty > 0) bar.classList.add('active');
-    else bar.classList.remove('active');
+    const badge = document.getElementById('bottomBagBadge');
+    if (totalQty > 0) {
+      bar.classList.add('active');
+      badge.style.display = 'inline-block';
+      badge.textContent = totalQty;
+    } else {
+      bar.classList.remove('active');
+      badge.style.display = 'none';
+    }
   }
 
   function openModal(mode, customService = '', customPrice = 0) {
     currentModalMode = mode;
     const modal = document.getElementById('actionModal');
     const heading = document.getElementById('modalHeading');
-    const subtext = document.getElementById('modalSubtext');
     const labelNote = document.getElementById('labelNote');
     const previewBox = document.getElementById('orderPreviewBox');
 
     if (mode === 'ORDER') {
       const ids = Object.keys(cart);
-      if (ids.length === 0) return alert('Please add at least one item to your bag first!');
+      if (ids.length === 0 && !customService) return alert('Please select at least one item first!');
       
-      heading.textContent = industryMode === 'grocery' ? '🛒 Confirm Grocery Order' : '🛍️ Confirm Fashion Order';
-      subtext.textContent = `Review your items and enter delivery address for ${BUSINESS.businessName}.`;
-      labelNote.textContent = 'Complete Delivery Address & Landmark *';
-      document.getElementById('custNote').placeholder = 'House No, Building, Street Name, City, Pincode...';
+      heading.textContent = industryMode === 'salon' ? '📅 Confirm Appointment' : '📦 Confirm Your Order';
+      labelNote.textContent = 'Complete Delivery Address or Appointment Note *';
       
       let html = '';
       let total = 0;
@@ -665,7 +813,7 @@
         if (p) {
           const amt = parseFloat(p.sellingPrice || p.price || 0) * cart[id];
           total += amt;
-          html += `<div class="receipt-item"><span>${p.name} × ${cart[id]}</span><span>₹${amt.toLocaleString('en-IN')}</span></div>`;
+          html += `<div style="display:flex;justify-content:space-between;font-size:14px;font-weight:600;margin-bottom:6px;"><span>${p.name} × ${cart[id]}</span><span>₹${amt}</span></div>`;
         }
       });
       document.getElementById('receiptItemsList').innerHTML = html;
@@ -673,23 +821,23 @@
       previewBox.style.display = 'block';
 
     } else {
-      heading.textContent = customService ? `🛎️ Book: ${customService}` : '🛎️ Book Doorstep Service';
-      subtext.textContent = `Schedule a professional service or pickup with ${BUSINESS.businessName}.`;
-      labelNote.textContent = 'Service Details or Preferred Date & Time *';
-      document.getElementById('custNote').value = customService ? `Service Requested: ${customService} (Rate: ₹${customPrice})\nPreferred Time: ` : '';
-      document.getElementById('custNote').placeholder = 'e.g. AC Repair needed tomorrow at 11 AM...';
+      heading.textContent = customService ? `📅 Book: ${customService}` : '📅 Book Doorstep Appointment';
+      labelNote.textContent = 'Preferred Date, Time & Address Details *';
+      document.getElementById('custNote').value = customService ? `Service Booking: ${customService} (Rate: ₹${customPrice})\nPreferred Date & Time: ` : '';
       previewBox.style.display = 'none';
     }
 
     modal.style.display = 'flex';
   }
 
-  function closeModal() {
-    document.getElementById('actionModal').style.display = 'none';
-  }
+  function closeModal() { document.getElementById('actionModal').style.display = 'none'; }
+  function openContactModal() { document.getElementById('contactModal').style.display = 'flex'; }
+  function closeContactModal() { document.getElementById('contactModal').style.display = 'none'; }
 
-  function checkout(type) {
-    openModal('ORDER');
+  function scrollToElem(id, el) {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    if (el) el.classList.add('active');
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   }
 
   async function submitOrder(method) {
@@ -697,9 +845,7 @@
     const phone = document.getElementById('custPhone').value.trim();
     const note = document.getElementById('custNote').value.trim();
 
-    if (!name || !phone || !note) {
-      return alert('Please fill in your Name, Mobile Number, and Address/Details.');
-    }
+    if (!name || !phone || !note) return alert('Please enter your Name, Phone Number, and Details.');
 
     const ids = Object.keys(cart);
     const items = ids.map(id => {
@@ -710,20 +856,12 @@
     const totalAmt = items.reduce((sum, item) => sum + item.total, 0);
 
     if (method === 'wa') {
-      let msg = '';
-      if (currentModalMode === 'ORDER') {
-        msg = `📦 *NEW ONLINE ORDER (${industryMode.toUpperCase()})*\n*Store:* ${BUSINESS.businessName}\n\n👤 *Customer:* ${name}\n📞 *Phone:* ${phone}\n🏠 *Address:* ${note}\n\n*Items Ordered:*\n`;
-        items.forEach(i => msg += `• ${i.name} (${i.quantity} pcs) = ₹${i.total}\n`);
-        msg += `\n💰 *Total Amount: ₹${totalAmt.toLocaleString('en-IN')}*\n\nPlease confirm my order!`;
-      } else {
-        msg = `🛎️ *SERVICE BOOKING REQUEST*\n*Store:* ${BUSINESS.businessName}\n\n👤 *Customer:* ${name}\n📞 *Phone:* ${phone}\n🛠️ *Request:* ${note}\n\nPlease confirm my appointment!`;
-      }
+      let msg = `📦 *NEW ORDER / APPOINTMENT (${industryMode.toUpperCase()})*\n*Store:* ${BUSINESS.businessName}\n\n👤 *Customer:* ${name}\n📞 *Phone:* ${phone}\n📍 *Details:* ${note}\n\n*Selected Items/Services:*\n`;
+      items.forEach(i => msg += `• ${i.name} × ${i.quantity} = ₹${i.total}\n`);
+      msg += `\n💰 *Total Payable: ₹${totalAmt}*\nPlease confirm my order/appointment!`;
       const bizPhone = BUSINESS.phone ? BUSINESS.phone.replace(/\D/g, '') : '';
       window.open(`https://wa.me/91${bizPhone}?text=${encodeURIComponent(msg)}`, '_blank');
-      closeModal();
-      cart = {};
-      updateCheckoutBar();
-      filterProducts();
+      closeModal(); cart = {}; updateCheckoutBar(); filterProducts();
     } else {
       try {
         const slug = window.location.pathname.replace(/^\/shop\//, '').replace(/^\//, '').split('/')[0];
@@ -731,28 +869,18 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            customerName: name,
-            customerPhone: phone,
-            items: currentModalMode === 'ORDER' ? items : [{ name: 'Service: ' + note, quantity: 1, rate: 0, total: 0 }],
-            totalAmount: currentModalMode === 'ORDER' ? totalAmt : 0,
-            note: note,
+            customerName: name, customerPhone: phone,
+            items: currentModalMode === 'ORDER' ? items : [{ name: 'Appointment: ' + note, quantity: 1, rate: 0, total: 0 }],
+            totalAmount: currentModalMode === 'ORDER' ? totalAmt : 0, note: note,
             orderType: currentModalMode === 'ORDER' ? 'online_order' : 'service_booking'
           })
         });
         const data = await res.json();
         if (data.success) {
-          alert('🎉 ' + (currentModalMode === 'ORDER' ? 'ORDER PLACED SUCCESSFULLY!' : 'BOOKING REQUEST SENT!') + '\n\nThe shopkeeper has received your notification in their Dukan Bill app and will contact you shortly.');
-          closeModal();
-          cart = {};
-          updateCheckoutBar();
-          filterProducts();
-        } else {
-          alert('Failed to send: ' + (data.error || 'Unknown error'));
-        }
-      } catch (e) {
-        alert('Network offline. Redirecting to WhatsApp ordering...');
-        submitOrder('wa');
-      }
+          alert('🎉 SUCCESS!\nYour order/appointment request has been sent to the shopkeeper directly in their Dukan Bill app!');
+          closeModal(); cart = {}; updateCheckoutBar(); filterProducts();
+        } else alert('Error: ' + data.error);
+      } catch (e) { submitOrder('wa'); }
     }
   }
 
