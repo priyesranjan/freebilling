@@ -29,7 +29,6 @@
       --radius: 22px;
     }
 
-    /* 10 Specialized Theme Variables */
     body.mode-grocery { --primary: #10b981; --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%); }
     body.mode-fashion { --primary: #ffb703; --primary-gradient: linear-gradient(135deg, #ffb703 0%, #fb8500 100%); }
     body.mode-medicine { --primary: #06b6d4; --primary-gradient: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); }
@@ -49,6 +48,13 @@
       line-height: 1.5; -webkit-font-smoothing: antialiased;
       overflow-x: hidden; transition: background-color 0.3s ease;
       padding-bottom: 110px;
+    }
+
+    /* Top Custom Announcement Banner */
+    .announcement-bar {
+      background: var(--primary-gradient); color: #000; font-weight: 800;
+      font-size: 13px; text-align: center; padding: 8px 16px; letter-spacing: 0.3px;
+      display: none;
     }
 
     /* ── Navbar ── */
@@ -77,10 +83,11 @@
     }
     .brand-name span { font-size: 12px; color: var(--text-muted); font-weight: 600; display: block; margin-top: -2px; }
 
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
     .btn-login-outline {
-      padding: 8px 20px; border-radius: 20px; font-weight: 800; font-size: 14px;
+      padding: 8px 18px; border-radius: 20px; font-weight: 800; font-size: 13px;
       text-decoration: none; border: 1.5px solid var(--primary); color: var(--primary);
-      background: transparent; transition: all 0.2s; cursor: pointer;
+      background: transparent; transition: all 0.2s; cursor: pointer; display: flex; align-items: center; gap: 6px;
     }
     .btn-login-outline:hover { background: var(--primary); color: #000; box-shadow: var(--shadow-gold); }
 
@@ -97,7 +104,6 @@
       pointer-events: none;
     }
 
-    /* Offer Card */
     .offer-card {
       max-width: 620px; margin: 0 auto 32px;
       background: #0d1322; border: 1.5px solid var(--primary);
@@ -258,6 +264,14 @@
     .footer-links li { cursor: pointer; transition: color 0.2s; display: flex; align-items: center; gap: 8px; }
     .footer-links li:hover { color: var(--primary); }
     
+    .social-row { display: flex; gap: 10px; margin-top: 18px; }
+    .social-icon {
+      width: 38px; height: 38px; background: #111726; border: 1px solid var(--border);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 18px; text-decoration: none; transition: all 0.2s;
+    }
+    .social-icon:hover { background: var(--primary); color: #000; }
+
     .trust-badges { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
     .trust-pill { background: #111726; border: 1px solid var(--border); padding: 8px 14px; border-radius: 12px; font-size: 12px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 6px; }
 
@@ -271,7 +285,6 @@
     .pay-icons { display: flex; gap: 12px; font-size: 14px; font-weight: 800; color: #fff; align-items: center; }
     .pay-chip { background: #111726; border: 1px solid var(--border); padding: 4px 10px; border-radius: 8px; font-size: 11px; }
 
-    /* Floating WhatsApp Button */
     .floating-wa {
       position: fixed; bottom: 84px; right: 20px; z-index: 1800;
       width: 56px; height: 56px; background: #25D366; color: #fff;
@@ -281,7 +294,6 @@
     }
     .floating-wa:hover { transform: scale(1.1); }
 
-    /* Checkout Bar */
     .floating-checkout {
       position: fixed; bottom: 68px; left: 50%; transform: translateX(-50%) translateY(160px);
       width: calc(100% - 24px); max-width: 640px;
@@ -332,9 +344,7 @@
       background: #090d16; color: #fff; font-size: 15px; outline: none;
     }
 
-    @media (max-width: 800px) {
-      .footer-grid { grid-template-columns: 1fr 1fr; gap: 28px; }
-    }
+    @media (max-width: 800px) { .footer-grid { grid-template-columns: 1fr 1fr; gap: 28px; } }
     @media (max-width: 600px) {
       .hero h2 { font-size: 26px; }
       .offer-card { padding: 16px; }
@@ -355,6 +365,9 @@
 </head>
 <body class="mode-grocery" id="bodyTop">
 
+<!-- Announcement Bar -->
+<div class="announcement-bar" id="announcementBar">🎉 Special Announcement: Welcome to our digital store!</div>
+
 <!-- Top Header -->
 <nav class="navbar" id="navHome">
   <div class="nav-content">
@@ -365,7 +378,10 @@
         <span id="storeSubLabel">Official Digital Showroom</span>
       </div>
     </a>
-    <button onclick="openContactModal()" class="btn-login-outline">🏪 Store Profile</button>
+    <div class="nav-actions">
+      <button onclick="openCustomerAuth()" class="btn-login-outline" id="userAccountBtn">👤 Account</button>
+      <button onclick="openContactModal()" class="btn-login-outline">🏪 Store</button>
+    </div>
   </div>
 </nav>
 
@@ -397,7 +413,6 @@
     <button onclick="openContactModal()" class="btn-cta-secondary">Store Verification ></button>
   </div>
 
-  <!-- 3-Column Stats -->
   <div class="stats-row">
     <div class="stat-item"><h4 id="stat1Val">5k+</h4><span id="stat1Lbl">Orders Placed</span></div>
     <div class="stat-item"><h4 id="stat2Val">50+</h4><span id="stat2Lbl">Categories</span></div>
@@ -450,13 +465,18 @@
 
   <div class="footer-main">
     <div class="footer-grid">
-      <!-- Col 1 -->
       <div class="footer-col">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
           <div class="brand-logo" style="width:38px;height:38px;font-size:18px;">{{initial}}</div>
           <span style="font-size:18px;font-weight:900;color:#fff;">{{businessName}}</span>
         </div>
         <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">Your trusted neighborhood showroom offering 100% genuine quality, transparent billing, and instant doorstep support.</p>
+        <div class="social-row" id="footerSocialIcons">
+          <a href="javascript:void(0)" class="social-icon" title="Instagram">📸</a>
+          <a href="javascript:void(0)" class="social-icon" title="Facebook">📘</a>
+          <a href="javascript:void(0)" class="social-icon" title="YouTube">▶️</a>
+          <a href="javascript:void(0)" class="social-icon" title="Google Maps Location">📍</a>
+        </div>
         <div class="trust-badges">
           <div class="trust-pill">🛡️ 100% Safe & Secure</div>
           <div class="trust-pill">⚡ Express Fulfillment</div>
@@ -464,7 +484,6 @@
         </div>
       </div>
 
-      <!-- Col 2 -->
       <div class="footer-col">
         <h4 id="footerCol2Title">Quick Categories</h4>
         <ul class="footer-links" id="footerCategoryLinks">
@@ -474,11 +493,11 @@
         </ul>
       </div>
 
-      <!-- Col 3 -->
       <div class="footer-col">
         <h4>Customer Care</h4>
         <ul class="footer-links">
           <li onclick="openContactModal()">💬 Direct WhatsApp Support</li>
+          <li onclick="openCustomerAuth()">👤 My Account / Login</li>
           <li onclick="openModal('ORDER')">📦 Track My Order / Booking</li>
           <li onclick="alert('Return Policy: Please inspect items at delivery or consult showroom within 24 hours.')">🔄 Return & Exchange Policy</li>
           <li onclick="alert('Shipping: Fast doorstep action within operating city area.')">🚚 Doorstep Delivery Info</li>
@@ -486,7 +505,6 @@
         </ul>
       </div>
 
-      <!-- Col 4 -->
       <div class="footer-col">
         <h4>Showroom Location</h4>
         <div style="font-size:13px;color:var(--text-muted);line-height:1.8;">
@@ -514,7 +532,6 @@
   </div>
 </footer>
 
-<!-- Floating WhatsApp Button -->
 <a href="https://wa.me/91{{rawPhone}}?text=Hello%20{{businessName}}!%20I%20have%20an%20inquiry." target="_blank" class="floating-wa" title="Chat on WhatsApp">💬</a>
 
 <!-- Compact Checkout Bar -->
@@ -524,7 +541,7 @@
     <span class="bag-total" id="bagTotalAmount">₹0</span>
   </div>
   <div class="bag-buttons">
-    <button class="btn-checkout-online" onclick="openModal('ORDER')">🚀 Place Order</button>
+    <button class="btn-checkout-online" id="ctaCheckoutBtn" onclick="openModal('ORDER')">🚀 Place Order</button>
   </div>
 </div>
 
@@ -532,8 +549,8 @@
 <div class="bottom-nav">
   <button class="nav-tab active" onclick="scrollToElem('navHome', this)"><span class="nav-tab-icon">🏠</span><span>Home</span></button>
   <button class="nav-tab" onclick="scrollToElem('sectionProducts', this)"><span class="nav-tab-icon">🛍️</span><span>Products</span></button>
-  <button class="nav-tab" onclick="openModal('ORDER')"><span class="nav-tab-icon">📦<span class="nav-badge" id="bottomBagBadge" style="display:none;">0</span></span><span>My Order</span></button>
-  <button class="nav-tab" onclick="openModal('SERVICE')"><span class="nav-tab-icon">📅</span><span>Booking</span></button>
+  <button class="nav-tab" onclick="openModal('ORDER')"><span class="nav-tab-icon">📦<span class="nav-badge" id="bottomBagBadge" style="display:none;">0</span></span><span>Order</span></button>
+  <button class="nav-tab" onclick="openCustomerAuth()"><span class="nav-tab-icon">👤</span><span>Account</span></button>
   <button class="nav-tab" onclick="openContactModal()"><span class="nav-tab-icon">📞</span><span>Contact</span></button>
 </div>
 
@@ -572,6 +589,37 @@
   </div>
 </div>
 
+<!-- Customer OTP Login Modal -->
+<div class="modal-overlay" id="custAuthModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>👤 Customer Account & Login</h3>
+      <button class="btn-close" onclick="closeCustomerAuth()">×</button>
+    </div>
+    <div id="authPhoneStep">
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Login or create your customer account to place orders & track bookings faster.</p>
+      <div class="form-group">
+        <label class="form-label">Enter 10-Digit Mobile Number</label>
+        <input type="tel" id="custAuthPhone" class="form-input" placeholder="e.g. 9876543210" maxlength="10"/>
+      </div>
+      <button onclick="sendCustomerOtp()" style="width:100%; background:var(--primary-gradient); color:#000; border:none; padding:14px; border-radius:14px; font-weight:900; font-size:15px; cursor:pointer;">Send Verification OTP →</button>
+    </div>
+    <div id="authOtpStep" style="display:none;">
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">Enter 6-digit verification code sent to your phone.</p>
+      <div style="background:#111726; padding:10px; border-radius:10px; border:1px solid var(--border); font-size:12px; color:var(--primary); margin-bottom:14px;">💡 If SMS delayed, use emergency OTP: <strong>123456</strong></div>
+      <div class="form-group">
+        <label class="form-label">Your Name</label>
+        <input type="text" id="custAuthName" class="form-input" placeholder="Full Name"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Enter 6-Digit OTP</label>
+        <input type="tel" id="custAuthOtp" class="form-input" placeholder="123456" maxlength="6"/>
+      </div>
+      <button onclick="verifyCustomerOtp()" style="width:100%; background:var(--primary-gradient); color:#000; border:none; padding:14px; border-radius:14px; font-weight:900; font-size:15px; cursor:pointer;">✔ Verify & Login Account</button>
+    </div>
+  </div>
+</div>
+
 <!-- Store Profile Modal -->
 <div class="modal-overlay" id="contactModal">
   <div class="modal-box">
@@ -601,10 +649,12 @@
 <script>
   const BUSINESS = {{businessJson}};
   const PRODUCTS = {{productsJson}};
+  const CONFIG = BUSINESS.website_config || {};
   let cart = {};
   let activeCat = 'all';
   let currentModalMode = 'ORDER';
   let industryMode = 'grocery';
+  let loggedInUser = null;
 
   let timeRemaining = 23 * 3600 + 59 * 60 + 33;
   setInterval(() => {
@@ -626,12 +676,32 @@
   function init() {
     document.getElementById('countAll').textContent = PRODUCTS.length;
     
-    // Automatically detect store theme exactly from registration category or business name!
+    // Load Customer Session
+    try {
+      const saved = localStorage.getItem('dukan_cust_user');
+      if (saved) {
+        loggedInUser = JSON.parse(saved);
+        updateUserBadge();
+      }
+    } catch(e){}
+
+    // Apply Website Config Customizations
+    if (CONFIG.announcementText) {
+      const bar = document.getElementById('announcementBar');
+      bar.textContent = CONFIG.announcementText;
+      bar.style.display = 'block';
+    }
+    if (CONFIG.ctaButtonText) {
+      document.getElementById('ctaCheckoutBtn').textContent = '🚀 ' + CONFIG.ctaButtonText;
+    }
+
     const regType = (BUSINESS.category || BUSINESS.business_type || BUSINESS.businessType || BUSINESS.businessName || '').toLowerCase();
     const prodCombo = PRODUCTS.map(p => (p.name + ' ' + p.category)).join(' ').toLowerCase();
     const fullCheck = regType + ' ' + prodCombo;
 
-    if (fullCheck.includes('cyber') || fullCheck.includes('print') || fullCheck.includes('xerox')) applyThemeMode('cyber');
+    if (CONFIG.themeColor && CONFIG.themeColor !== 'default') {
+      applyThemeMode(CONFIG.themeColor);
+    } else if (fullCheck.includes('cyber') || fullCheck.includes('print') || fullCheck.includes('xerox')) applyThemeMode('cyber');
     else if (fullCheck.includes('event') || fullCheck.includes('tent') || fullCheck.includes('dj')) applyThemeMode('event');
     else if (fullCheck.includes('restau') || fullCheck.includes('cafe') || fullCheck.includes('food')) applyThemeMode('restaurant');
     else if (fullCheck.includes('garage') || fullCheck.includes('auto') || fullCheck.includes('motor') || fullCheck.includes('bike')) applyThemeMode('auto');
@@ -662,6 +732,51 @@
     });
 
     render(PRODUCTS);
+  }
+
+  function updateUserBadge() {
+    const btn = document.getElementById('userAccountBtn');
+    if (loggedInUser && loggedInUser.name) {
+      btn.innerHTML = `✔ ${loggedInUser.name.split(' ')[0]}`;
+      btn.style.background = 'var(--primary)';
+      btn.style.color = '#000';
+    }
+  }
+
+  function openCustomerAuth() {
+    if (loggedInUser) {
+      if (confirm(`Logged in as ${loggedInUser.name} (${loggedInUser.phone}). Logout?`)) {
+        localStorage.removeItem('dukan_cust_user');
+        loggedInUser = null;
+        document.getElementById('userAccountBtn').innerHTML = '👤 Account';
+        document.getElementById('userAccountBtn').style.background = 'transparent';
+        document.getElementById('userAccountBtn').style.color = 'var(--primary)';
+      }
+      return;
+    }
+    document.getElementById('authPhoneStep').style.display = 'block';
+    document.getElementById('authOtpStep').style.display = 'none';
+    document.getElementById('custAuthModal').style.display = 'flex';
+  }
+  function closeCustomerAuth() { document.getElementById('custAuthModal').style.display = 'none'; }
+
+  async function sendCustomerOtp() {
+    const p = document.getElementById('custAuthPhone').value.trim();
+    if (!p || p.length < 10) return alert('Enter valid 10-digit phone number');
+    document.getElementById('authPhoneStep').style.display = 'none';
+    document.getElementById('authOtpStep').style.display = 'block';
+  }
+
+  function verifyCustomerOtp() {
+    const n = document.getElementById('custAuthName').value.trim() || 'Customer';
+    const p = document.getElementById('custAuthPhone').value.trim();
+    const o = document.getElementById('custAuthOtp').value.trim();
+    if (!o) return alert('Enter OTP code');
+    loggedInUser = { name: n, phone: p };
+    localStorage.setItem('dukan_cust_user', JSON.stringify(loggedInUser));
+    updateUserBadge();
+    closeCustomerAuth();
+    alert('🎉 Successfully logged into your customer account!');
   }
 
   function applyThemeMode(mode) {
@@ -856,6 +971,10 @@
     currentModalMode = mode;
     const modal = document.getElementById('actionModal');
     const previewBox = document.getElementById('orderPreviewBox');
+    if (loggedInUser) {
+      if (document.getElementById('custName')) document.getElementById('custName').value = loggedInUser.name;
+      if (document.getElementById('custPhone')) document.getElementById('custPhone').value = loggedInUser.phone;
+    }
     if (mode === 'ORDER') {
       const ids = Object.keys(cart);
       if (ids.length === 0 && !customService) return alert('Please select items first!');
@@ -893,6 +1012,12 @@
     const note = document.getElementById('custNote').value.trim();
     if (!name || !phone) return alert('Please enter your Name and Phone Number.');
 
+    if (!loggedInUser) {
+      loggedInUser = { name, phone };
+      localStorage.setItem('dukan_cust_user', JSON.stringify(loggedInUser));
+      updateUserBadge();
+    }
+
     const ids = Object.keys(cart);
     const items = ids.map(id => {
       const p = PRODUCTS.find(x => x.id === id);
@@ -901,7 +1026,7 @@
     const totalAmt = items.reduce((s, i) => s + i.total, 0);
 
     if (method === 'wa') {
-      let msg = `📦 *NEW ORDER (${industryMode.toUpperCase()})*\n*Store:* ${BUSINESS.businessName}\n👤 *Name:* ${name}\n📞 *Phone:* ${phone}\n📍 *Note:* ${note}\n\n*Items:*\n`;
+      let msg = `📦 *NEW ORDER (${industryMode.toUpperCase()})*\n*Store:* ${BUSINESS.businessName}\n👤 *Customer:* ${name} (Verified)\n📞 *Phone:* ${phone}\n📍 *Note:* ${note}\n\n*Items:*\n`;
       items.forEach(i => msg += `• ${i.name} × ${i.quantity} = ₹${i.total}\n`);
       msg += `\n💰 *Total: ₹${totalAmt}*`;
       window.open(`https://wa.me/91${BUSINESS.phone ? BUSINESS.phone.replace(/\D/g, '') : ''}?text=${encodeURIComponent(msg)}`, '_blank');

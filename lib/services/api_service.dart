@@ -400,4 +400,32 @@ class ApiService {
       throw Exception('Failed to update business profile: ${response.body}');
     }
   }
+
+  static Future<void> updateWebsiteConfig({
+    required String themeColor,
+    required String announcementText,
+    required String ctaButtonText,
+    required String instagram,
+    required String facebook,
+    required String youtube,
+    required String googleMaps,
+  }) async {
+    final token = await getToken();
+    final response = await http.put(
+      Uri.parse('$baseUrl/businesses/website-config'),
+      headers: _headers(token),
+      body: jsonEncode({
+        'themeColor': themeColor,
+        'announcementText': announcementText,
+        'ctaButtonText': ctaButtonText,
+        'instagram': instagram,
+        'facebook': facebook,
+        'youtube': youtube,
+        'googleMaps': googleMaps,
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update website config: ${response.body}');
+    }
+  }
 }

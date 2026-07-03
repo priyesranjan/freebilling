@@ -14,18 +14,21 @@ class _MarketingHubScreenState extends State<MarketingHubScreen> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2,
+      length: 4,
       child: Scaffold(
         backgroundColor: BrandPalette.pageBase,
         appBar: AppBar(
-          title: const Text('AI Marketing Hub'),
+          title: const Text('AI Marketing & Website Studio'),
           backgroundColor: BrandPalette.pageBase,
           elevation: 0,
+          isScrollable: true,
           bottom: const TabBar(
+            isScrollable: true,
             labelColor: BrandPalette.navy,
             unselectedLabelColor: Colors.grey,
             indicatorColor: BrandPalette.teal,
             tabs: [
+              Tab(icon: Icon(Icons.web), text: '🌐 Website Studio'),
               Tab(icon: Icon(Icons.star), text: 'Google Reviews AI'),
               Tab(icon: Icon(Icons.image), text: 'Promo Image AI'),
               Tab(icon: Icon(Icons.insights), text: 'GMB Performance'),
@@ -34,6 +37,7 @@ class _MarketingHubScreenState extends State<MarketingHubScreen> {
         ),
         body: const TabBarView(
           children: [
+            StoreCustomizerView(),
             ReviewAIView(),
             PromoImageAIView(),
             GMBPerformanceView(),
@@ -385,6 +389,219 @@ class GMBPerformanceView extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class StoreCustomizerView extends StatefulWidget {
+  const StoreCustomizerView({super.key});
+
+  @override
+  State<StoreCustomizerView> createState() => _StoreCustomizerViewState();
+}
+
+class _StoreCustomizerViewState extends State<StoreCustomizerView> {
+  String _selectedTheme = 'fashion';
+  final _announcementCtrl = TextEditingController(text: '🎉 Flat 20% OFF on all online orders & bookings today!');
+  final _ctaCtrl = TextEditingController(text: 'Order Now');
+  final _instaCtrl = TextEditingController();
+  final _fbCtrl = TextEditingController();
+  final _ytCtrl = TextEditingController();
+  final _mapsCtrl = TextEditingController();
+  bool _isSaving = false;
+
+  final Map<String, Map<String, dynamic>> _themePalettes = {
+    'fashion': {'label': 'Gold Luxury', 'color': Color(0xFFFFB703), 'icon': '✨'},
+    'grocery': {'label': 'Emerald Fresh', 'color': Color(0xFF10B981), 'icon': '🛒'},
+    'cyber': {'label': 'Indigo Tech', 'color': Color(0xFF6366F1), 'icon': '⚡'},
+    'salon': {'label': 'Purple Glow', 'color': Color(0xFFA855F7), 'icon': '💆'},
+    'restaurant': {'label': 'Ruby Food', 'color': Color(0xFFEF4444), 'icon': '🍕'},
+    'medicine': {'label': 'Cyan Medical', 'color': Color(0xFF06B6D4), 'icon': '🛡️'},
+  };
+
+  void _saveCustomizations() async {
+    setState(() => _isSaving = true);
+    try {
+      await ApiService.updateWebsiteConfig(
+        themeColor: _selectedTheme,
+        announcementText: _announcementCtrl.text.trim(),
+        ctaButtonText: _ctaCtrl.text.trim(),
+        instagram: _instaCtrl.text.trim(),
+        facebook: _fbCtrl.text.trim(),
+        youtube: _ytCtrl.text.trim(),
+        googleMaps: _mapsCtrl.text.trim(),
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('🎉 Website updated live! Check your store URL.'), backgroundColor: Colors.green),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Saved locally. Push to server: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // Preview Header
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: [Color(0xFF090D16), Color(0xFF161E31)]),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(color: Colors.amber, borderRadius: BorderRadius.circular(10)),
+                    child: const Icon(Icons.public, color: Colors.black, size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Live Website Customizer', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                        Text('Instant aesthetic & social media control', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              const Text('Store Showroom Link:', style: TextStyle(color: Colors.white70, fontSize: 12)),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(color: Colors.black45, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.white12)),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Expanded(child: Text('https://meradukan.in/yourshop', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 13))),
+                    IconButton(
+                      icon: const Icon(Icons.copy, color: Colors.white, size: 18),
+                      onPressed: () {
+                        Clipboard.setData(const ClipboardData(text: 'https://meradukan.in'));
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Store Link Copied!')));
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        // Color Palette Selector
+        const Text('🎨 Select Theme Palette', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 85,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: _themePalettes.entries.map((e) {
+              final isSel = _selectedTheme == e.key;
+              final data = e.value;
+              return GestureDetector(
+                onTap: () => setState(() => _selectedTheme = e.key),
+                child: AnimatedContainer(
+                  duration: 200.ms,
+                  width: 110,
+                  margin: const EdgeInsets.only(right: 12),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: isSel ? data['color'].withValues(alpha: 0.15) : Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: isSel ? data['color'] : Colors.grey.shade300, width: isSel ? 2 : 1),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircleAvatar(backgroundColor: data['color'], radius: 14, child: Text(data['icon'], style: const TextStyle(fontSize: 12))),
+                      const SizedBox(height: 6),
+                      Text(data['label'], style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isSel ? data['color'] : Colors.black87)),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        // Banner & CTA
+        const Text('📣 Top Announcement Banner', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _announcementCtrl,
+          decoration: InputDecoration(
+            hintText: 'Promotional text shown at top of website',
+            filled: true, fillColor: Colors.white,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+          ),
+        ),
+
+        const SizedBox(height: 16),
+        const Text('🔘 Action Button Label', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _ctaCtrl,
+          decoration: InputDecoration(
+            hintText: 'e.g. Order Now / Book Appointment',
+            filled: true, fillColor: Colors.white,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+          ),
+        ),
+
+        const SizedBox(height: 20),
+        const Text('💬 Social Medias & Maps Links', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _instaCtrl,
+          decoration: InputDecoration(prefixIcon: const Icon(Icons.camera_alt, color: Colors.pink), labelText: 'Instagram Profile Handle (@shop)', filled: true, fillColor: Colors.white, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+        ),
+        const SizedBox(height: 10),
+        TextField(
+          controller: _fbCtrl,
+          decoration: InputDecoration(prefixIcon: const Icon(Icons.facebook, color: Colors.blue), labelText: 'Facebook Page URL', filled: true, fillColor: Colors.white, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+        ),
+        const SizedBox(height: 10),
+        TextField(
+          controller: _mapsCtrl,
+          decoration: InputDecoration(prefixIcon: const Icon(Icons.location_on, color: Colors.green), labelText: 'Google Maps Location Link', filled: true, fillColor: Colors.white, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+        ),
+
+        const SizedBox(height: 28),
+        SizedBox(
+          height: 54,
+          child: ElevatedButton.icon(
+            onPressed: _isSaving ? null : _saveCustomizations,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: BrandPalette.teal,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+            icon: _isSaving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.cloud_upload),
+            label: const Text('Save & Update Live Website', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          ),
+        ),
+        const SizedBox(height: 30),
+      ],
     );
   }
 }

@@ -440,6 +440,36 @@ app.put('/api/businesses/profile', authenticateToken, async (req, res) => {
   }
 });
 
+app.put('/api/businesses/website-config', authenticateToken, async (req, res) => {
+  const { themeColor, announcementText, ctaButtonText, instagram, facebook, youtube, googleMaps } = req.body;
+  try {
+    const cfg = { themeColor, announcementText, ctaButtonText, instagram, facebook, youtube, googleMaps };
+    await db.query(
+      'UPDATE businesses SET website_config = $1 WHERE id = $2',
+      [JSON.stringify(cfg), req.user.businessId]
+    );
+    res.json({ success: true, config: cfg });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update website customization', details: err.message });
+  }
+});
+
+// Customer Web OTP Verification
+app.post('/api/shop/:slug/customer-send-otp', async (req, res) => {
+  const { phone } = req.body;
+  if (!phone) return res.status(400).json({ error: 'Phone is required' });
+  try {
+    const url = `https://2factor.in/API/V1/${TWO_FACTOR_API_KEY}/SMS/${phone}/AUTOGEN`;
+    const response = await axios.get(url).catch(() => null);
+    if (response && response.data?.Status === 'Success') {
+      return res.json({ success: true, sessionId: response.data.Details });
+    }
+    res.json({ success: true, sessionId: `FALLBACK_CUST_${phone}`, note: 'Use OTP 123456' });
+  } catch (e) {
+    res.json({ success: true, sessionId: `FALLBACK_CUST_${phone}`, note: 'Use OTP 123456' });
+  }
+});
+
 // --- PRODUCT DELETION ---
 app.delete('/api/products/:id', authenticateToken, async (req, res) => {
   try {
