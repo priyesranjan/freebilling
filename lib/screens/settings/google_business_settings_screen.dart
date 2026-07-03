@@ -125,10 +125,11 @@ class _GoogleBusinessSettingsScreenState extends State<GoogleBusinessSettingsScr
       // For simplicity in this demo, we'll just update the gmb_location_id.
       // In production, you'd use a dedicated 'updateSettings' API.
       
+      final s = AppSettings.instance;
       await ApiService.updateOnboarding(
-        name: 'My Business', // Should be dynamic
-        businessType: 'retail', // Should be dynamic
-        websiteSlug: 'my-shop', // Should be dynamic
+        name: s.businessName.isEmpty ? 'My Shop' : s.businessName,
+        businessType: s.businessType.isEmpty ? 'retail' : s.businessType,
+        websiteSlug: s.websiteSlug.isEmpty ? 'my-shop' : s.websiteSlug,
         gmbLocationId: _selectedLocationId,
       );
 

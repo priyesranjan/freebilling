@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../core/core.dart';
 import '../services/api_service.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'settings/google_business_settings_screen.dart';
 
 class MarketingHubScreen extends StatefulWidget {
   const MarketingHubScreen({super.key});
@@ -584,8 +585,62 @@ class _GMBPerformanceViewState extends State<GMBPerformanceView> {
 
         const SizedBox(height: 20),
 
+        // Official Google Sign-In Link (Dhandha AI Style)
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [Color(0xFF4285F4), Color(0xFF1A73E8)]),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [BoxShadow(color: Color(0xFF4285F4).withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+                    child: const Icon(Icons.g_mobiledata, color: Color(0xFF4285F4), size: 32),
+                  ),
+                  const SizedBox(width: 14),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('🔗 Link Official Google Business Profile', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                        SizedBox(height: 4),
+                        Text('Sign in with your Google account to manage reviews, store hours, and edits directly!', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const GoogleBusinessSettingsScreen()));
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFF1A73E8),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  icon: const Icon(Icons.login, size: 18),
+                  label: const Text('Connect Google Account (Official OAuth)', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
         // Places API Review Booster
-        const Text('⭐ Google Places API Review Booster', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const Text('⭐ Or Connect via Google Place ID', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.all(14),
