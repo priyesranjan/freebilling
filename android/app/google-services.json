@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "918529139657-eb1mfnmrvngfpabilb87kpeusnqn8th8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.appdost.freebilling",
+            "certificate_hash": "733a0d59a3b8542368f5a1f682c0f0c66372f802"
+          }
+        },
+        {
           "client_id": "918529139657-fvrr7avasbe9ejf5n7htsm8es963j1q1.apps.googleusercontent.com",
           "client_type": 3
         }
